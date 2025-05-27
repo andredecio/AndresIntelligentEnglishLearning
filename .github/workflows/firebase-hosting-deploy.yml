@@ -1,0 +1,35 @@
+name: Deploy to Firebase Hosting on Merge
+
+on:
+  push:
+    branches:
+      - main # Or the name of your main branch (e.g., master)
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest # Uses the latest Ubuntu environment on GitHub Actions
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 # Action to check out your repository's code
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4 # Action to set up Node.js
+        with:
+          node-version: '18' # Or the Node.js version your project needs
+
+      - name: Install Dependencies
+        run: npm ci # Installs dependencies, 'ci' is often preferred in CI environments
+
+      - name: Build Project
+        run: npm run build # Command to build your web app (adjust if your build command is different)
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0 # The official GitHub Action for Firebase Hosting
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }} # Standard GitHub token for checking out code
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ENDURING_VICTOR_460703_A2 }} # The Firebase service account secret
+          projectId: enduring-victor-460703-a2 # Your Firebase project ID
+          # Optional: Specify the directory to deploy (defaults to 'public' or the one in firebase.json)
+          # public: ./path/to/your/build/output/directory # Uncomment and update if needed
+
