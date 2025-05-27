@@ -16,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4 # Action to set up Node.js
         with:
-          node-version: '18' # Or the Node.js version your project needs
+          node-version: '20' # Or the Node.js version your project needs
 
       - name: Install Dependencies
         run: npm ci # Installs dependencies, 'ci' is often preferred in CI environments
