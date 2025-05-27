@@ -1,0 +1,79 @@
+import matplotlib.pyplot as plt
+from fpdf import FPDF
+
+# Student information
+student_id = 11
+student_name = "Krurgkiat Siributr"
+
+# Performance overview data
+performance_scores = {
+    "Comprehension": 74,
+    "Fluency": 68,
+    "Grammar": 60,
+    "Vocabulary": 65,
+    "Pronunciation": 70,
+    "Confidence": 67,
+    "Potential": 80,
+    "Responsiveness": 69,
+    "Participation": 70,
+    "Effort": 72,
+    "Contribution": 66,
+}
+
+# Error report data
+error_report = [
+    {"Error ID": 2, "Error Type": "Grammar Error", "Example": "I wakes up at 8 o'clock"},
+    {"Error ID": 3, "Error Type": "Conjugation of Verbs", "Example": "He don't likes to play football"},
+    {"Error ID": 6, "Error Type": "Tense Error", "Example": "Running into garden"},
+    {"Error ID": 4, "Error Type": "Syntax Error", "Example": "Running into garden"},
+    {"Error ID": 9, "Error Type": "Article Error", "Example": "Running into garden"},
+    {"Error ID": 5, "Error Type": "Incorrect or Missing Prepositions", "Example": "have breakfast with coffee with my friends"},
+]
+
+# Step 1: Create and save the performance chart
+plt.figure(figsize=(10, 5))
+plt.bar(performance_scores.keys(), performance_scores.values(), color='skyblue')
+plt.title(f"Performance Overview - {student_name}")
+plt.xticks(rotation=45, ha='right')
+plt.ylim(0, 100)
+plt.tight_layout()
+performance_chart_path = "/mnt/data/performance_chart.png"
+plt.savefig(performance_chart_path)
+plt.close()
+
+# Step 2: Create PDF and insert performance chart and error report
+pdf = FPDF()
+pdf.add_page()
+pdf.set_font("Arial", size=12)
+pdf.cell(200, 10, txt=f"Student Report - {student_name}", ln=True, align='C')
+
+# Insert performance chart
+pdf.image(performance_chart_path, x=10, y=30, w=180)
+pdf.ln(90)
+
+# Add error report
+pdf.ln(10)
+pdf.set_font("Arial", size=12)
+pdf.cell(200, 10, txt="Error Report", ln=True, align='L')
+pdf.ln(5)
+
+# Add table headers
+pdf.set_font("Arial", 'B', 12)
+pdf.cell(20, 10, "ID", 1)
+pdf.cell(70, 10, "Type", 1)
+pdf.cell(100, 10, "Example", 1)
+pdf.ln()
+
+# Table rows
+pdf.set_font("Arial", '', 12)
+for error in error_report:
+    pdf.cell(20, 10, str(error["Error ID"]), 1)
+    pdf.cell(70, 10, error["Error Type"], 1)
+    pdf.cell(100, 10, error["Example"], 1)
+    pdf.ln()
+
+# Save PDF
+pdf_path = "/mnt/data/student_11_full_report.pdf"
+pdf.output(pdf_path)
+
+pdf_path
