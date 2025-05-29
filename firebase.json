@@ -1,8 +1,27 @@
 {
-  "hosting": {
-    "site": "enduring-victor-460703-a2-47c46",
-
-    "public": "public"
-
-  }
+  "hosting": [ // Use an array to define configurations for specific sites/targets
+    {
+      "target": "enduring-victor-460703-a2",  // This configuration block is for the site matching your Project ID
+      "public": "public",  // The directory to deploy for this site
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ]
+      // Add any other hosting configurations specific to this site here
+      // For example, rewrites, headers, cleanUrls, etc.
+    }
+    // If you ever wanted to deploy the *same* public directory to the other site
+    // (enduring-victor-460703-a2-47c46), you could add another block like this:
+    // , {
+    //   "target": "enduring-victor-460703-a2-47c46", // Configuration for your second site
+    //   "public": "public", // Assuming it deploys the same content
+    //   "ignore": [
+    //     "firebase.json",
+    //     "**/.*",
+    //     "**/node_modules/**"
+    //   ]
+    // }
+  ]
+  // Keep any other service configurations here (e.g., "functions", "firestore")
 }
