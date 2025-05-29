@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         signInOptions: [
             firebase.auth.EmailAuthProvider.PROVIDER_ID, // Email/Password sign-in
             firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-			      firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+			     // firebase.auth.FacebookAuthProvider.PROVIDER_ID, removed because Apple not set up yet
 			      firebase.auth.AppleAuthProvider.PROVIDER_ID,
             // Add other providers you've enabled (e.g., firebase.auth.PhoneAuthProvider.PROVIDER_ID)
         ],
