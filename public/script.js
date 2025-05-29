@@ -45,4 +45,4 @@ document.addEventListener('DOMContentLoaded', () => {
         callbacks: {
             signInSuccessWithAuthResult: (authResult, redirectUrl) => {
                 const user = authResult.user;
-                console.log("User signed in or signed up successfully via FirebaseUI
+			console.log("User signed in or signed up successfully via FirebaseUI});
