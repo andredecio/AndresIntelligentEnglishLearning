@@ -94,19 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
                  // You might want to display a user-friendly error message on the page here.
                  // error.code can give more specific details (e.g., 'firebaseui/anonymous-upgrade-merge-conflict').
             }
-        },
-        // We want the sign-in flow to appear as a popup or redirect, depending on provider.
-        // Using 'popup' is often smoother for social providers but can have browser limitations.
-        // 'redirect' is more reliable but takes the user away from your page briefly.
-        // Let's stick with the default which is typically redirect for most social and popup for email.
-        // signInFlow: 'popup', // Uncomment this line if you prefer popup for all providers that support it.
-
-        // Where to redirect after successful sign-in (if signInSuccessWithAuthResult returns true, or if no callback is provided).
-        // Since we return false in signInSuccessWithAuthResult, this URL is less critical, but good practice to set.
-        // signInSuccessUrl: '/', // Example: redirect to the root of your app after successful login.
-
-        // Automatically upgrade anonymous users to permanent accounts when they sign in with a provider via FirebaseUI.
-        // This is essential for allowing anonymous users to "create an account" later by linking their anonymous session.
+        }, // <-- This is the end of the 'callbacks' object. The second part starts right after this comma.
+        // Adding autoUpgradeAnonymousUsers: true as discussed
         autoUpgradeAnonymousUsers: true,
 
         // Configure the list of authentication providers to offer in the FirebaseUI widget.
@@ -122,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add Terms of Service and Privacy Policy links if you have them. Highly recommended for production apps.
         // termsOfServiceUrl: '<your-terms-of-service-url>',
         // privacyPolicyUrl: '<your-privacy-policy-url>'
-    };
+    }; // <-- This is the end of the uiConfig object.
 
     // Initialize the FirebaseUI Widget instance using the Firebase Auth instance.
     // We initialize it here, but only call ui.start() when we need to display the UI widget.
@@ -312,4 +301,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Authentication options container shown.");
 
                  // Start FirebaseUI to render the social/email sign-in options.
-                 // Only start FirebaseUI if its container exists and it'
+                 // Only start FirebaseUI if its container exists and it's not already active.
+                 if (uiContainer && !ui.isSignInFlowActive()) {
+                      ui.start('#firebaseui-auth-container', uiConfig);
+                      console.log("FirebaseUI widget started.");
+                  } else if (uiContainer) {
+                      console.log("FirebaseUI was already active.");
+                  } else {
+                      console.error("FirebaseUI container element not found when trying to start UI!");
+                  }
+            } else {
+                 console.error("Auth options container element not found!");
+            }
+
+            // Hide any loading text.
+             if (loadEl) loadEl.style.display = 'none';
+
+        }
+    }); // <-- This closes the onAuthStateChanged listener.
+
+}); // <-- This closes the DOMContentLoaded listener. This is the FINAL line of the script.
+
