@@ -30,6 +30,8 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }} # Standard GitHub token for checking out code
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ENDURING_VICTOR_460703_A2 }} # The Firebase service account secret
           projectId: enduring-victor-460703-a2 # Your Firebase project ID
+          target: enduring-victor-460703-a2 # <-- Explicitly target the default site ID
+          # Explicitly defined the target for channel id of live
           # Removed the channelId and expires lines to deploy to the live channel on push
           # channelId: preview
           # expires: 7d
