@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                          // Restart FirebaseUI so user can try other sign-in methods.
                          // Ensure the container exists and FirebaseUI isn't already active before starting.
-                         if (uiContainer && !ui.isSignInFlowActive()) {
+                         if (uiContainer) {
                               ui.start('#firebaseui-auth-container', uiConfig);
                               console.log("FirebaseUI widget started after anonymous sign-in failure.");
                           } else if (uiContainer) {
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                  // Start FirebaseUI to allow the anonymous user to link their current session to a provider.
                  // Since autoUpgradeAnonymousUsers: true is set in uiConfig, FirebaseUI will handle the linking process.
-                  if (uiContainer && !ui.isSignInFlowActive()) {
+                  if (uiContainer) {
                        ui.start('#firebaseui-auth-container', uiConfig);
                        console.log("FirebaseUI widget started for account linking.");
                    } else if (uiContainer) {
@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                  // Start FirebaseUI to render the social/email sign-in options.
                  // Only start FirebaseUI if its container exists and it's not already active.
-                 if (uiContainer && !ui.isSignInFlowActive()) {
+                 if (uiContainer) {
                       ui.start('#firebaseui-auth-container', uiConfig);
                       console.log("FirebaseUI widget started.");
                   } else if (uiContainer) {
