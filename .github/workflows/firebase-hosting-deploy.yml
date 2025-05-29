@@ -39,9 +39,8 @@ jobs:
       # Deploy to Firebase Hosting (live channel) using the Firebase CLI directly
       - name: Deploy to Firebase Hosting Live
         # Use npx to run firebase-tools without installing it globally
-        # The 'deploy' command without 'hosting:channel:' targets the live channel
-        # --only hosting:<site-id> targets a specific hosting site
+        # --only hosting deploys the main hosting config defined in firebase.json
         # --project <project-id> specifies the project
-        run: npx firebase-tools deploy --only hosting:enduring-victor-460703-a2 --project enduring-victor-460703-a2
+        run: npx firebase-tools deploy --only hosting --project enduring-victor-460703-a2 # <-- Changed this line
         # The google-github-actions/auth step above sets up the environment
         # for firebase-tools to pick up credentials automatically.
