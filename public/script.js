@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  authOptionsContainer.style.display = 'none';
                  // If FirebaseUI was active, stop it before attempting anonymous sign-in.
                  // This prevents odd states if a user clicks "Just Look Around" while the UI is rendering.
-                 if (ui.isSignInFlowActive()) {
+                 if (ui) {
                      ui.reset(); // Stop and reset the FirebaseUI flow.
                      console.log("FirebaseUI flow reset before anonymous sign-in attempt.");
                   }
