@@ -67,8 +67,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // If autoUpgradeAnonymousUsers is true, this also fires when an anonymous user links an account.
             signInSuccessWithAuthResult: (authResult, redirectUrl) => {
                 const user = authResult.user;
-                console.log("User signed in or signed up successfully via FirebaseUI:", user);
+				console.log("User signed in or signed up successfully via FirebaseUI:", user);
                 console.log("Is Anonymous (should be false after successful sign-in via UI):", user.isAnonymous);
+				// *** FIX: Reset FirebaseUI here after a successful sign-in via the UI ***
+				// We know 'ui' exists and was active if this callback fired.
+				if (ui) { // Added safety check for ui existence
+				ui.reset(); // Stop the FirebaseUI flow to clean up listeners/state.
+				console.log("FirebaseUI flow reset upon successful sign-in via callback.");
+				}
+
 
                 // The onAuthStateChanged listener (defined below) is the central place
                 // to handle UI updates and redirects after *any* auth state change (sign-in, sign-out, link, unlink).
@@ -104,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             firebase.auth.EmailAuthProvider.PROVIDER_ID, // Email/Password sign-in
             firebase.auth.GoogleAuthProvider.PROVIDER_ID,
 			firebase.auth.FacebookAuthProvider.PROVIDER_ID, 
-			     // firebase.auth.AppleAuthProvider.PROVIDER_ID, removed because Apple not set up yet
+			// firebase.auth.AppleAuthProvider.PROVIDER_ID, removed because Apple not set up yet
             // Add other providers you've enabled (e.g., firebase.auth.PhoneAuthProvider.PROVIDER_ID)
         ],
 
@@ -251,11 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hide the authentication options container since a user is authenticated.
             if (authOptionsContainer) {
                  authOptionsContainer.style.display = 'none';
-                 // If FirebaseUI was active (e.g., user just signed in via the UI), stop it.
-                  if (ui && ui.isSignInFlowActive()) { // Check if ui instance exists and is active
-                     ui.reset(); // Stop the FirebaseUI flow to clean up listeners/state.
-                     console.log("FirebaseUI flow reset upon successful sign-in.");
-                  }
+
             }
             // Show your main application content.
             if (mainAppContent) {
