@@ -319,4 +319,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
         }
     }); // <-- This closes the onAuthStateChanged listener.
-}); // <-- This closes the DOMContentLoaded listener. This is the FINAL line of the script.
+});
