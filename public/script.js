@@ -91,7 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.log('Email verification link sent!');
                             // You might want to display a message to the user on the page
                             // instructing them to check their email.
-                            // For example: messageEl.textContent = "Please check your email to verify your account.";
+                            // For example: messageEl.textContent = "Please check your email to verify
+// --- START OF PART 2 ---
+
+                            // your account.";
                             // You would need to make your messageEl visible and possibly hide other content.
                             alert("A verification email has been sent to your address. Please check your inbox!"); // Using alert for simplicity, replace with better UI
                         })
@@ -184,9 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // We initialize it here, but only call ui.start() when we need to display the UI widget.
     const ui = new firebaseui.auth.AuthUI(auth);
 
-    // --- END OF PART 1 ---
+    // --- END OF PART 2 ---
     // --- COPY THE TEXT BELOW AND PASTE IT IMMEDIATELY AFTER THE TEXT ABOVE ---
-    // --- START OF PART 2 ---
+    // --- START OF PART 3 ---
 
     // --- Anonymous Sign-in Button Handler ---
     // This listener handles the click event on the "Just Look Around" button.
@@ -292,10 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   // Sign-out successful.
                   console.log("User signed out successfully.");
                   // The onAuthStateChanged listener will automatically fire after successful sign out,
-                  // detecting that there is no
-    // --- START OF PART 3 ---
-
-                  // user and updating the UI to show the auth options.
+                  // detecting that there is no user and updating the UI to show the auth options.
               }).catch((error) => {
                   // An error happened during sign-out.
                   console.error("Error signing out:", error);
