@@ -121,8 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }, // <--- Correctly placed comma
             // This callback is triggered when the FirebaseUI widget is fully rendered and ready.
 // --- START OF PART 2 ---
-
-            uiShown: function() { // This line should now be clean.
+// This line should now be clean.
+            uiShown: function() { 
               console.log("FirebaseUI widget shown.");
               // Ensure the loader is hidden once the UI form is visible.
               if (loadEl) {
