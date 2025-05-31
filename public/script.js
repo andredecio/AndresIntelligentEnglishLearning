@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
              } else {
                   console.error("Auth options container element not found when trying to display for linking!");
              }
-         });
+         })
      } else {
          console.warn("Create Account button element (#createAccountButton) not found in index.html!");
      }
