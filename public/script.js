@@ -69,6 +69,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 const user = authResult.user;
 				console.log("User signed in or signed up successfully via FirebaseUI:", user);
                 console.log("Is Anonymous (should be false after successful sign-in via UI):", user.isAnonymous);
+				// --- FirebaseUI configuration ---
+// Defines how FirebaseUI behaves and which providers it offers.
+const uiConfig = {
+    callbacks: {
+        // This callback is triggered on successful sign-in or sign-up using the FirebaseUI widget.
+        // This includes new sign-ups and users signing in with existing registered accounts.
+        // If autoUpgradeAnonymousUsers is true, this also fires when an anonymous user links an account.
+        signInSuccessWithAuthResult: (authResult, redirectUrl) => {
+            const user = authResult.user;
+            console.log("User signed in or signed up successfully via FirebaseUI:", user);
+            console.log("Is Anonymous (should be false after successful sign-in via UI):", user.isAnonymous);
+
+            // *** NEW CODE START: Check if email verification is needed and send email ***
+
+            // Check if the user just signed up (creationTime === lastSignInTime)
+            // AND they signed in with email/password
+            // AND their email is not already verified.
+            // This prevents sending verification emails to returning users or users
+            // who signed up with other providers like Google or Facebook (which handle verification themselves).
+            if (user &&
+                user.email && // Make sure user object and email exist
+                !user.emailVerified && // Check if email is NOT verified
+                user.metadata && // Check if metadata exists
+                user.metadata.creationTime === user.metadata.lastSignInTime && // Check if it's a new user session
+                user.providerData.some(provider => provider.providerId === firebase.auth.EmailAuthProvider.PROVIDER_ID) // Check if email/password provider was used
+            ) {
+                console.log("New email/password user detected. Email not verified. Sending verification email...");
+
+                user.sendEmailVerification()
+                    .then(() => {
+                        // Email verification sent successfully.
+                        console.log('Email verification link sent!');
+                        // You might want to display a message to the user on the page
+                        // instructing them to check their email.
+                        // For example: messageEl.textContent = "Please check your email to verify your account.";
+                        // You would need to make your messageEl visible and possibly hide other content.
+                        alert("A verification email has been sent to your address. Please check your inbox!"); // Using alert for simplicity, replace with better UI
+                    })
+                    .catch((error) => {
+                        // Handle errors, e.g., if the user is offline
+                        console.error('Error sending email verification:', error);
+                        // Display an error message to the user.
+                         alert(`Error sending verification email: ${error.message}`); // Using alert for simplicity
+                    });
+            } else {
+                console.log("User is either not new, email is already verified, or signed in with a different provider. No verification email sent.");
+            }
+             // *** NEW CODE END ***
+
+				
+				
 				// *** FIX: Reset FirebaseUI here after a successful sign-in via the UI ***
 				// We know 'ui' exists and was active if this callback fired.
 				if (ui) { // Added safety check for ui existence
