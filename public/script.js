@@ -69,20 +69,56 @@ document.addEventListener('DOMContentLoaded', () => {
                 const user = authResult.user;
 				console.log("User signed in or signed up successfully via FirebaseUI:", user);
                 console.log("Is Anonymous (should be false after successful sign-in via UI):", user.isAnonymous);
-				// *** FIX: Reset FirebaseUI here after a successful sign-in via the UI ***
+
+                // *** START: ADDED CODE FOR EMAIL VERIFICATION ***
+                // Check if the user just signed up (creationTime === lastSignInTime)
+                // AND they signed in with email/password
+                // AND their email is not already verified.
+                // This prevents sending verification emails to returning users or users
+                // who signed up with other providers like Google or Facebook (which handle verification themselves).
+                if (user &&
+                    user.email && // Make sure user object and email exist
+                    !user.emailVerified && // Check if email is NOT verified
+                    user.metadata && // Check if metadata exists
+                    user.metadata.creationTime === user.metadata.lastSignInTime && // Check if it's a new user session
+                    user.providerData.some(provider => provider.providerId === firebase.auth.EmailAuthProvider.PROVIDER_ID) // Check if email/password provider was used
+                ) {
+                    console.log("New email/password user detected. Email not verified. Sending verification email...");
+
+                    user.sendEmailVerification()
+                        .then(() => {
+                            // Email verification sent successfully.
+                            console.log('Email verification link sent!');
+                            // You might want to display a message to the user on the page
+                            // instructing them to check their email.
+                            // For example: messageEl.textContent = "Please check your email to verify your account.";
+                            // You would need to make your messageEl visible and possibly hide other content.
+                            alert("A verification email has been sent to your address. Please check your inbox!"); // Using alert for simplicity, replace with better UI
+                        })
+                        .catch((error) => {
+                            // Handle errors, e.g., if the user is offline or quota exceeded
+                            console.error('Error sending email verification:', error);
+                            // Display an error message to the user.
+                             alert(`Error sending verification email: ${error.message}`); // Using alert for simplicity
+                        });
+                } else {
+                    console.log("User is either not new, email is already verified, or signed in with a different provider. No verification email sent.");
+                }
+                 // *** END: ADDED CODE FOR EMAIL VERIFICATION ***
+
+				// *** Reset FirebaseUI here after a successful sign-in via the UI ***
 				// We know 'ui' exists and was active if this callback fired.
 				if (ui) { // Added safety check for ui existence
 				ui.reset(); // Stop the FirebaseUI flow to clean up listeners/state.
 				console.log("FirebaseUI flow reset upon successful sign-in via callback.");
 				}
 
-
                 // The onAuthStateChanged listener (defined below) is the central place
                 // to handle UI updates and redirects after *any* auth state change (sign-in, sign-out, link, unlink).
                 // Returning false here prevents FirebaseUI from performing a default redirect
                 // and allows our onAuthStateChanged listener to fully control the user flow.
                 return false;
-            },
+            }, // <--- Correctly placed comma
             // This callback is triggered when the FirebaseUI widget is fully rendered and ready.
             uiShown: function() {
               console.log("FirebaseUI widget shown.");
@@ -91,39 +127,66 @@ document.addEventListener('DOMContentLoaded', () => {
                   loadEl.style.display = 'none';
               }
             },
-            // Optional: Handle errors during the FirebaseUI sign-in/sign-up flow.
+            // This callback is triggered when FirebaseUI encounters an error
             signInFailure: function(error) {
                 console.error('FirebaseUI sign-in failed:', error);
                 // Hide loader on failure
                  if (loadEl) {
                     loadEl.style.display = 'none';
                  }
-                 // You might want to display a user-friendly error message on the page here.
-                 // error.code can give more specific details (e.g., 'firebaseui/anonymous-upgrade-merge-conflict').
+                // You might want to display a user-friendly error message on the page here.
+                // error.code can give more specific details (e.g., 'firebaseui/anonymous-upgrade-merge-conflict').
+
+                // *** Handle Anonymous Upgrade Merge Conflict if needed ***
+                if (error.code === 'firebaseui/anonymous-upgrade-merge-conflict') {
+                     console.warn("Anonymous upgrade merge conflict detected!");
+                     // Here you would implement the logic to handle the conflict:
+                     // 1. Save the anonymous user's data.
+                     // 2. Delete the anonymous user.
+                     // 3. Sign in the permanent user using the credential from error.credential.
+                     // 4. Copy the saved data from step 1 to the permanent user.
+                     // The FirebaseUI fact sheet provides an example code snippet for this.
+                     alert("Account conflict detected. Please handle merge conflict logic."); // Replace with actual logic
+                } else {
+                    // Display other sign-in failure errors to the user
+                     alert(`Sign-in failed: ${error.message}`); // Using alert, replace with better UI
+                }
             }
-        }, // <-- This is the end of the 'callbacks' object. The second part starts right after this comma.
+        }, // <--- Correctly placed comma
         // Adding autoUpgradeAnonymousUsers: true as discussed
         autoUpgradeAnonymousUsers: true,
 
         // Configure the list of authentication providers to offer in the FirebaseUI widget.
         // Make sure these providers are enabled in your Firebase project's Authentication settings!
         signInOptions: [
+            // *** Make sure Email/Password is enabled in Firebase Console -> Authentication -> Sign-in method ***
             firebase.auth.EmailAuthProvider.PROVIDER_ID, // Email/Password sign-in
             firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-			firebase.auth.FacebookAuthProvider.PROVIDER_ID, 
+			firebase.auth.FacebookAuthProvider.PROVIDER_ID,
 			// firebase.auth.AppleAuthProvider.PROVIDER_ID, removed because Apple not set up yet
             // Add other providers you've enabled (e.g., firebase.auth.PhoneAuthProvider.PROVIDER_ID)
+
+            // *** OPTIONAL: If you want to offer Email Link sign-in, uncomment/add this ***
+            // {
+            //     provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+            //     signInMethod: firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD,
+            //     // You might need to configure ActionCodeSettings if you want cross-device sign-in
+            //     // or custom redirects. See the facts I remembered for details.
+            // }
         ],
 
         // Add Terms of Service and Privacy Policy links if you have them. Highly recommended for production apps.
         // termsOfServiceUrl: '<your-terms-of-service-url>',
         // privacyPolicyUrl: '<your-privacy-policy-url>'
-    }; // <-- This is the end of the uiConfig object.
+    }; // <--- Correctly placed closing brace for uiConfig
 
     // Initialize the FirebaseUI Widget instance using the Firebase Auth instance.
     // We initialize it here, but only call ui.start() when we need to display the UI widget.
     const ui = new firebaseui.auth.AuthUI(auth);
 
+    // --- END OF PART 1 ---
+    // --- COPY THE TEXT BELOW AND PASTE IT IMMEDIATELY AFTER THE TEXT ABOVE ---
+    // --- START OF PART 2 ---
 
     // --- Anonymous Sign-in Button Handler ---
     // This listener handles the click event on the "Just Look Around" button.
@@ -215,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
              } else {
                   console.error("Auth options container element not found when trying to display for linking!");
              }
-         })
+         });
      } else {
          console.warn("Create Account button element (#createAccountButton) not found in index.html!");
      }
@@ -229,7 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   // Sign-out successful.
                   console.log("User signed out successfully.");
                   // The onAuthStateChanged listener will automatically fire after successful sign out,
-                  // detecting that there is no user and updating the UI to show the auth options.
+                  // detecting that there is no
+    // --- START OF PART 3 ---
+
+                  // user and updating the UI to show the auth options.
               }).catch((error) => {
                   // An error happened during sign-out.
                   console.error("Error signing out:", error);
@@ -282,6 +348,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // *** OPTIONAL: You could add logic here based on user.emailVerified ***
+            // For example, you could hide certain features or show a banner if !user.emailVerified
+            // and encourage them to check their email or resend the verification link.
+            if (user.email && !user.emailVerified && !user.isAnonymous) {
+                 console.log("Registered user with unverified email.");
+                 // Example: Display a message like "Please verify your email address."
+            }
+
 
         } else {
             // No user is signed in (neither registered nor anonymous).
@@ -322,4 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         }
     }); // <-- This closes the onAuthStateChanged listener.
-});
+}); // <-- This closes the DOMContentLoaded listener.
+
+// --- END OF PART 3 ---
