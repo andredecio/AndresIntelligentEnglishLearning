@@ -69,18 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const user = authResult.user;
 				console.log("User signed in or signed up successfully via FirebaseUI:", user);
                 console.log("Is Anonymous (should be false after successful sign-in via UI):", user.isAnonymous);
-				// --- FirebaseUI configuration ---
-// Defines how FirebaseUI behaves and which providers it offers.
-const uiConfig = {
-    callbacks: {
-        // This callback is triggered on successful sign-in or sign-up using the FirebaseUI widget.
-        // This includes new sign-ups and users signing in with existing registered accounts.
-        // If autoUpgradeAnonymousUsers is true, this also fires when an anonymous user links an account.
-        signInSuccessWithAuthResult: (authResult, redirectUrl) => {
-            const user = authResult.user;
-            console.log("User signed in or signed up successfully via FirebaseUI:", user);
-            console.log("Is Anonymous (should be false after successful sign-in via UI):", user.isAnonymous);
-
             // *** NEW CODE START: Check if email verification is needed and send email ***
 
             // Check if the user just signed up (creationTime === lastSignInTime)
@@ -118,6 +106,81 @@ const uiConfig = {
             }
              // *** NEW CODE END ***
 
+
+            // *** FIX: Reset FirebaseUI here after a successful sign-in via the UI ***
+            // We know 'ui' exists and was active if this callback fired.
+            if (ui) { // Added safety check for ui existence
+                ui.reset(); // Stop the FirebaseUI flow to clean up listeners/state.
+                console.log("FirebaseUI flow reset upon successful sign-in via callback.");
+            }
+
+
+            // The onAuthStateChanged listener (defined below) is the central place
+            // to handle UI updates and redirects after *any* auth state change (sign-in, sign-out, link, unlink).
+            // Returning false here prevents FirebaseUI from performing a default redirect
+            // and allows our onAuthStateChanged listener to fully control the user flow.
+            return false;
+        },
+        // This callback is triggered when the FirebaseUI widget is fully rendered and ready.
+        uiShown: function() {
+            console.log("FirebaseUI widget shown.");
+            // Ensure the loader is hidden once the UI form is visible.
+            if (loadEl) {
+                loadEl.style.display = 'none';
+            }
+        },
+        // Optional: Handle errors during the FirebaseUI sign-in/sign-up flow.
+        signInFailure: function(error) {
+            console.error('FirebaseUI sign-in failed:', error);
+            // Hide loader on failure
+            if (loadEl) {
+                loadEl.style.display = 'none';
+            }
+            // You might want to display a user-friendly error message on the page here.
+            // error.code can give more specific details (e.g., 'firebaseui/anonymous-upgrade-merge-conflict').
+
+            // *** Handle Anonymous Upgrade Merge Conflict if needed ***
+            // The facts mention this as a Next Step with FirebaseUI!
+            if (error.code === 'firebaseui/anonymous-upgrade-merge-conflict') {
+                 console.warn("Anonymous upgrade merge conflict detected!");
+                 // Here you would implement the logic to handle the conflict:
+                 // 1. Save the anonymous user's data.
+                 // 2. Delete the anonymous user.
+                 // 3. Sign in the permanent user using the credential from error.credential.
+                 // 4. Copy the saved data from step 1 to the permanent user.
+                 // The FirebaseUI fact sheet provides an example code snippet for this.
+                 alert("Account conflict detected. Please handle merge conflict logic."); // Replace with actual logic
+            }
+        }
+    }, // <-- This is the end of the 'callbacks' object. The second part starts right after this comma.
+    // Adding autoUpgradeAnonymousUsers: true as discussed
+    autoUpgradeAnonymousUsers: true,
+
+    // Configure the list of authentication providers to offer in the FirebaseUI widget.
+    // Make sure these providers are enabled in your Firebase project's Authentication settings!
+    signInOptions: [
+        // *** Make sure Email/Password is enabled in Firebase Console -> Authentication -> Sign-in method ***
+        firebase.auth.EmailAuthProvider.PROVIDER_ID, // Email/Password sign-in
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+        // firebase.auth.AppleAuthProvider.PROVIDER_ID, removed because Apple not set up yet
+        // Add other providers you've enabled (e.g., firebase.auth.PhoneAuthProvider.PROVIDER_ID)
+
+        // *** OPTIONAL: If you want to offer Email Link sign-in, uncomment/add this ***
+        // {
+        //     provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+        //     signInMethod: firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD,
+        //     // You might need to configure ActionCodeSettings if you want cross-device sign-in
+        //     // or custom redirects. See the facts I remembered for details.
+        // }
+    ],
+
+    // Add Terms of Service and Privacy Policy links if you have them. Highly recommended for production apps.
+    // termsOfServiceUrl: '<your-terms-of-service-url>',
+    // privacyPolicyUrl: '<your-privacy-policy-url>'
+}; // <-- This is the end of the uiConfig object.
+
+// ... rest of your script.js				
 				
 				
 				// *** FIX: Reset FirebaseUI here after a successful sign-in via the UI ***
