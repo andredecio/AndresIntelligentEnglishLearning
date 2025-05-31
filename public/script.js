@@ -306,4 +306,169 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
 
-     auth.onAuthStateChanged((user) => {
+     // --- Handling Authentication State Changes ---
+    // This is the core listener that runs whenever the user's authentication state changes.
+    // This includes:
+    // 1. When the page loads (it checks if a user is already signed in).
+    // 2. When a user successfully signs in (via FirebaseUI or anonymous).
+    // 3. When a user signs out.
+    // 4. When an anonymous user upgrades to a registered account.
+    // 5. Crucially, after the user verifies their email by clicking the link!
+    auth.onAuthStateChanged((user) => {
+        console.log("Auth State Changed. Current user:", user ? user.uid : 'null (signed out)');
+
+        // Get the email verification message element (assuming you add this to index.html)
+        const emailVerificationMessageEl = document.getElementById('email-verification-message');
+        // Hide it by default at the start of the state change check
+        if (emailVerificationMessageEl) emailVerificationMessageEl.style.display = 'none';
+
+
+        if (user) {
+            // A user is signed in. This could be a registered user or an anonymous user.
+            console.log("User is signed in with UID:", user.uid, "Anonymous:", user.isAnonymous, "Email Verified:", user.emailVerified);
+
+            // *** START: NEW LOGIC to check for unverified email/password users ***
+
+            // Check if the user signed in using the Email/Password provider...
+            const isEmailPasswordUser = user.providerData.some(provider => provider.providerId === firebase.auth.EmailAuthProvider.PROVIDER_ID);
+
+            // ... AND if their email is NOT verified
+            if (isEmailPasswordUser && !user.emailVerified) {
+                 // This user signed in with email/password but hasn't verified their email.
+                 console.log("Email/Password user is signed in but email is NOT verified. Displaying verification prompt.");
+
+                 // Hide the main app content
+                 if (mainAppContent) mainAppContent.style.display = 'none';
+                 // Hide the anonymous prompt (not applicable for this user type)
+                 if (anonymousPrompt) anonymousPrompt.style.display = 'none';
+                 // Keep the authentication options container hidden as they are signed in
+                 if (authOptionsContainer) authOptionsContainer.style.display = 'none';
+                 // Hide loader
+                 if (loadEl) loadEl.style.display = 'none';
+
+                 // Show the "please verify email" message
+                 if (emailVerificationMessageEl) {
+                     emailVerificationMessageEl.style.display = 'block'; // Or 'flex', etc.
+                     emailVerificationMessageEl.innerHTML = `
+                         <p>Please check your email inbox (and spam folder!) to verify your account before proceeding.</p>
+                         <button id="resend-verification-email">Resend Verification Email</button>
+                     `; // Example message, replace with your desired HTML/text
+
+                     // Add event listener to resend button
+
+    // --- START OF COMPLETION ---
+
+                     // Add event listener to resend button
+                     const resendButton = document.getElementById('resend-verification-email');
+                     if (resendButton) {
+                         resendButton.addEventListener('click', () => {
+                             console.log("Resend Verification Email button clicked.");
+                             if (user) { // Check user is still signed in before resending
+                                 user.sendEmailVerification()
+                                     .then(() => {
+                                         console.log('Email verification link resent!');
+                                         alert("Verification email resent! Please check your inbox."); // Replace with better UI
+                                     })
+                                     .catch((error) => {
+                                         console.error('Error resending email verification:', error);
+                                         alert(`Error resending verification email: ${error.message}`); // Replace with better UI
+                                     });
+                             } else {
+                                  console.log("Cannot resend verification email, user is no longer signed in.");
+                                  // Maybe prompt them to sign in again?
+                             }
+                         });
+                     }
+
+
+                 } // <-- Closes the if (emailVerificationMessageEl) check inside the unverified block
+
+                 // Also hide the sign out button while they are in this unverified state
+                 if (signOutButton) signOutButton.style.display = 'none';
+
+
+            } else {
+                // This user is signed in AND is either:
+                // 1. An Email/Password user whose email is VERIFIED
+                // 2. An anonymous user
+                // 3. A user signed in with a social provider (Google, Facebook, etc. - their emails are usually verified by the provider or not required)
+                console.log("User is signed in and authorized to view main content.");
+
+
+                // Hide the authentication options container since a user is authenticated.
+                if (authOptionsContainer) {
+                     authOptionsContainer.style.display = 'none';
+                }
+                // Hide the "please verify email" message if it was visible
+                if (emailVerificationMessageEl) emailVerificationMessageEl.style.display = 'none';
+
+                // Show your main application content.
+                if (mainAppContent) {
+                     mainAppContent.style.display = 'block'; // Or 'flex', 'grid', etc.
+                     console.log("Main app content shown.");
+                }
+                 // Hide any loading text that might still be visible.
+                if (loadEl) loadEl.style.display = 'none';
+                 // Show the sign out button, as a user is currently signed in.
+                 if (signOutButton) signOutButton.style.display = 'inline-block'; // Use 'inline-block' or 'block' based on desired layout.
+
+
+                // Show or Hide the "Create Account" prompt and button specifically for anonymous users.
+                if (anonymousPrompt) { // Check if the prompt element exists
+                    if (user.isAnonymous) {
+                        anonymousPrompt.style.display = 'block'; // Show the prompt if the user is anonymous.
+                        console.log("User is anonymous, showing create account prompt.");
+                    } else {
+                        anonymousPrompt.style.display = 'none'; // Hide the prompt if the user is registered.
+                        console.log("User is registered, hiding create account prompt.");
+                    }
+                }
+            }
+            // *** END: NEW LOGIC ***
+
+
+        } else {
+            // No user is signed in (neither registered nor anonymous).
+            console.log("Auth State Changed: No user signed in.");
+
+            // Hide the main content.
+            if (mainAppContent) {
+                 mainAppContent.style.display = 'none';
+                 console.log("Main app content hidden.");
+            }
+             // Hide the sign out button.
+            if (signOutButton) signOutButton.style.display = 'none';
+             // Hide anonymous prompt if it was visible somehow (shouldn't be, but good practice).
+             if (anonymousPrompt) anonymousPrompt.style.display = 'none';
+             // Hide the "please verify email" message if it was visible
+            if (emailVerificationMessageEl) emailVerificationMessageEl.style.display = 'none';
+
+
+            // Show the authentication options container.
+            if (authOptionsContainer) {
+                authOptionsContainer.style.display = 'block';
+                console.log("Authentication options container shown.");
+
+                 // Start FirebaseUI to render the social/email sign-in options.
+                 // Only start FirebaseUI if its container exists and it's not already active.
+                 if (uiContainer) {
+                      ui.start('#firebaseui-auth-container', uiConfig);
+                      console.log("FirebaseUI widget started.");
+                  } else if (uiContainer) {
+                      console.log("FirebaseUI was already active.");
+                  } else {
+                      console.error("FirebaseUI container element not found when trying to start UI!");
+                  }
+            } else {
+                 console.error("Auth options container element not found!");
+            }
+
+            // Hide any loading text.
+             if (loadEl) loadEl.style.display = 'none';
+
+        }
+    }); // <-- This closes the onAuthStateChanged listener.
+}); // <-- This closes the DOMContentLoaded listener.
+
+// --- END OF COMPLETION ---
+
