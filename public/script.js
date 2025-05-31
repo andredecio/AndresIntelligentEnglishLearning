@@ -119,10 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // and allows our onAuthStateChanged listener to fully control the user flow.
                 return false;
             }, // <--- Correctly placed comma
-            // This callback is triggered when the FirebaseUI widget is fully rendered and ready
+            // This callback is triggered when the FirebaseUI widget is fully rendered and ready.
 // --- START OF PART 2 ---
 
-            . uiShown: function() {
+            uiShown: function() { // This line should now be clean.
               console.log("FirebaseUI widget shown.");
               // Ensure the loader is hidden once the UI form is visible.
               if (loadEl) {
@@ -182,10 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // privacyPolicyUrl: '<your-privacy-policy-url>'
     }; // <--- Correctly placed closing brace for uiConfig
 
-    // --- END OF PART 2 ---
-    // --- COPY THE TEXT BELOW AND PASTE IT IMMEDIATELY AFTER THE TEXT ABOVE ---
-    // --- START OF PART 3 ---
-
     // Initialize the FirebaseUI Widget instance using the Firebase Auth instance.
     // We initialize it here, but only call ui.start() when we need to display the UI widget.
     const ui = new firebaseui.auth.AuthUI(auth);
@@ -204,7 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hide the authentication options container temporarily while signing in.
             if (authOptionsContainer) {
                  authOptionsContainer.style.display = 'none';
-                 // If FirebaseUI was active, stop it before attempting anonymous sign-in.
+                 // If Firebase
+    // --- START OF PART 3 ---
+
+ UI was active, stop it before attempting anonymous sign-in.
                  // This prevents odd states if a user clicks "Just Look Around" while the UI is rendering.
                  if (ui) {
                      ui.reset(); // Stop and reset the FirebaseUI flow.
