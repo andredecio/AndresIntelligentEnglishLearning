@@ -141,15 +141,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // *** Handle Anonymous Upgrade Merge Conflict if needed ***
             // The facts mention this as a Next Step with FirebaseUI!
-            if (error.code === 'firebaseui/anonymous-upgrade-merge-conflict') {
-                 console.warn("Anonymous upgrade merge conflict detected!");
-                 // Here you would implement the logic to handle the conflict:
-                 // 1. Save the anonymous user's data.
-                 // 2. Delete the anonymous user.
-                 // 3. Sign in the permanent user using the credential from error.credential.
-                 // 4. Copy the saved data from step 1 to the permanent user.
-                 // The FirebaseUI fact sheet provides an example code snippet for this.
-                 alert("Account conflict detected. Please handle merge conflict logic."); // Replace with actual logic
+                           // *** Handle Anonymous Upgrade Merge Conflict if needed ***
+                if (error.code === 'firebaseui/anonymous-upgrade-merge-conflict') {
+                     console.warn("Anonymous upgrade merge conflict detected!");
+                     // Add your merge conflict handling logic here as mentioned before.
+                     alert("Account conflict detected. Please handle merge conflict logic."); // Replace with actual logic
+                } else {
+                    // Display other sign-in failure errors to the user
+                     alert(`Sign-in failed: ${error.message}`); // Using alert, replace with better UI
             }
         }
     }, // <-- This is the end of the 'callbacks' object. The second part starts right after this comma.
