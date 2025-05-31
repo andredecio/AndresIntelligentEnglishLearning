@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Returning false here prevents FirebaseUI from performing a default redirect
                 // and allows our onAuthStateChanged listener to fully control the user flow.
                 return false;
-            },
+            }),
             // This callback is triggered when the FirebaseUI widget is fully rendered and ready.
             uiShown: function() {
               console.log("FirebaseUI widget shown.");
