@@ -287,7 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
      // --- Sign Out Button Handler ---
      // This listener handles the click event on the "Sign Out" button.
-      if (signOutButton) { // Check if the button element exists
+	 // Check if the button element exists
+      if (signOutButton) { 
           signOutButton.addEventListener('click', () => {
               console.log("Sign Out button clicked.");
               auth.signOut().then(() => {
@@ -304,9 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
           console.warn("Sign Out button element (#signOutButton) not found in index.html!");
       }
-
-
-     // --- Handling Authentication State Changes ---
+    // --- Handling Authentication State Changes ---
     // This is the core listener that runs whenever the user's authentication state changes.
     // This includes:
     // 1. When the page loads (it checks if a user is already signed in).
