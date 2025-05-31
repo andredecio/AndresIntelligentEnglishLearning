@@ -91,10 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.log('Email verification link sent!');
                             // You might want to display a message to the user on the page
                             // instructing them to check their email.
-                            // For example: messageEl.textContent = "Please check your email to verify
-// --- START OF PART 2 ---
-
-                            // your account.";
+                            // For example: messageEl.textContent = "Please check your email to verify your account.";
                             // You would need to make your messageEl visible and possibly hide other content.
                             alert("A verification email has been sent to your address. Please check your inbox!"); // Using alert for simplicity, replace with better UI
                         })
@@ -122,8 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // and allows our onAuthStateChanged listener to fully control the user flow.
                 return false;
             }, // <--- Correctly placed comma
-            // This callback is triggered when the FirebaseUI widget is fully rendered and ready.
-            uiShown: function() {
+            // This callback is triggered when the FirebaseUI widget is fully rendered and ready
+// --- START OF PART 2 ---
+
+            . uiShown: function() {
               console.log("FirebaseUI widget shown.");
               // Ensure the loader is hidden once the UI form is visible.
               if (loadEl) {
@@ -155,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      alert(`Sign-in failed: ${error.message}`); // Using alert, replace with better UI
                 }
             }
-        }, // <--- Correctly placed comma
+        }, // <--- Correctly placed comma ending the callbacks object
         // Adding autoUpgradeAnonymousUsers: true as discussed
         autoUpgradeAnonymousUsers: true,
 
@@ -183,13 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // privacyPolicyUrl: '<your-privacy-policy-url>'
     }; // <--- Correctly placed closing brace for uiConfig
 
+    // --- END OF PART 2 ---
+    // --- COPY THE TEXT BELOW AND PASTE IT IMMEDIATELY AFTER THE TEXT ABOVE ---
+    // --- START OF PART 3 ---
+
     // Initialize the FirebaseUI Widget instance using the Firebase Auth instance.
     // We initialize it here, but only call ui.start() when we need to display the UI widget.
     const ui = new firebaseui.auth.AuthUI(auth);
 
-    // --- END OF PART 2 ---
-    // --- COPY THE TEXT BELOW AND PASTE IT IMMEDIATELY AFTER THE TEXT ABOVE ---
-    // --- START OF PART 3 ---
 
     // --- Anonymous Sign-in Button Handler ---
     // This listener handles the click event on the "Just Look Around" button.
@@ -354,6 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (user.email && !user.emailVerified && !user.isAnonymous) {
                  console.log("Registered user with unverified email.");
                  // Example: Display a message like "Please verify your email address."
+                 // You might show a specific div: document.getElementById('email-verification-prompt').style.display = 'block';
             }
 
 
