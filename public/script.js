@@ -50,12 +50,141 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initially hide UI elements controlled by auth state.
     // The onAuthStateChanged listener will show the correct elements.
-    if (loadEl) loadEl.style.display = 'none'; // Initial loader is managed by the script.
+    // Note: The email link handling logic below might show the loader initially.
     if (messageEl) messageEl.style.display = 'none'; // Hide the default hosting message div.
     if (authOptionsContainer) authOptionsContainer.style.display = 'none'; // Hide the entire auth section.
     if (mainAppContent) mainAppContent.style.display = 'none'; // Hide the main app content.
     if (anonymousPrompt) anonymousPrompt.style.display = 'none'; // Hide the anonymous prompt.
     if (signOutButton) signOutButton.style.display = 'none'; // Hide the sign out button.
+
+
+    // *** START: NEW CODE TO HANDLE EMAIL LINK SIGN-IN COMPLETION ***
+
+    // Check if the current URL contains a sign-in with email link
+    if (auth.isSignInWithEmailLink(window.location.href)) {
+        console.log("Detected email sign-in link in URL. Attempting to sign in...");
+
+        // Show a loader while we process the sign-in link
+        if (loadEl) {
+            loadEl.style.display = 'block';
+            loadEl.textContent = 'Completing sign-in...';
+        }
+        // Hide the auth options container while processing
+        if (authOptionsContainer) authOptionsContainer.style.display = 'none';
+
+
+        // Get the email address from storage (e.g., localStorage).
+        // This is the email the user entered when they *initiated* the email link flow.
+        // IMPORTANT: YOU MUST SAVE THE USER'S EMAIL TO LOCAL STORAGE *BEFORE* SENDING THE EMAIL LINK.
+        // Find the part of your code where you send the email link (likely via FirebaseUI config for email link or custom code)
+        // and add something like: localStorage.setItem('emailForSignIn', email_address_entered_by_user);
+        let email = localStorage.getItem('emailForSignIn');
+        if (!email) {
+            // If email is not found in storage, prompt the user for it.
+            // This can happen if the user opens the link on a different device or browser.
+            console.warn("Email for sign-in link not found in local storage. Prompting user.");
+            // Use a more user-friendly prompt if possible, maybe in your HTML/CSS
+            email = window.prompt('Please provide your email for confirmation:');
+        }
+
+        // *** END Part 1 ***
+        // Please confirm you have copied this part before asking for Part 2.
+        if (email) {
+            // The client SDK will parse the code from the link for you.
+            auth.signInWithEmailLink(email, window.location.href)
+                .then((result) => {
+                    // Email link sign-in successful.
+                    console.log("Email link sign-in successful!", result);
+                    // Clear email from storage after successful sign-in.
+                    localStorage.removeItem('emailForSignIn');
+
+                    // The onAuthStateChanged listener will now fire with the signed-in user
+                    // object, and it will handle updating the UI accordingly.
+
+                    // You can access the user via result.user. Check result.additionalUserInfo.isNewUser
+                    // to see if this was the first time they signed in with this email.
+
+                    // Hide the loader - the onAuthStateChanged listener will show the main content.
+                     if (loadEl) loadEl.style.display = 'none';
+
+                    // Remove the email link parameters from the URL to clean it up
+                    // and prevent issues if the user refreshes the page.
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+
+
+                })
+                .catch((error) => {
+                    // Handle errors during sign-in.
+                    console.error("Error signing in with email link:", error);
+                    // Possible errors include invalid link, expired link, etc.
+
+                    // Hide the loader
+                     if (loadEl) loadEl.style.display = 'none';
+
+                    // Display an error message to the user.
+                    const errorMessage = `Error completing sign-in: ${error.message}`;
+                    console.error(errorMessage);
+                    // You might want to display this error in a more user-friendly way on the page.
+                    // For now, let's display the auth options again so they can try signing in normally.
+                    alert(errorMessage + "\nPlease try signing in again."); // Using alert for simplicity
+
+                    // After error, show the auth options container again
+                    if (authOptionsContainer) {
+                         authOptionsContainer.style.display = 'block';
+                         console.log("Email link sign-in failed, displaying FirebaseUI options.");
+
+                         // Start FirebaseUI again so user can try other sign-in methods.
+                         if (uiContainer) {
+                              ui.start('#firebaseui-auth-container', uiConfig);
+                              console.log("FirebaseUI widget started after email link sign-in failure.");
+                          } else {
+                              console.error("FirebaseUI container element not found when trying to start UI after email link sign-in failure!");
+                          }
+                    } else {
+                         console.error("Auth options container element not found after email link sign-in failed!");
+                    }
+                });
+        } else {
+            // No email provided by user when prompted.
+            console.warn("No email provided by user to complete sign-in link.");
+
+            // Hide loader
+            if (loadEl) loadEl.style.display = 'none';
+
+            // Display an error or message and show auth options.
+            const noEmailMessage = "Could not complete sign-in. Email address is required.";
+            alert(noEmailMessage); // Using alert for simplicity
+
+            if (authOptionsContainer) {
+                 authOptionsContainer.style.display = 'block';
+                 console.log("Email link sign-in completion aborted (no email), displaying FirebaseUI options.");
+                  if (uiContainer) {
+                       ui.start('#firebaseui-auth-container', uiConfig);
+                       console.log("FirebaseUI widget started after email link completion aborted.");
+                   } else {
+                       console.error("FirebaseUI container element not found when trying to start UI after email link completion aborted!");
+                   }
+            } else {
+                  console.error("Auth options container element not found after email link completion aborted!");
+            }
+        }
+
+        // *** END Part 2 ***
+        // Please confirm you have copied this part before asking for Part 3.
+    } else {
+        // No email sign-in link detected in the URL.
+        // This is the normal behavior when the page loads for the first time
+        // or when a user navigates to the page without an email link.
+        console.log("No email sign-in link detected in URL. Proceeding with normal auth state check.");
+        // The rest of the script (specifically onAuthStateChanged) will handle the UI display.
+        // No need to do anything specific here other than let the script continue.
+        // Ensure initial UI state is correct when no link is present (show auth options if no user is signed in).
+        // This will be handled by the onAuthStateChanged listener shortly after.
+    }
+
+    // *** END: NEW CODE TO HANDLE EMAIL LINK SIGN-IN COMPLETION ***
 
 
     // --- FirebaseUI configuration ---
@@ -70,12 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
 				console.log("User signed in or signed up successfully via FirebaseUI:", user);
                 console.log("Is Anonymous (should be false after successful sign-in via UI):", user.isAnonymous);
 
-                // *** START: ADDED CODE FOR EMAIL VERIFICATION ***
-                // Check if the user just signed up (creationTime === lastSignInTime)
-                // AND they signed in with email/password
-                // AND their email is not already verified.
-                // This prevents sending verification emails to returning users or users
-                // who signed up with other providers like Google or Facebook (which handle verification themselves).
+                // *** Existing Code for Email Verification (for Email/Password via FirebaseUI) ***
+                // This block handles sending the *initial* verification email for new email/password users
+                // who sign up directly through the FirebaseUI widget (not via email link sign-in).
                 if (user &&
                     user.email && // Make sure user object and email exist
                     !user.emailVerified && // Check if email is NOT verified
@@ -83,16 +209,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     user.metadata.creationTime === user.metadata.lastSignInTime && // Check if it's a new user session
                     user.providerData.some(provider => provider.providerId === firebase.auth.EmailAuthProvider.PROVIDER_ID) // Check if email/password provider was used
                 ) {
-                    console.log("New email/password user detected. Email not verified. Sending verification email...");
+                    console.log("New email/password user detected via FirebaseUI. Email not verified. Sending verification email...");
+
+                    // IMPORTANT: If you are also offering Email Link sign-in via FirebaseUI,
+                    // this is where you would typically configure the ActionCodeSettings
+                    // and potentially save the email to localStorage *before* calling sendSignInLinkToEmail
+                    // if you were using email link directly here instead of just email verification.
+                    // However, since you're using FirebaseUI's standard Email/Password provider *here*,
+                    // this sends a verification email, not a sign-in link.
+                    // If you *were* using FirebaseUI's EMAIL_LINK_SIGN_IN_METHOD, the configuration
+                    // for saving email to localStorage would go inside the uiConfig's signInOptions
+                    // object for the email link provider, potentially using the signInMethod: { ... } structure.
+                    // Also, for Email Link sign-in *initiated via FirebaseUI*, you'd need actionCodeSettings
+                    // defined in the uiConfig for that specific provider entry. This ActionCodeSettings
+                    // must have a 'url' property pointing to the page containing the email link handling logic
+                    // (the NEW CODE block I added at the top).
 
                     user.sendEmailVerification()
                         .then(() => {
                             // Email verification sent successfully.
                             console.log('Email verification link sent!');
-                            // You might want to display a message to the user on the page
-                            // instructing them to check their email.
-                            // For example: messageEl.textContent = "Please check your email to verify your account.";
-                            // You would need to make your messageEl visible and possibly hide other content.
+                            // Display a message to the user instructing them to check their email.
                             alert("A verification email has been sent to your address. Please check your inbox!"); // Using alert for simplicity, replace with better UI
                         })
                         .catch((error) => {
@@ -102,9 +239,10 @@ document.addEventListener('DOMContentLoaded', () => {
                              alert(`Error sending verification email: ${error.message}`); // Using alert for simplicity
                         });
                 } else {
-                    console.log("User is either not new, email is already verified, or signed in with a different provider. No verification email sent.");
+                    console.log("User is either not new, email is already verified, or signed in with a different provider. No verification email sent from this FirebaseUI callback.");
                 }
-                 // *** END: ADDED CODE FOR EMAIL VERIFICATION ***
+                 // *** END: Existing Code for Email Verification ***
+
 
 				// *** Reset FirebaseUI here after a successful sign-in via the UI ***
 				// We know 'ui' exists and was active if this callback fired.
@@ -117,12 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // to handle UI updates and redirects after *any* auth state change (sign-in, sign-out, link, unlink).
                 // Returning false here prevents FirebaseUI from performing a default redirect
                 // and allows our onAuthStateChanged listener to fully control the user flow.
-                return false;
+                return false; // Prevents default redirect
             }, // <--- Correctly placed comma
             // This callback is triggered when the FirebaseUI widget is fully rendered and ready.
-// --- START OF PART 2 ---
-// This line should now be clean.
-            uiShown: function() { 
+            uiShown: function() {
               console.log("FirebaseUI widget shown.");
               // Ensure the loader is hidden once the UI form is visible.
               if (loadEl) {
@@ -162,18 +298,49 @@ document.addEventListener('DOMContentLoaded', () => {
         // Make sure these providers are enabled in your Firebase project's Authentication settings!
         signInOptions: [
             // *** Make sure Email/Password is enabled in Firebase Console -> Authentication -> Sign-in method ***
-            firebase.auth.EmailAuthProvider.PROVIDER_ID, // Email/Password sign-in
-            firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-			firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-			// firebase.auth.AppleAuthProvider.PROVIDER_ID, removed because Apple not set up yet
-            // Add other providers you've enabled (e.g., firebase.auth.PhoneAuthProvider.PROVIDER_ID)
+            // IMPORTANT: If you want FirebaseUI to handle the Email Link flow for NEW sign-ups/sign-ins,
+            // you need to uncomment and configure the EMAIL_LINK_SIGN_IN_METHOD option below.
+            // If you only want standard Email/Password with verification email (like your current code seems to be set up for),
+            // then keep this line as it is:
+            firebase.auth.EmailAuthProvider.PROVIDER_ID, // Email/Password sign-in (standard)
 
-            // *** OPTIONAL: If you want to offer Email Link sign-in, uncomment/add this ***
+            // *** OPTIONAL: If you want to offer Email Link sign-in *via FirebaseUI*, uncomment/add this ***
+            // Note: If you use the standard Email/Password provider above, new users signing up that way
+            // will receive a verification email (handled by your existing callback logic).
+            // If you ONLY offer the EMAIL_LINK_SIGN_IN_METHOD provider, users will get a sign-in link instead.
+            // You can offer both, but be mindful of the user flow.
             // {
             //     provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
             //     signInMethod: firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD,
-            //     // You might need to configure ActionCodeSettings if you want cross-device sign-in
-            //     // or custom redirects. See the facts I remembered for details.
+            //     // ActionCodeSettings are REQUIRED for email link sign-in.
+            //     actionCodeSettings: {
+            //         // URL you want to redirect back to after sign in.
+            //         // This URL MUST be in the list of authorized redirect origins
+            //         // (usually your Firebase Hosting domain or localhost for testing).
+            //         url: window.location.href, // Use the current page's URL for simplicity
+            //         // This makes the link work across different devices.
+            //         handleCodeInApp: true, // Set to true.
+
+            //         // Optional: specify iOS app bundle ID and Android package name if you want
+            //         // to open the link in a native app *first*.
+            //         // iOS: { bundleId: 'com.Lunateq.AIEL' }, // Use your actual bundle ID
+            //         // Android: {
+            //         //     packageName: 'Andres.Intelligent.English.Learning', // Use your actual package name
+            //         //     installApp: true, // Set to true if you want to attempt installing the app
+            //         //     minimumVersion: '12', // Optional: minimum version of the app
+            //         // },
+            //         // Optional: Set this to true to allow the user to sign in with the link on
+            //         // the same device they requested it on, even if the app is installed.
+            //         // dynamicLinkDomain: 'YOUR_DYNAMIC_LINK_DOMAIN', // Required if you want deep linking to native apps
+            //     }
+            //     // IMPORTANT: When using EMAIL_LINK_SIGN_IN_METHOD via FirebaseUI,
+            //     // FirebaseUI handles *sending* the email. You don't need separate code for that.
+            //     // However, you *still* need the NEW CODE block at the top of this script
+            //     // to handle the link when the user clicks it and returns to this page!
+            //     // FirebaseUI doesn't automatically complete the sign-in on return.
+            //     // Also, FirebaseUI doesn't automatically save the email to localStorage when
+            //     // the link is sent with this method. You might need custom logic if you require
+            //     // the email to be pre-filled on return across different browsers/devices.
             // }
         ],
 
@@ -200,10 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hide the authentication options container temporarily while signing in.
             if (authOptionsContainer) {
                  authOptionsContainer.style.display = 'none';
-                 // If Firebase
-    // --- START OF PART 3 ---
-
- //UI was active, stop it before attempting anonymous sign-in.
+                 // If FirebaseUI was active, stop it before attempting anonymous sign-in.
                  // This prevents odd states if a user clicks "Just Look Around" while the UI is rendering.
                  if (ui) {
                      ui.reset(); // Stop and reset the FirebaseUI flow.
@@ -229,8 +393,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     // If anonymous sign-in fails, show the authentication options again
                     // so the user can sign up or sign in with a registered account using FirebaseUI.
                     if (authOptionsContainer) {
-                        authOptionsContainer.style.display = 'block'; // Show the sign-in form area
-                        console.log("Anonymous sign-in failed, displaying FirebaseUI options.");
+                         authOptionsContainer.style.display = 'block'; // Show the sign-in form area
+                         console.log("Anonymous sign-in failed, displaying FirebaseUI options.");
 
                          // Restart FirebaseUI so user can try other sign-in methods.
                          // Ensure the container exists and FirebaseUI isn't already active before starting.
@@ -250,6 +414,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.warn("Anonymous sign-in button element (#signInAnonymouslyButton) not found in index.html!");
     }
+
+    // *** END Part 3 ***
+    // Please confirm you have copied this part before asking for Part 4.
 
     // --- Create Account Button Handler (for anonymous users) ---
     // This listener handles the click event on the "Create Permanent Account" button, shown to anonymous users.
@@ -288,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
      // --- Sign Out Button Handler ---
      // This listener handles the click event on the "Sign Out" button.
 	 // Check if the button element exists
-      if (signOutButton) { 
+      if (signOutButton) {
           signOutButton.addEventListener('click', () => {
               console.log("Sign Out button clicked.");
               auth.signOut().then(() => {
@@ -305,14 +472,15 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
           console.warn("Sign Out button element (#signOutButton) not found in index.html!");
       }
+
     // --- Handling Authentication State Changes ---
     // This is the core listener that runs whenever the user's authentication state changes.
     // This includes:
     // 1. When the page loads (it checks if a user is already signed in).
-    // 2. When a user successfully signs in (via FirebaseUI or anonymous).
+    // 2. When a user successfully signs in (via FirebaseUI, anonymous, or EMAIL LINK).
     // 3. When a user signs out.
     // 4. When an anonymous user upgrades to a registered account.
-    // 5. Crucially, after the user verifies their email by clicking the link!
+    // 5. Crucially, after the user verifies their email by clicking the link (if they signed in with Email/Password and weren't auto-verified)!
     auth.onAuthStateChanged((user) => {
         console.log("Auth State Changed. Current user:", user ? user.uid : 'null (signed out)');
 
@@ -326,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // A user is signed in. This could be a registered user or an anonymous user.
             console.log("User is signed in with UID:", user.uid, "Anonymous:", user.isAnonymous, "Email Verified:", user.emailVerified);
 
-            // *** START: NEW LOGIC to check for unverified email/password users ***
+            // *** START: Logic to check for unverified email/password users ***
 
             // Check if the user signed in using the Email/Password provider...
             const isEmailPasswordUser = user.providerData.some(provider => provider.providerId === firebase.auth.EmailAuthProvider.PROVIDER_ID);
@@ -340,30 +508,33 @@ document.addEventListener('DOMContentLoaded', () => {
                  if (mainAppContent) mainAppContent.style.display = 'none';
                  // Hide the anonymous prompt (not applicable for this user type)
                  if (anonymousPrompt) anonymousPrompt.style.display = 'none';
-                 // Keep the authentication options container hidden as they are signed in
+                 // Keep the authentication options container hidden as they are signed in (but need to verify)
                  if (authOptionsContainer) authOptionsContainer.style.display = 'none';
                  // Hide loader
                  if (loadEl) loadEl.style.display = 'none';
+                 // Hide sign out button for now (they can't really *use* the app yet)
+                 if (signOutButton) signOutButton.style.display = 'none';
+
 
                  // Show the "please verify email" message
                  if (emailVerificationMessageEl) {
                      emailVerificationMessageEl.style.display = 'block'; // Or 'flex', etc.
                      emailVerificationMessageEl.innerHTML = `
-                         <p>Please check your email inbox (and spam folder!) to verify your account before proceeding.</p>
+                         <h2>Email Verification Required</h2>
+                         <p>A verification email has been sent to ${user.email}. Please click the link in the email to verify your account.</p>
+                         <p>Didn't receive the email? Check your spam folder or click below to resend.</p>
                          <button id="resend-verification-email">Resend Verification Email</button>
                      `; // Example message, replace with your desired HTML/text
-
-                     // Add event listener to resend button
-
-    // --- START OF COMPLETION ---
 
                      // Add event listener to resend button
                      const resendButton = document.getElementById('resend-verification-email');
                      if (resendButton) {
                          resendButton.addEventListener('click', () => {
                              console.log("Resend Verification Email button clicked.");
-                             if (user) { // Check user is still signed in before resending
-                                 user.sendEmailVerification()
+                             // Re-fetch the current user object in case it's stale (though unlikely in this flow)
+                             const currentUser = auth.currentUser;
+                             if (currentUser) { // Check user is still signed in before resending
+                                 currentUser.sendEmailVerification()
                                      .then(() => {
                                          console.log('Email verification link resent!');
                                          alert("Verification email resent! Please check your inbox."); // Replace with better UI
@@ -375,15 +546,13 @@ document.addEventListener('DOMContentLoaded', () => {
                              } else {
                                   console.log("Cannot resend verification email, user is no longer signed in.");
                                   // Maybe prompt them to sign in again?
+                                  // The onAuthStateChanged will likely handle this already by showing auth options.
                              }
                          });
                      }
 
 
                  } // <-- Closes the if (emailVerificationMessageEl) check inside the unverified block
-
-                 // Also hide the sign out button while they are in this unverified state
-                 if (signOutButton) signOutButton.style.display = 'none';
 
 
             } else {
@@ -423,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-            // *** END: NEW LOGIC ***
+            // *** END: Logic ***
 
 
         } else {
@@ -450,14 +619,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
                  // Start FirebaseUI to render the social/email sign-in options.
                  // Only start FirebaseUI if its container exists and it's not already active.
-                 if (uiContainer) {
-                      ui.start('#firebaseui-auth-container', uiConfig);
-                      console.log("FirebaseUI widget started.");
-                  } else if (uiContainer) {
-                      console.log("FirebaseUI was already active.");
-                  } else {
-                      console.error("FirebaseUI container element not found when trying to start UI!");
-                  }
+                 // Check if there's an email link pending *before* starting FirebaseUI,
+                 // to avoid showing the UI briefly when the link handler will take over.
+                 // The initial check for the email link is done at the very top,
+                 // so if we are in this 'else' block (no user), and *no* link was detected,
+                 // *then* we should start FirebaseUI.
+                 if (!auth.isSignInWithEmailLink(window.location.href)) {
+                    if (uiContainer) {
+                         ui.start('#firebaseui-auth-container', uiConfig);
+                         console.log("FirebaseUI widget started.");
+                     } else if (uiContainer) {
+                         console.log("FirebaseUI was already active.");
+                     } else {
+                         console.error("FirebaseUI container element not found when trying to start UI!");
+                     }
+                 } else {
+                     console.log("Email link detected, skipping FirebaseUI start. Link handler at top will process.");
+                     // The loader is already shown by the email link handler in this case.
+                 }
+
             } else {
                  console.error("Auth options container element not found!");
             }
@@ -469,5 +649,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }); // <-- This closes the onAuthStateChanged listener.
 }); // <-- This closes the DOMContentLoaded listener.
 
-// --- END OF COMPLETION ---
-
+// --- END Part 4 ---
+// This is the end of the script.
