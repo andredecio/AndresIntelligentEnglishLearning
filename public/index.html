@@ -228,6 +228,23 @@
     <!-- Keep your existing script includes -->
     <script defer src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
     <script defer src="script.js"></script>
-
+<!-- Add this section somewhere in your body for testing ********************************-->
+<div style="margin-top: 20px; border: 1px solid #ccc; padding: 15px;">
+    <h3>Manual Email/Password Sign In Test</h3>
+    <form id="manualSignInForm">
+        <div>
+            <label for="manualEmailInput">Email:</label><br>
+            <input type="email" id="manualEmailInput" required>
+        </div>
+        <div style="margin-top: 10px;">
+            <label for="manualPasswordInput">Password:</label><br>
+            <input type="password" id="manualPasswordInput" required>
+        </div>
+        <button type="submit" id="manualEmailSignInButton" style="margin-top: 15px;">Sign In Manually</button>
+    </form>
+    <p id="manualSignInResult" style="margin-top: 10px; font-weight: bold;"></p>
+    <p>Use this to test if standard email/password sign in works outside FirebaseUI.</p>
+</div>
+<!-- Add this section somewhere in your body for testing*********************************** -->
   </body>
 </html>
