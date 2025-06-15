@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       // The pending redirect flow will likely eventually trigger onAuthStateChanged again
                       // after the redirect completes.
                  }
-             }
+             
 
     });
 
