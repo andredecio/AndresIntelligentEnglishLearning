@@ -234,5 +234,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } // <-- End of email link handler block
 
-}); // <-- End of DOMContentLoaded listener
+}; // <-- End of DOMContentLoaded listener
 
