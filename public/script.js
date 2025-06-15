@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  }
              
 
-    });
+    };
 
     // --- Sign Out Button Handler ---
     if (signOutButton) {
