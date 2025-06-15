@@ -47,7 +47,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const anonymousPrompt = document.getElementById('anonymous-prompt'); // The prompt for anonymous users within mainAppContent
     const createAccountButton = document.getElementById('createAccountButton'); // Button to trigger account linking for anonymous users
     const signOutButton = document.getElementById('signOutButton'); // Sign Out button
+// EXTRA TESTING CODE ADDED here****************************************************
+// Add this section near the bottom of your script.js, outside the DOMContentLoaded listener
+// or perhaps within it after the main setup.
+// Make sure you have corresponding HTML inputs and a button for this test.
 
+document.addEventListener('DOMContentLoaded', () => {
+    // ... (your existing script content) ...
+
+    const manualEmailSignInButton = document.getElementById('manualEmailSignInButton');
+    const manualEmailInput = document.getElementById('manualEmailInput'); // Assuming you add these elements
+    const manualPasswordInput = document.getElementById('manualPasswordInput'); // Assuming you add these elements
+    const manualSignInResult = document.getElementById('manualSignInResult'); // Element to show result
+
+    if (manualEmailSignInButton && manualEmailInput && manualPasswordInput && manualSignInResult) {
+        manualEmailSignInButton.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            const email = manualEmailInput.value;
+            const password = manualPasswordInput.value;
+            const auth = firebase.auth(); // Get auth instance
+
+            manualSignInResult.textContent = 'Attempting sign-in...';
+            manualSignInResult.style.color = 'black';
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed in successfully!
+                    console.log("Manual email/password sign-in successful!", userCredential.user);
+                    manualSignInResult.textContent = `Signed in as: ${userCredential.user.email}`;
+                    manualSignInResult.style.color = 'green';
+                    // The onAuthStateChanged listener should also fire here and update the main UI
+                })
+                .catch((error) => {
+                    // Handle errors
+                    console.error("Manual email/password sign-in failed:", error);
+                    manualSignInResult.textContent = `Sign-in failed: ${error.message} (Code: ${error.code})`;
+                    manualSignInResult.style.color = 'red';
+                });
+        });
+    } else {
+         console.warn("Manual sign-in test elements not found. Skipping manual sign-in setup.");
+    }
+
+    // ... (rest of your script content) ...
+});
+
+//**********************************************************************************
     // Initially hide UI elements controlled by auth state.
     // The onAuthStateChanged listener will show the correct elements.
     // Note: The email link handling logic below might show the loader initially.
