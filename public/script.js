@@ -143,21 +143,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (userUidSpan) userUidSpan.textContent = '';
 
              // Ensure FirebaseUI container is visible and start the widget
-                          if (firebaseUiContainer) {
+             if (firebaseUiContainer) {
                  firebaseUiContainer.style.display = 'block'; // Ensure container is visible
-                 // Start FirebaseUI only if it's not already handling a redirect
-                 // Note: firebaseUi.reset() in the 'if (user)' block ensures it's ready to start again after sign-out
-                 if (!firebaseUi.isPendingRedirect()) { // <-- REMOVED the && !firebaseUi.isLoaded() part
+                 // Start FirebaseUI only if it's not already running
+                 if (!firebaseUi.isPendingRedirect() && !firebaseUi.isLoaded()) {
                      firebaseUi.start('#firebaseui-auth-container', uiConfig);
                      console.log("FirebaseUI widget started.");
                  } else {
-                      console.log("FirebaseUI is pending redirect, skipping start call.");
-                      // The pending redirect flow will likely eventually trigger onAuthStateChanged again
-                      // after the redirect completes.
+                      console.log("FirebaseUI is pending redirect or already loaded, skipping start call.");
                  }
-             
-
-    };
+             }
+        }
+    });
 
     // --- Sign Out Button Handler ---
     if (signOutButton) {
@@ -234,5 +231,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } // <-- End of email link handler block
 
-}; // <-- End of DOMContentLoaded listener
+}); // <-- End of DOMContentLoaded listener
 
