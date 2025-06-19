@@ -145,18 +145,21 @@ document.addEventListener('DOMContentLoaded', () => {
              // Ensure FirebaseUI container is visible and start the widget
              if (firebaseUiContainer) {
                  firebaseUiContainer.style.display = 'block'; // Ensure container is visible
-                 // Start FirebaseUI only if it's not already running OR pending a redirect
-                 // Removed the incorrect check !firebaseUi.isLoaded()
-                 if (!firebaseUi.isPendingRedirect()) { // <-- Corrected line here
+                 // Start FirebaseUI only if it's not already running or pending a redirect
+                 // Corrected condition - isLoaded is not a function, rely on isPendingRedirect
+                 if (firebaseUi && !firebaseUi.isPendingRedirect()) { // Added firebaseUi check just in case, kept !isPendingRedirect
                      firebaseUi.start('#firebaseui-auth-container', uiConfig);
                      console.log("FirebaseUI widget started.");
                  } else {
-                      console.log("FirebaseUI is pending redirect, skipping start call.");
+                      // Log message when firebaseUi is not available or pending redirect
+                      if (!firebaseUi) console.log("FirebaseUI instance is not available.");
+                      if (firebaseUi && firebaseUi.isPendingRedirect()) console.log("FirebaseUI is pending redirect, skipping start call.");
                  }
+             } else {
+                  console.warn("FirebaseUI container element (#firebaseui-auth-container) not found in index.html!");
              }
-            }
         }
-    });
+    }); // <-- Correct closing for onAuthStateChanged listener
 
     // --- Sign Out Button Handler ---
     if (signOutButton) {
@@ -183,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // to check if the current URL is an email sign-in link.
 
     // Check if the current URL is an email link sign-in
-    if (firebaseAuth.isSignInWithEmailLink(window.location.href)) {
+    if (firebaseAuth && firebaseAuth.isSignInWithEmailLink(window.location.href)) { // Added firebaseAuth check
         console.log("Detected email sign-in link in URL. Attempting to sign in...");
 
         // Get email from storage. You MUST save the user's email to storage
@@ -195,8 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
             email = window.prompt('Please provide your email for confirmation:');
         }
 
-        if (email) {
-            // Complete the sign-in with the email and the link from the URL.
+        if (email) { // <-- Start of if (email) block
             firebaseAuth.signInWithEmailLink(email, window.location.href)
                 .then((result) => {
                     console.log("Email link sign-in successful!", result);
@@ -209,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // onAuthStateChanged listener will handle UI update
 
                 })
-                .catch((error) => {
+                .catch((error) => { // <-- Error occurred during email link sign-in completion
                     console.error("Error signing in with email link:", error);
                     alert(`Error completing sign-in: ${error.message}. Please try signing in again.`);
                      // Show auth UI again so user can try another method if email link failed
@@ -219,8 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
                           firebaseUi.start('#firebaseui-auth-container', uiConfig);
                            console.log("FirebaseUI widget started after email link sign-in failure.");
                        }
-                });
-        } else {
+                }); // <-- Correct closing for the catch block
+        } else { // <-- Start of else block (no email provided for link completion)
             console.warn("No email provided by user to complete sign-in link.");
             alert("Could not complete sign-in. Email address is required.");
              // Show auth UI again
@@ -230,8 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  firebaseUi.start('#firebaseui-auth-container', uiConfig);
                   console.log("FirebaseUI widget started after no email for link completion.");
               }
-        }
-    } // <-- End of email link handler block
+        } // <-- Correct closing for the else block
+    } // <-- Correct closing for the outer if (firebaseAuth.isSignInWithEmailLink) block
 
-}); // <-- End of DOMContentLoaded listener
-
+}); // <-- Correct closing for the DOMContentLoaded listener
