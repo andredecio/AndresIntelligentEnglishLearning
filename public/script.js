@@ -145,14 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
              // Ensure FirebaseUI container is visible and start the widget
              if (firebaseUiContainer) {
                  firebaseUiContainer.style.display = 'block'; // Ensure container is visible
-                 // Start FirebaseUI only if it's not already running
-                 if (!firebaseUi.isPendingRedirect() && !firebaseUi.isLoaded()) {
+                 // Start FirebaseUI only if it's not already running OR pending a redirect
+                 // Removed the incorrect check !firebaseUi.isLoaded()
+                 if (!firebaseUi.isPendingRedirect()) { // <-- Corrected line here
                      firebaseUi.start('#firebaseui-auth-container', uiConfig);
                      console.log("FirebaseUI widget started.");
                  } else {
-                      console.log("FirebaseUI is pending redirect or already loaded, skipping start call.");
+                      console.log("FirebaseUI is pending redirect, skipping start call.");
                  }
              }
+            }
         }
     });
 
