@@ -1,7 +1,11 @@
 // common.js
 
 // This script expects 'app' and 'auth' to be defined globally by the inline script in HTML.
-
+// Get references to the initialized Firebase service instances
+	const app = firebase.app();
+	const auth = firebase.auth();
+	const analytics = firebase.analytics(); // Only if you are using Analytics
+	
 document.addEventListener('DOMContentLoaded', () => {
     // Get references to elements that might appear on multiple pages
     // We check if they exist before trying to use them, as not all pages will have all elements.
