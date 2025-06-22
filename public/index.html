@@ -9,7 +9,7 @@
 </head>
 <body>
 
-    <h1>Welcome to AI Learning</h1>
+    <h1>Welcome to AI Learning 2!</h1>
 
     <!-- Authentication Section -->
     <div class="auth-section">
@@ -66,15 +66,15 @@
         </div>
     </div>
 
-    <!-- Firebase Core SDK -->
+    <!-- Firebase Core SDK (Compat version for Namespaced API) -->
     <!-- It's generally good practice to load firebase-app.js first. -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 
-    <!-- Firebase Authentication SDK -->
-    <!-- Load the specific Firebase product SDKs you need after firebase-app.js -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
-	<!-- Firebase Analytics SDK -->
-	<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js"></script>
+    <!-- Firebase Authentication SDK (Compat version for Namespaced API) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <!-- Firebase Analytics SDK (Compat version for Namespaced API) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
 
     <!-- Your Firebase Project Configuration -->
     <script>
@@ -93,10 +93,18 @@
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(); // Get the Auth service instance
-		const analytics = getAnalytics(app);
+        // IMPORTANT: getAnalytics is a Modular function.
+        // To use it with the compat libs, you also need to import it explicitly
+        // as the 'compat' versions don't automatically expose these modular functions globally.
+        // For simple direct browser usage without 'type="module"', you might just use firebase.analytics() if it was available in v8,
+        // but getAnalytics is a v9 function.
+        // If you truly need getAnalytics with this setup, you'd need to either:
+        // 1. Fully migrate to the modular import style for ALL scripts.
+        // 2. Or if Firebase.analytics() was exposed globally by the compat library, use that.
+        // For now, let's comment it out to resolve the error. If you need it, we can revisit a full modular migration.
+        // const analytics = getAnalytics(app); 
     </script>
 	<!-- Link to your external JavaScript file -->
 	<script src="script.js"></script>
 </body>
 </html>
-
