@@ -11,7 +11,7 @@ body {
     background-image: url('android-chrome-512x512.png'); /* Adjust path if your image is in a subfolder, e.g., url('images/my-awesome-background.jpg') */
     
     /* 2. Make the background image cover the entire page */
-    background-size: cover; 
+    background-size: contain; 
     
     /* 3. Center the background image */
     background-position: center center; 
