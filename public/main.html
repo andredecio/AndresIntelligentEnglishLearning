@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI English Learning - Main Hub</title>
+    <!-- Link to your common/global CSS file -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Link to your page-specific CSS file for main.html -->
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+    <h1>Your AI English Learning Journey</h1>
+
+    <div class="user-status">
+        <p>Welcome, <span id="currentUserEmail">Loading...</span>!</p>
+    </div>
+
+    <div class="options-grid">
+
+        <!-- Option 1: AI Vocabulary Builder -->
+        <a href="vocabulary.html" class="option-item">
+            <img src="https://via.placeholder.com/300x180/6495ED/FFFFFF?text=Vocabulary+Builder" alt="AI Vocabulary Builder">
+            <h3>AI Vocabulary Builder</h3>
+            <p>Expand your word power with intelligent flashcards and context.</p>
+        </a>
+
+        <!-- Option 2: AI Grammar Corrector -->
+        <a href="grammar.html" class="option-item">
+            <img src="https://via.placeholder.com/300x180/7B68EE/FFFFFF?text=Grammar+Corrector" alt="AI Grammar Corrector">
+            <h3>AI Grammar Corrector</h3>
+            <p>Master complex grammar rules and get instant corrections for your writing.</p>
+        </a>
+
+        <!-- Option 3: AI Pronunciation Practice (Current Page Function) -->
+        <div class="option-item" id="pronunciationPractice">
+            <img src="https://via.placeholder.com/300x180/FFA07A/FFFFFF?text=Pronunciation+Coach" alt="AI Pronunciation Coach">
+            <h3>AI Pronunciation Coach</h3>
+            <p>Refine your accent with real-time feedback and speech analysis.</p>
+        </div>
+
+        <!-- Option 4: AI Conversation Partner -->
+        <a href="conversation.html" class="option-item">
+            <img src="https://via.placeholder.com/300x180/87CEEB/FFFFFF?text=Conversation+AI" alt="AI Conversation Partner">
+            <h3>AI Conversation Partner</h3>
+            <p>Practice speaking English naturally with an AI language model.</p>
+        </a>
+
+        <!-- Option 5: AI Writing Assistant -->
+        <a href="writing.html" class="option-item">
+            <img src="https://via.placeholder.com/300x180/FFD700/FFFFFF?text=Writing+Assistant" alt="AI Writing Assistant">
+            <h3>AI Writing Assistant</h3>
+            <p>Improve your essays and emails with AI-powered suggestions and style guides.</p>
+        </a>
+
+        <!-- Option 6: AI Reading Comprehension -->
+        <a href="reading.html" class="option-item">
+            <img src="https://via.placeholder.com/300x180/ADFF2F/FFFFFF?text=Reading+Comprehension" alt="AI Reading Comprehension">
+            <h3>AI Reading Comprehension</h3>
+            <p>Enhance understanding with interactive texts and intelligent summaries.</p>
+        </a>
+
+        <!-- Option 7: AI Listening Skills (Current Page Function) -->
+        <div class="option-item" id="listeningSkills">
+            <img src="https://via.placeholder.com/300x180/98FB98/FFFFFF?text=Listening+Practice" alt="AI Listening Practice">
+            <h3>AI Listening Practice</h3>
+            <p>Sharpen your listening skills with diverse audio content and quizzes.</p>
+        </div>
+
+        <!-- Option 8: AI Exam Prep -->
+        <a href="exam-prep.html" class="option-item">
+            <img src="https://via.placeholder.com/300x180/DA70D6/FFFFFF?text=Exam+Preparation" alt="AI Exam Preparation">
+            <h3>AI Exam Preparation</h3>
+            <p>Get ready for IELTS, TOEFL, or other exams with targeted practice.</p>
+        </a>
+
+    </div>
+
+    <button id="signOutButtonMain">Sign Out</button>
+
+    <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Optional: Firebase Analytics SDK (Compat version - uncomment if needed and configured) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+
+    <!-- Your Firebase Project Configuration - MUST LOAD AFTER SDKs -->
+    <!--<script>
+        var firebaseConfig = {
+			apiKey: "AIzaSyDkV052ef1mAWGnlNqJ7L8L3EE0KdnZHZw", // YOUR API KEY
+			authDomain: "enduring-victor-460703-a2.firebaseapp.com",
+			projectId: "enduring-victor-460703-a2",
+			storageBucket: "enduring-victor-460703-a2.firebasestorage.app",
+			messagingSenderId: "190391960875",
+			appId: "1:190391960875:web:0585d07fcb53f52755316e", // YOUR APP ID
+			measurementId: "G-5ECFS9Z747" // YOUR MEASUREMENT ID (if using Analytics)
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        // Optional: If you uncommented firebase-analytics-compat.js
+        const analytics = firebase.analytics(); // Use firebase.analytics() for compat version
+    <!--</script>
+    <!-- Firebase SDKs and Project Configuration (handled by Firebase Hosting) -->
+    <script src="/__/firebase/init.js"></script>
+
+    <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
+    <script src="common.js"></script>
+
+    <!-- Page-Specific JavaScript for main.html - MUST LOAD AFTER common.js -->
+    <script src="main.js"></script>
+
+</body>
+</html>

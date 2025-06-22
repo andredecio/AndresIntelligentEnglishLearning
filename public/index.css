@@ -1,0 +1,32 @@
+/* index.css - Styles specific to index.html (Login Page) */
+
+.auth-section {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#error-message {
+    color: #d32f2f; /* Dark red for errors */
+    margin-top: 10px;
+    font-size: 0.9em;
+    display: none; /* Hidden by default, shown by JavaScript */
+}
+
+#auth-status {
+    margin-top: 25px;
+    padding: 15px;
+    background-color: #e8f5e9; /* Light green for status */
+    border-radius: 8px;
+    border: 1px solid #c8e6c9;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
