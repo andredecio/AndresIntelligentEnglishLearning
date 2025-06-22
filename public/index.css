@@ -1,7 +1,7 @@
 /* index.css - Styles specific to index.html (Login Page) */
 
 .auth-section {
-    background-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.8);
     border: 1px solid #e0e0e0;
     padding: 25px;
     margin-bottom: 25px;
