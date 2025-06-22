@@ -71,10 +71,10 @@
     </div>
 
     <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
-    <!--<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <!--<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <!-- Optional: Firebase Analytics SDK (Compat version - uncomment if needed and configured) -->
-    <!--<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
 
     <!-- Your Firebase Project Configuration - MUST LOAD AFTER SDKs -->
 	<!-- If deployed on Firebase Hosting -->
@@ -90,13 +90,8 @@
             messagingSenderId: "190391960875",
             appId: "1:190391960875:web:0585d07fcb53f52755316e",
             measurementId: "G-5ECFS9Z747"
-        };
+        }; -->
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        // Optional: If you uncommented firebase-analytics-compat.js, you can use:
-        const analytics = firebase.analytics(); // Use firebase.analytics() for compat version
-    <!--</script>
 
     <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
     <script src="common.js"></script>
