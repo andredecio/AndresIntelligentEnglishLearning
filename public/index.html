@@ -1,233 +1,102 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI-Learning</title> <!-- Title is already AI-Learning -->
-	<!-- Define the favicon for the website -->
-	<link rel="apple-touch-icon" sizes="180x180" type="image/x-icon href="/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" type="image/x-icon href="/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" type="image/x-icon href="/favicon-16x16.png">
-	<link rel="manifest" href="/site.webmanifest">
-	
-    <!-- Add the FirebaseUI CSS link -->
-    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Custom Firebase Auth App: "AI Learning"</title>
+	<!-- Link to your external CSS file -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-    <!-- Keep your existing Firebase SDK script tags -->
-    <script defer src="/__/firebase/11.8.1/firebase-app-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-performance-compat.js"></script>
-    <!-- Initialize the SDK -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <h1>Welcome to AI Learning</h1>
 
-    <!-- Keep your existing styles and add new ones -->
-    <style media="screen">
-      body {
-          background: #E1F5FE;
-          color: rgba(0,0,0,0.87);
-          font-family: Roboto, Helvetica, Arial, sans-serif;
-          margin: 0;
-          padding: 20px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          min-height: 100vh;
-          box-sizing: border-box;
-      }
+    <!-- Authentication Section -->
+    <div class="auth-section">
+        <h2>Sign In / Sign Up</h2>
 
-      #message { display: none; } /* Hide default message */
+        <div id="error-message" style="color: red; margin-bottom: 10px;"></div>
 
-       h1 {
-           color: #333;
-           font-size: 2.5em;
-           margin-bottom: 20px;
-           text-align: center;
-       }
-
-      #auth-options-container {
-          background: white;
-          max-width: 360px;
-          width: 100%;
-          padding: 32px 24px;
-          border-radius: 8px;
-          box-shadow: 0 4px 8px rgba(0,0,0,0.1), 0 6px 20px rgba(0,0,0,0.1);
-          text-align: center;
-          margin-bottom: 20px;
-          display: none; /* Controlled by script.js */
-          box-sizing: border-box;
-      }
-
-      /* Added styling for descriptive text */
-      .auth-description {
-          margin-bottom: 20px;
-          color: rgba(0,0,0,0.6);
-          font-size: 1em;
-          line-height: 1.5;
-          text-align: left; /* Align text left within the container */
-      }
-
-      .auth-description h2 {
-          color: #555;
-          font-size: 1.2em;
-          margin-top: 0;
-          margin-bottom: 10px;
-          text-align: center; /* Center description headings */
-      }
-
-
-      #firebaseui-auth-container {
-         margin-bottom: 20px;
-      }
-
-      #signInAnonymouslyButton {
-           display: block;
-           width: 100%;
-           text-align: center;
-           background: #0288D1;
-           text-transform: uppercase;
-           text-decoration: none;
-           color: white;
-           padding: 16px;
-           border-radius: 4px;
-           border: none;
-           cursor: pointer;
-           font-size: 1em;
-           transition: background-color 0.3s ease;
-           box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-           box-sizing: border-box;
-      }
-
-      #signInAnonymouslyButton:hover {
-          background-color: #0277BD;
-      }
-
-       #main-app-content {
-           background: white;
-           max-width: 600px;
-           width: 100%;
-           margin: 20px auto;
-           padding: 32px 24px;
-           border-radius: 8px;
-           box-shadow: 0 4px 8px rgba(0,0,0,0.1), 0 6px 20px rgba(0,0,0,0.1);
-           text-align: left;
-           display: none; /* Controlled by script.js */
-           box-sizing: border-box;
-       }
-
-       /* Added styling for the "Create Account" prompt/button */
-       #anonymous-prompt {
-           margin-top: 20px;
-           padding-top: 20px;
-           border-top: 1px solid #eee; /* Separator line */
-           text-align: center;
-           font-size: 0.9em;
-           color: rgba(0,0,0,0.7);
-       }
-
-       #createAccountButton {
-            margin-top: 15px;
-            display: inline-block; /* Use inline-block or block as needed */
-            background: #4CAF50; /* Green color */
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-       }
-
-        #createAccountButton:hover {
-           background-color: #388E3C; /* Darker green on hover */
-        }
-
-
-       #load {
-           color: rgba(0,0,0,0.6);
-           text-align: center;
-           font-size: 1.1em;
-           margin-top: 20px;
-       }
-
-
-      /* Responsive adjustments */
-      @media (max-width: 600px) {
-        body { padding: 10px; }
-        #auth-options-container {
-            padding: 24px 16px;
-            border-radius: 0;
-            box-shadow: none;
-        }
-        #main-app-content {
-             border-radius: 0;
-             box-shadow: none;
-             padding: 24px 16px;
-        }
-        h1 { font-size: 2em; }
-      }
-    </style>
-  </head>
-  <body>
-    <h1>AI-Learning</h1> <!-- Main title -->
-
-    <div id="message" style="display: none;">
-      <!-- Default message hidden -->
-    </div>
-
-    <!-- Container for all sign-in options -->
-    <div id="auth-options-container">
-
-        <div class="auth-description">
-            <h2>Already have an account?</h2>
-            <p>Sign in with one of these options:</p>
+        <!-- Email/Password Authentication -->
+        <div>
+            <h3>Email and Password</h3>
+            <input type="email" id="emailInput" placeholder="Email">
+            <input type="password" id="passwordInput" placeholder="Password">
+            <button id="signInEmailButton">Sign In with Email</button>
+            <button id="signUpEmailButton">Sign Up with Email</button>
         </div>
 
-         <!-- The container where the FirebaseUI widget will be rendered -->
-        <div id="firebaseui-auth-container"></div>
+        <hr>
 
-        <div class="auth-description">
-            <h2>New here?</h2>
-            <p>Just want to browse? Enter anonymously and create an account later if you like.</p>
+        <!-- Social Authentication -->
+        <div>
+            <h3>Social Logins</h3>
+            <button id="signInGoogleButton" class="social-button google-button">
+                <img src="https://img.icons8.com/color/24/000000/google-logo--v1.png" class="social-icon" alt="Google icon"> Sign In with Google
+            </button>
+            <button id="signInFacebookButton" class="social-button facebook-button">
+                <img src="https://img.icons8.com/ios-filled/24/000000/facebook-new.png" class="social-icon" alt="Facebook icon" style="filter: brightness(0) invert(1);"> Sign In with Facebook
+            </button>
         </div>
 
-        <!-- Add the button for anonymous sign-in -->
-        <button id="signInAnonymouslyButton">Just Look Around (No Account)</button>
-    </div>
+        <hr>
 
-
-    <!-- Add the container for your main app content -->
-    <div id="main-app-content">
-        <h2>Welcome to the main app!</h2>
-        <p>You are signed in.</p>
-        <p>This content is visible after authentication.</p>
-        <!-- Add the rest of your main application HTML here -->
-
-        <!-- Placeholder for the "Create Account" prompt for anonymous users -->
-        <div id="anonymous-prompt" style="display: none;">
-             <p>Looks like you're signed in anonymously.</p>
-             <p>Create an account to save your progress and unlock more features!</p>
-             <button id="createAccountButton">Create Permanent Account</button>
+        <!-- Anonymous Authentication -->
+        <div>
+            <h3>Anonymous</h3>
+            <button id="signInAnonymousButton" class="social-button guest-button">Continue as Guest</button>
         </div>
-
-        <!-- Add a sign-out button here for testing -->
-         <button id="signOutButton" style="margin-top: 20px;">Sign Out</button>
-
     </div>
 
+    <!-- User Info and Sign Out Section -->
+    <div id="auth-status">
+        <p>Authentication Status: <span id="statusMessage">Checking...</span></p>
+        <p id="loggedInUserEmail" style="font-weight: bold;"></p>
+    </div>
 
-    <p id="load" style="display: none;">Loading...</p> <!-- Initial loader hidden -->
+    <button id="signOutButton" hidden style="display: block; margin: 20px auto;">Sign Out</button>
 
-    <!-- Keep your existing script includes -->
-    <script defer src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
-    <script defer src="script.js"></script>
+    <div id="login-info" hidden>
+        <h2>Login Info:</h2>
+        <div id="userInfoDisplay">
+            <p><strong>UID:</strong> <span id="userUid"></span></p>
+            <p><strong>Email:</strong> <span id="userEmail"></span></p>
+            <p><strong>Name:</strong> <span id="userName"></span></p>
+            <p><strong>Provider:</strong> <span id="userProvider"></span></p>
+        </div>
+    </div>
 
-  </body>
+    <!-- Firebase Core SDK -->
+    <!-- It's generally good practice to load firebase-app.js first. -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+
+    <!-- Firebase Authentication SDK -->
+    <!-- Load the specific Firebase product SDKs you need after firebase-app.js -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+	<!-- Firebase Analytics SDK -->
+	<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js"></script>
+
+    <!-- Your Firebase Project Configuration -->
+    <script>
+        // Your Firebase project configuration goes here.
+        // Get your API Key and App ID from your Firebase console -> Project settings -> General
+        var firebaseConfig = {
+			apiKey: "AIzaSyDkV052ef1mAWGnlNqJ7L8L3EE0KdnZHZw",
+			authDomain: "enduring-victor-460703-a2.firebaseapp.com",
+			projectId: "enduring-victor-460703-a2",
+			storageBucket: "enduring-victor-460703-a2.firebasestorage.app",
+			messagingSenderId: "190391960875",
+			appId: "1:190391960875:web:0585d07fcb53f52755316e",
+			measurementId: "G-5ECFS9Z747"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(); // Get the Auth service instance
+		const analytics = getAnalytics(app);
+    </script>
+	<!-- Link to your external JavaScript file -->
+	<script src="script.js"></script>
+</body>
 </html>
+
