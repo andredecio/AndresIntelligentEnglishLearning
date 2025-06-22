@@ -8,10 +8,10 @@ body {
     color: #343a40; /* Dark grey text */
     line-height: 1.6;
 	/* 1. Set the background image */
-    background-image: url('android-chrome-512x512.png'); /* Adjust path if your image is in a subfolder, e.g., url('images/my-awesome-background.jpg') */
+    background-image: url('android-chrome-1024 x512.png'); /* Adjust path if your image is in a subfolder, e.g., url('images/my-awesome-background.jpg') */
     
     /* 2. Make the background image cover the entire page */
-    background-size: contain; 
+    background-size: cover; 
     
     /* 3. Center the background image */
     background-position: center center; 
