@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Custom Firebase Auth App: "AI Learning"</title>
-	<!-- Link to your external CSS file -->
+    <title>My Custom Firebase Auth App: "AI Learning 3"</title>
+    <!-- Link to your common/global CSS file -->
     <link rel="stylesheet" href="style.css">
+    <!-- Link to your page-specific CSS file for index.html -->
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
-    <h1>Welcome to AI Learning 2!</h1>
+    <h1>Welcome to AI Learning 3!</h1>
 
     <!-- Authentication Section -->
     <div class="auth-section">
         <h2>Sign In / Sign Up</h2>
 
-        <div id="error-message" style="color: red; margin-bottom: 10px;"></div>
+        <div id="error-message"></div> <!-- Error message is now initially hidden by index.css -->
 
         <!-- Email/Password Authentication -->
         <div>
@@ -54,9 +56,11 @@
         <p id="loggedInUserEmail" style="font-weight: bold;"></p>
     </div>
 
-    <button id="signOutButton" hidden style="display: block; margin: 20px auto;">Sign Out</button>
+    <!-- Sign Out button (hidden by default, shown by JS when logged in) -->
+    <button id="signOutButton" class="hidden" style="display: block; margin: 20px auto;">Sign Out</button>
 
-    <div id="login-info" hidden>
+    <!-- Optional: login-info div for displaying detailed user data, currently hidden -->
+    <div id="login-info" class="hidden">
         <h2>Login Info:</h2>
         <div id="userInfoDisplay">
             <p><strong>UID:</strong> <span id="userUid"></span></p>
@@ -66,45 +70,38 @@
         </div>
     </div>
 
-    <!-- Firebase Core SDK (Compat version for Namespaced API) -->
-    <!-- It's generally good practice to load firebase-app.js first. -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
+    <!--<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <!--<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Optional: Firebase Analytics SDK (Compat version - uncomment if needed and configured) -->
+    <!--<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
 
-    <!-- Firebase Authentication SDK (Compat version for Namespaced API) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Your Firebase Project Configuration - MUST LOAD AFTER SDKs -->
+	<!-- If deployed on Firebase Hosting -->
+	<script src="/__/firebase/init.js"></script>
+	<!-- This single line auto-loads Firebase SDKs and initializes them -->
 
-    <!-- Firebase Analytics SDK (Compat version for Namespaced API) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
-
-    <!-- Your Firebase Project Configuration -->
-    <script>
-        // Your Firebase project configuration goes here.
-        // Get your API Key and App ID from your Firebase console -> Project settings -> General
+    <!--<script>
         var firebaseConfig = {
-			apiKey: "AIzaSyDkV052ef1mAWGnlNqJ7L8L3EE0KdnZHZw",
-			authDomain: "enduring-victor-460703-a2.firebaseapp.com",
-			projectId: "enduring-victor-460703-a2",
-			storageBucket: "enduring-victor-460703-a2.firebasestorage.app",
-			messagingSenderId: "190391960875",
-			appId: "1:190391960875:web:0585d07fcb53f52755316e",
-			measurementId: "G-5ECFS9Z747"
+            apiKey: "AIzaSyDkV052ef1mAWGnlNqJ7L8L3EE0KdnZHZw",
+            authDomain: "enduring-victor-460703-a2.firebaseapp.com",
+            projectId: "enduring-victor-460703-a2",
+            storageBucket: "enduring-victor-460703-a2.firebasestorage.app",
+            messagingSenderId: "190391960875",
+            appId: "1:190391960875:web:0585d07fcb53f52755316e",
+            measurementId: "G-5ECFS9Z747"
         };
 
-        // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(); // Get the Auth service instance
-        // IMPORTANT: getAnalytics is a Modular function.
-        // To use it with the compat libs, you also need to import it explicitly
-        // as the 'compat' versions don't automatically expose these modular functions globally.
-        // For simple direct browser usage without 'type="module"', you might just use firebase.analytics() if it was available in v8,
-        // but getAnalytics is a v9 function.
-        // If you truly need getAnalytics with this setup, you'd need to either:
-        // 1. Fully migrate to the modular import style for ALL scripts.
-        // 2. Or if Firebase.analytics() was exposed globally by the compat library, use that.
-        // For now, let's comment it out to resolve the error. If you need it, we can revisit a full modular migration.
-        // const analytics = getAnalytics(app); 
-    </script>
-	<!-- Link to your external JavaScript file -->
-	<script src="script.js"></script>
+        const auth = firebase.auth();
+        // Optional: If you uncommented firebase-analytics-compat.js, you can use:
+        const analytics = firebase.analytics(); // Use firebase.analytics() for compat version
+    <!--</script>
+
+    <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
+    <script src="common.js"></script>
+
+    <!-- Page-Specific JavaScript for index.html - MUST LOAD AFTER common.js -->
+    <script src="index.js"></script>
 </body>
 </html>

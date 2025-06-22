@@ -1,0 +1,95 @@
+/* main.css - Styles specific to main.html (Main Hub Page) */
+
+/* Override/extend global h1 style from style.css for this page */
+h1 {
+    text-align: center;
+    color: #0056b3; /* A specific blue for the main title */
+    margin-top: 30px;
+    margin-bottom: 40px;
+    font-size: 2.5em;
+}
+
+body {
+    /* Removed background-color and color from here if they are in style.css */
+    /* If you want to explicitly set them for main.html, keep them. */
+    /* background-color: #f8f9fa; */
+    /* color: #343a40; */
+}
+
+.user-status {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.1em;
+    color: #6c757d;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Adjust min width for more columns on larger screens */
+    gap: 25px;
+    padding: 20px;
+    max-width: 1200px; /* Wider grid for 8 items */
+    margin: 0px auto 40px auto; /* Centered with bottom margin */
+}
+
+.option-item {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    text-decoration: none; /* For link options */
+    color: inherit; /* For link options */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    border: 1px solid #e0e0e0;
+}
+
+.option-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+}
+
+.option-item img {
+    max-width: 100%;
+    height: 180px; /* Fixed height for image consistency */
+    object-fit: cover; /* Cover the area, cropping if necessary */
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 5px; /* Little space below image */
+}
+
+.option-item h3 {
+    margin: 15px 10px 8px;
+    color: #0056b3; /* Consistent blue for option titles */
+    font-size: 1.3em;
+}
+
+.option-item p {
+    font-size: 0.95em;
+    color: #555;
+    padding: 0 15px 15px;
+    flex-grow: 1; /* Allow paragraph to take available space */
+    line-height: 1.4;
+}
+
+/* Specific styling for the sign-out button on this page */
+#signOutButtonMain {
+    background-color: #dc3545; /* Red for danger/sign-out */
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+    display: block;
+    margin: 30px auto;
+    transition: background-color 0.2s ease;
+}
+
+#signOutButtonMain:hover {
+    background-color: #c82333; /* Darker red on hover */
+}
