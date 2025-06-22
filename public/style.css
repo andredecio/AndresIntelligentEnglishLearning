@@ -43,7 +43,7 @@ body::before {
     /* The semi-transparent color overlay */
     /* rgba(red, green, blue, alpha) - alpha is opacity from 0 (fully transparent) to 1 (fully opaque) */
     /* Example: a light, semi-transparent white overlay (60% opaque, so 40% transparent) */
-    background-color: rgba(255, 255, 255, 0.4); 
+    background-color: rgba(255, 255, 255, 0.9); 
     
     /* Example: a dark, semi-transparent black overlay (30% opaque, so 70% transparent) */
     /* background-color: rgba(0, 0, 0, 0.3); */ 
