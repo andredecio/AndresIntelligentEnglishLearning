@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email - AI Learning 3</title>
+    <!-- Link to your common/global CSS file -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Link to any page-specific CSS for this page if you create one -->
+    <link rel="stylesheet" href="verify_email.css"> 
+ 
+</head>
+<body>
+
+    <div class="container">
+        <h1>Almost There! Just One More Step...</h1>
+        <p>Thank you for signing up for AI Learning 3. To activate your account and start your personalized lessons, we need you to verify your email address.</p>
+        
+        <div class="instructions">
+            <p><strong>Here's what to do:</strong></p>
+            <ol>
+                <li>Check your inbox for a verification email from us.</li>
+                <li>The email will contain a link. Click on it to confirm your email address.</li>
+                <li>If you don't see it, please check your **spam or junk folder**.</li>
+            </ol>
+        </div>
+
+        <p id="resendMessage" style="color: gray; font-size: 0.9em;"></p>
+        <button id="resendEmailButton">Resend Verification Email</button>
+        <p style="margin-top: 30px;">Once verified, you'll be automatically redirected to your learning dashboard!</p>
+    </div>
+
+    <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <!-- Your Firebase Project Configuration - MUST LOAD AFTER SDKs -->
+    <script src="/__/firebase/init.js"></script>
+
+    <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
+    <script src="common.js"></script>
+
+    <!-- Page-Specific JavaScript for this page -->
+    <script src="verify_email_notice.js"></script>
+  
+</body>
+</html>
