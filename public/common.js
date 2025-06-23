@@ -99,9 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return normalizedCurrentPath === normalizedPageToCheck;
         };
 
-        if (user) {
+//        if (user) {
             // --- A. User is signed in ---
-            console.log("Auth State: User signed in. Email Verified:", user.emailVerified, "Anonymous:", user.isAnonymous);
+//            console.log("Auth State: User signed in. Email Verified:", user.emailVerified, "Anonymous:", user.isAnonymous);
 
 //
 //
@@ -137,20 +137,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     // If they are on the login/onboarding/verification/conversation pages, or the root path, redirect them to the main content.
 //                   if (isOnPage(indexPage) || isOnPage(onboardingPage) || isOnPage(verifyEmailPage) || isOnPage(rootPath) || isOnPage(conversationPage)) { 
 //                        console.log("User fully authenticated, redirecting to main content page (main.html).");
-                       window.location.href = mainPage; // <-- Redirect to main.html for verified users
+//                       window.location.href = mainPage; // <-- Redirect to main.html for verified users
 //                    }
                     // If they are already on mainPage or another permitted app page, do nothing.
 //               }
 //            }
-        } else {
+//        } else {
             // --- B. No user signed in ---
             // Unauthenticated users should only be on the index.html (login/signup) page.
             // If they are on any other page that requires authentication, redirect them to index.html.
             // Exception: If they are on the onboarding page (for anonymous start) or verification notice page.
-            if (!isOnPage(indexPage) && !isOnPage(rootPath) && !isOnPage(onboardingPage) && !isOnPage(verifyEmailPage)) { 
-                console.log("No user signed in, redirecting to index page.");
-                window.location.href = indexPage;
-            }
+//            if (!isOnPage(indexPage) && !isOnPage(rootPath) && !isOnPage(onboardingPage) && !isOnPage(verifyEmailPage)) { 
+//                console.log("No user signed in, redirecting to index page.");
+//                window.location.href = indexPage;
+//            }
             // If they are on the indexPage, root, onboardingPage, or verifyEmailPage, do nothing (they should be there).
         }
     });
