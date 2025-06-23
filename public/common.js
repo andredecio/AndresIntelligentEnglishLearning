@@ -152,6 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
 //                window.location.href = indexPage;
 //            }
             // If they are on the indexPage, root, onboardingPage, or verifyEmailPage, do nothing (they should be there).
-        }
+//       }
     });
 });
