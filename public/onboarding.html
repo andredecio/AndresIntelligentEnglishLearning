@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tell Us More About You</title>
+	<!-- Link to your common/global CSS file -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Link to your page-specific CSS file for main.html -->
+    <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+    <h1>Help us personalize your experience!</h1>
+    <form id="onboarding-form">
+        <label for="native-language">What's your native language?</label>
+        <input type="text" id="native-language" placeholder="e.g., Japanese, Spanish" required>
+
+        <label for="learning-goal">What are your English learning goals?</label>
+        <select id="learning-goal" required>
+            <option value="">Select a goal</option>
+            <option value="conversation">Improve conversation skills</option>
+            <option value="grammar">Understand grammar better</option>
+            <option value="pronunciation">Improve pronunciation</option>
+            <option value="vocabulary">Expand vocabulary</option>
+            <option value="business">English for business</option>
+            <option value="travel">English for travel</option>
+        </select>
+
+        <button type="submit">Start Demo Lesson</button>
+    </form>
+    <div id="loading">Saving your preferences and preparing your lesson...</div>
+    <div id="error-message" class="error-message"></div>
+
+    <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Optional: Firebase Analytics SDK (Compat version - uncomment if needed and configured) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+
+    <script src="/__/firebase/init.js"></script>
+	
+    <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
+    <script src="common.js"></script>
+
+    <!-- Page-Specific JavaScript for main.html - MUST LOAD AFTER common.js -->
+    <script src="onboarding.js"></script>
+
+</body>
+</html>
