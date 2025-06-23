@@ -84,15 +84,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const indexPage = '/index.html'; // Your login/signup page
         const onboardingPage = '/onboarding.html'; // Where anonymous users provide details
         const verifyEmailPage = '/verify_email_notice.html'; // Where users land for email verification
-        const conversationPage = '/conversation.html'; // Your main app content page (demo lesson)
-        // Add other core app pages here if applicable, e.g., '/dashboard.html'
-        // const mainPage = '/main.html'; // Your 'main' page if it's different from conversation.html
+        const conversationPage = '/conversation.html'; // Your AI conversation demo page (accessible to unverified)
+        const mainPage = '/main.html'; // Your main application dashboard/hub (requires verification)
 
         // Helper to check if current path is one of the given paths
         const isOnPage = (pageToCheck) => {
             // Normalize path to exclude trailing slashes for root, and .html extension
-            const normalizedCurrentPath = currentPath.endsWith('/') ? currentPath.slice(0, -1) : currentPath;
+            const normalizedCurrentPath = currentPath.endsWith('/') ? currentPath.slice(0, -1) : currentPath.replace('.html', '');
             const normalizedPageToCheck = pageToCheck.endsWith('/') ? pageToCheck.slice(0, -1) : pageToCheck.replace('.html', '');
+            
+            // Special handling for root as '' after slicing, if pageToCheck is '/'
+            if (normalizedCurrentPath === '' && normalizedPageToCheck === '') return true;
+
             return normalizedCurrentPath === normalizedPageToCheck;
         };
 
@@ -111,32 +114,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Non-anonymous user (Email/Password, Google, Facebook, etc.)
                 if (user.email && !user.emailVerified) {
                     // This user has an email, but it's not verified.
-                    // If they are NOT on the email verification notice page, redirect them there.
-                    if (!isOnPage(verifyEmailPage)) {
+                    // IMPORTANT: The 'conversation.html' is an exception and does NOT require verification
+                    // All other main app pages (like 'main.html') DO require verification.
+
+                    if (isOnPage(conversationPage)) {
+                        // User is on conversation.html (demo page) and email is not verified.
+                        // Allow them to stay here for the demo. No redirection needed from here.
+                        console.log("User on conversation.html. Email not verified, but allowed for demo.");
+                    } else if (!isOnPage(verifyEmailPage)) {
+                        // User is on any other page (e.g., main.html, index.html, root)
+                        // and their email is NOT verified. Redirect them to the verification notice.
                         console.log("Email not verified, redirecting to verification notice page.");
                         window.location.href = verifyEmailPage;
                     }
                     // If they ARE on the verifyEmailPage, they should stay there until verified.
+
                 } else {
                     // Email is verified (or they don't have an email to verify, e.g., some social logins).
                     // This means they are fully authenticated and can access core app content.
-                    // If they are on the login/onboarding/verification pages, redirect them to the main content.
-                    if (isOnPage(indexPage) || isOnPage(onboardingPage) || isOnPage(verifyEmailPage)) {
-                        console.log("User fully authenticated, redirecting to conversation page.");
-                        window.location.href = conversationPage;
+                    // If they are on the login/onboarding/verification/conversation pages, or the root path, redirect them to the main content.
+                    if (isOnPage(indexPage) || isOnPage(onboardingPage) || isOnPage(verifyEmailPage) || isOnPage(rootPath) || isOnPage(conversationPage)) { 
+                        console.log("User fully authenticated, redirecting to main content page (main.html).");
+                        window.location.href = mainPage; // <-- Redirect to main.html for verified users
                     }
-                    // If they are already on conversationPage or another permitted app page, do nothing.
+                    // If they are already on mainPage or another permitted app page, do nothing.
                 }
             }
         } else {
             // --- B. No user signed in ---
             // Unauthenticated users should only be on the index.html (login/signup) page.
-            // If they are on any other protected page, redirect them to index.html.
-            if (!isOnPage(indexPage) && !isOnPage(rootPath)) { // Also allow root path as it usually serves index.html
+            // If they are on any other page that requires authentication, redirect them to index.html.
+            // Exception: If they are on the onboarding page (for anonymous start) or verification notice page.
+            if (!isOnPage(indexPage) && !isOnPage(rootPath) && !isOnPage(onboardingPage) && !isOnPage(verifyEmailPage)) { 
                 console.log("No user signed in, redirecting to index page.");
                 window.location.href = indexPage;
             }
-            // If they are on the indexPage or root, do nothing (they should be there).
+            // If they are on the indexPage, root, onboardingPage, or verifyEmailPage, do nothing (they should be there).
         }
     });
 });
