@@ -28,11 +28,15 @@
         <label for="native-language">What's your native language? (Or preferred interaction language)</label>
         <input type="text" id="native-language" placeholder="e.g., Japanese, Spanish" required>
 
-        <!-- New: Email Address (Conditional - see JS explanation) -->
+        <!-- Updated: Email Address & NEW Password Field (Conditional - see JS explanation) -->
         <div id="email-field-container" style="display: none;">
-            <label for="email">Email Address (to save your progress):</label>
+            <p><strong>To save your progress, create a permanent account:</strong></p>
+            <label for="email">Email Address:</label>
             <input type="email" id="email" placeholder="you@example.com">
-            <small>Provide your email if you want to create an account and save your progress!</small>
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="At least 6 characters">
+            <small>Provide your email and a password to create an account and save your progress!</small>
         </div>
         
         <!-- New: Sex/Gender -->

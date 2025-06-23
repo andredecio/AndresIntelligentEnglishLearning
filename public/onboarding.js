@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nativeLanguageInput = document.getElementById('native-language');
     const emailFieldContainer = document.getElementById('email-field-container');
     const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password'); // Get password input
     const sexMaleRadio = document.getElementById('sex-male');
     const sexFemaleRadio = document.getElementById('sex-female');
     const learningGoalSelect = document.getElementById('learning-goal');
@@ -45,15 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Enable the button once we know who the user is
             startDemoButton.disabled = false;
 
-            // If user is anonymous, show the email field to offer linking
+            // If user is anonymous, show the email/password fields to offer linking
             if (currentUser.isAnonymous) {
                 emailFieldContainer.style.display = 'block';
-                emailInput.setAttribute('required', 'true'); // Make email required for anonymous
+                // Make email and password required if anonymous and fields are shown
+                emailInput.setAttribute('required', 'true');
+                passwordInput.setAttribute('required', 'true');
             } else {
-                // If not anonymous, hide the email field
+                // If not anonymous, hide the email/password fields
                 emailFieldContainer.style.display = 'none';
                 emailInput.removeAttribute('required');
-                // You might also pre-fill the email field if available from user.email
+                passwordInput.removeAttribute('required');
+                // You might pre-fill the email field if available from user.email
                 if (currentUser.email) {
                     emailInput.value = currentUser.email;
                 }
@@ -74,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (userData.learningGoal) {
                         learningGoalSelect.value = userData.learningGoal;
-                        // Trigger change to show/hide otherGoalNotes if 'other' was saved
                         if (learningGoalSelect.value === 'other') {
                             otherGoalNotes.style.display = 'block';
                             otherGoalNotes.setAttribute('required', 'true');
@@ -120,52 +123,60 @@ document.addEventListener('DOMContentLoaded', () => {
             const userData = {
                 firstName: firstNameInput.value.trim(),
                 lastName: lastNameInput.value.trim(),
-                // Store date of birth as an ISO string for consistent storage
                 dateOfBirth: dobInput.value ? new Date(dobInput.value).toISOString() : null,
                 nativeLanguage: nativeLanguageInput.value.trim(),
-                sex: document.querySelector('input[name="sex"]:checked')?.value || null, // Get selected radio button value
+                sex: document.querySelector('input[name="sex"]:checked')?.value || null,
                 learningGoal: learningGoalSelect.value,
-                onboardingComplete: true, // Mark onboarding as complete
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp for accuracy
+                onboardingComplete: true,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            // Add otherGoalNotes if 'other' is selected for learning goal
             if (userData.learningGoal === 'other') {
                 userData.otherGoalNotes = otherGoalNotes.value.trim();
             }
 
-            // Handle email linking for anonymous users
-            if (currentUser.isAnonymous && emailInput.value.trim()) {
+            // --- ACCOUNT LINKING LOGIC ---
+            if (currentUser.isAnonymous) {
                 const email = emailInput.value.trim();
-                // You'd typically prompt for a password too, but for simplicity here,
-                // we'll assume the email is the primary field. A full implementation
-                // would require a password input for EmailAuthProvider.
-                // For a proper account creation, you'd collect a password too.
-                // Example: const password = prompt("Please enter a password to secure your account:");
-                // const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+                const password = passwordInput.value; // Get the password
 
-                // This is a simplified approach, usually you'd offer to link with password,
-                // or use a sign-in method if email already exists.
-                // For demonstration, let's assume we want to update the profile if possible.
-                // A better flow would be to convert anonymous to email/password on first full sign-up.
-
-                // A more robust way to handle this:
-                // 1. Try to fetch sign-in methods for the email.
-                // 2. If email exists, ask user to sign in with existing method.
-                // 3. If email doesn't exist, create email/password credential and link.
-
-                // For a quick setup where you want to associate an email for a future account:
-                // This doesn't convert the anonymous user directly to an email/password user
-                // unless you also collect and use a password with `linkWithCredential`.
-                // It just updates the profile with the email.
-                await currentUser.updateProfile({ email: email });
-                console.log("Email updated in user profile.");
-                // To truly convert, you'd need:
-                // await currentUser.linkWithCredential(firebase.auth.EmailAuthProvider.credential(email, 'some_temporary_password_or_collected_one'));
-                // Or you redirect them to a full signup page after collecting details.
-                // Let's just save the email in Firestore for now to keep it simple,
-                // and let them decide to create a password later.
-                userData.emailProvided = email; // Store the email they provided in Firestore
+                if (email && password) { // Only attempt linking if both are provided
+                    try {
+                        const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+                        
+                        // This is the core step: linking the credential
+                        await currentUser.linkWithCredential(credential);
+                        console.log("Anonymous account successfully linked with Email/Password!");
+                        // At this point, currentUser.isAnonymous will be false and
+                        // the user object will reflect the new linked provider.
+                        userData.email = email; // Store email in Firestore for completeness
+                        userData.isAnonymous = false; // Explicitly update in Firestore to reflect change
+                        
+                    } catch (error) {
+                        // Handle errors during linking
+                        if (error.code === 'auth/credential-already-in-use') {
+                            errorMessage.textContent = "This email is already associated with another account. Please sign in with that account instead, or use a different email.";
+                            // In a real app, you might offer to sign them in with the existing account and merge data.
+                        } else if (error.code === 'auth/email-already-in-use') {
+                             errorMessage.textContent = "This email is already in use by another account. Please use a different email.";
+                        } else if (error.code === 'auth/invalid-email') {
+                            errorMessage.textContent = "The email address is not valid.";
+                        } else if (error.code === 'auth/weak-password') {
+                            errorMessage.textContent = "The password is too weak (must be at least 6 characters).";
+                        } else {
+                            errorMessage.textContent = `Error linking account: ${error.message}`;
+                        }
+                        console.error("Error linking anonymous account:", error);
+                        loadingMessage.style.display = 'none';
+                        return; // Stop execution if linking fails
+                    }
+                } else if (email || password) { // If only one is provided
+                    errorMessage.textContent = "To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.";
+                    loadingMessage.style.display = 'none';
+                    return;
+                }
+                // If email and password fields are left blank, proceed without linking
+                // The user will remain anonymous but their data will be saved.
             }
 
             // Save user data to Firestore
