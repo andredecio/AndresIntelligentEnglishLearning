@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 //                    if (isOnPage(conversationPage)) {
                         // User is on conversation.html (demo page) and email is not verified.
                         // Allow them to stay here for the demo. No redirection needed from here.
-                        console.log("User on conversation.html. Email not verified, but allowed for demo.");
+//                        console.log("User on conversation.html. Email not verified, but allowed for demo.");
 //                    } else if (!isOnPage(verifyEmailPage)) {
                         // User is on any other page (e.g., main.html, index.html, root)
                         // and their email is NOT verified. Redirect them to the verification notice.
