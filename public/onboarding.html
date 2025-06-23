@@ -12,9 +12,40 @@
 <body>
     <h1>Help us personalize your experience!</h1>
     <form id="onboarding-form">
-        <label for="native-language">What's your native language?</label>
+        <!-- New: First Name -->
+        <label for="first-name">First Name:</label>
+        <input type="text" id="first-name" placeholder="e.g., John" required>
+
+        <!-- New: Last Name -->
+        <label for="last-name">Last Name:</label>
+        <input type="text" id="last-name" placeholder="e.g., Doe" required>
+
+        <!-- New: Date of Birth -->
+        <label for="dob">Date of Birth:</label>
+        <input type="date" id="dob" required>
+
+        <!-- Existing: Native Language / Preferred Language to interact with -->
+        <label for="native-language">What's your native language? (Or preferred interaction language)</label>
         <input type="text" id="native-language" placeholder="e.g., Japanese, Spanish" required>
 
+        <!-- New: Email Address (Conditional - see JS explanation) -->
+        <div id="email-field-container" style="display: none;">
+            <label for="email">Email Address (to save your progress):</label>
+            <input type="email" id="email" placeholder="you@example.com">
+            <small>Provide your email if you want to create an account and save your progress!</small>
+        </div>
+        
+        <!-- New: Sex/Gender -->
+        <label>Sex/Gender:</label>
+        <div class="radio-group">
+            <input type="radio" id="sex-male" name="sex" value="male" required>
+            <label for="sex-male">Male</label>
+            <input type="radio" id="sex-female" name="sex" value="female">
+            <label for="sex-female">Female</label>
+            <!-- Consider adding "Prefer not to say" or "Other" options for inclusivity if appropriate for your app. -->
+        </div>
+
+        <!-- Existing: Reason for Study / Learning Goal -->
         <label for="learning-goal">What are your English learning goals?</label>
         <select id="learning-goal" required>
             <option value="">Select a goal</option>
@@ -24,25 +55,32 @@
             <option value="vocabulary">Expand vocabulary</option>
             <option value="business">English for business</option>
             <option value="travel">English for travel</option>
+            <option value="other">Other (please specify in notes)</option>
         </select>
+        <!-- Optional: A textarea for "Other" goals -->
+        <textarea id="other-goal-notes" placeholder="e.g., prepare for IELTS" style="display: none; margin-top: 10px;"></textarea>
 
-        <button type="submit">Start Demo Lesson</button>
+
+        <button type="submit" id="startDemoButton" disabled>Start Demo Lesson</button>
     </form>
-    <div id="loading">Saving your preferences and preparing your lesson...</div>
-    <div id="error-message" class="error-message"></div>
+    <div id="loading" style="display: none;">Saving your preferences and preparing your lesson...</div>
+    <div id="error-message" class="error-message" style="display: none;"></div>
 
     <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- We need Firestore to save data! -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <!-- Optional: Firebase Analytics SDK (Compat version - uncomment if needed and configured) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <!-- <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script> -->
 
+    <!-- This script automatically loads your Firebase project config from Hosting -->
     <script src="/__/firebase/init.js"></script>
 	
     <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
     <script src="common.js"></script>
 
-    <!-- Page-Specific JavaScript for main.html - MUST LOAD AFTER common.js -->
+    <!-- Page-Specific JavaScript for onboarding.html - MUST LOAD AFTER common.js -->
     <script src="onboarding.js"></script>
 
 </body>
