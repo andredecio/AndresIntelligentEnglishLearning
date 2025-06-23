@@ -126,8 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
 //                    } else if (!isOnPage(verifyEmailPage)) {
                         // User is on any other page (e.g., main.html, index.html, root)
                         // and their email is NOT verified. Redirect them to the verification notice.
-                        console.log("Email not verified, redirecting to verification notice page.");
-                        window.location.href = verifyEmailPage;
+//                        console.log("Email not verified, redirecting to verification notice page.");
+//                        window.location.href = verifyEmailPage;
 //                    }
                     // If they ARE on the verifyEmailPage, they should stay there until verified.
 
