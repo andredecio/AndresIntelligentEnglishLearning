@@ -103,43 +103,45 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- A. User is signed in ---
             console.log("Auth State: User signed in. Email Verified:", user.emailVerified, "Anonymous:", user.isAnonymous);
 
-            if (user.isAnonymous) {
+//
+//
+//            if (user.isAnonymous) {
                 // Anonymous user: Must complete onboarding to provide details and potentially convert.
                 // If they are NOT on the onboarding page, redirect them there.
-                if (!isOnPage(onboardingPage)) {
-                    console.log("Anonymous user, redirecting to onboarding page.");
-                    window.location.href = onboardingPage;
-                }
-            } else {
+//                if (!isOnPage(onboardingPage)) {
+//                    console.log("Anonymous user, redirecting to onboarding page.");
+//                    window.location.href = onboardingPage;
+//                }
+//            } else {
                 // Non-anonymous user (Email/Password, Google, Facebook, etc.)
-                if (user.email && !user.emailVerified) {
+//                if (user.email && !user.emailVerified) {
                     // This user has an email, but it's not verified.
                     // IMPORTANT: The 'conversation.html' is an exception and does NOT require verification
                     // All other main app pages (like 'main.html') DO require verification.
 
-                    if (isOnPage(conversationPage)) {
+//                    if (isOnPage(conversationPage)) {
                         // User is on conversation.html (demo page) and email is not verified.
                         // Allow them to stay here for the demo. No redirection needed from here.
                         console.log("User on conversation.html. Email not verified, but allowed for demo.");
-                    } else if (!isOnPage(verifyEmailPage)) {
+//                    } else if (!isOnPage(verifyEmailPage)) {
                         // User is on any other page (e.g., main.html, index.html, root)
                         // and their email is NOT verified. Redirect them to the verification notice.
                         console.log("Email not verified, redirecting to verification notice page.");
                         window.location.href = verifyEmailPage;
-                    }
+//                    }
                     // If they ARE on the verifyEmailPage, they should stay there until verified.
 
-                } else {
+//                } else {
                     // Email is verified (or they don't have an email to verify, e.g., some social logins).
                     // This means they are fully authenticated and can access core app content.
                     // If they are on the login/onboarding/verification/conversation pages, or the root path, redirect them to the main content.
-                    if (isOnPage(indexPage) || isOnPage(onboardingPage) || isOnPage(verifyEmailPage) || isOnPage(rootPath) || isOnPage(conversationPage)) { 
-                        console.log("User fully authenticated, redirecting to main content page (main.html).");
-                        window.location.href = mainPage; // <-- Redirect to main.html for verified users
-                    }
+//                   if (isOnPage(indexPage) || isOnPage(onboardingPage) || isOnPage(verifyEmailPage) || isOnPage(rootPath) || isOnPage(conversationPage)) { 
+//                        console.log("User fully authenticated, redirecting to main content page (main.html).");
+//                        window.location.href = mainPage; // <-- Redirect to main.html for verified users
+//                    }
                     // If they are already on mainPage or another permitted app page, do nothing.
-                }
-            }
+//               }
+//            }
         } else {
             // --- B. No user signed in ---
             // Unauthenticated users should only be on the index.html (login/signup) page.
