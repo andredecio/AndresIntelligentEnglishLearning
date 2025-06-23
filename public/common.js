@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // If they are on the login/onboarding/verification/conversation pages, or the root path, redirect them to the main content.
 //                   if (isOnPage(indexPage) || isOnPage(onboardingPage) || isOnPage(verifyEmailPage) || isOnPage(rootPath) || isOnPage(conversationPage)) { 
 //                        console.log("User fully authenticated, redirecting to main content page (main.html).");
-//                        window.location.href = mainPage; // <-- Redirect to main.html for verified users
+                       window.location.href = mainPage; // <-- Redirect to main.html for verified users
 //                    }
                     // If they are already on mainPage or another permitted app page, do nothing.
 //               }
