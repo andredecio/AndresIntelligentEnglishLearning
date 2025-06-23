@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI English Tutor - Gemini</title>
+	<!-- Link to your common/global CSS file -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Link to your page-specific CSS file for main.html -->
+    <link rel="stylesheet" href="conversation.css">
+</head>
+<body>
+    <h1>Your English Tutor</h1>
+    <div id="chat-container">
+        <!-- Initial welcoming message -->
+        <div class="message gemini-message">Hello! I'm Gemini, your English language tutor. What would you like to practice today?</div>
+    </div>
+    <div id="loading-indicator">Gemini is thinking...</div>
+    <div id="error-message" class="error-message"></div>
+    <div id="input-area">
+        <input type="text" id="message-input" placeholder="Type your message or click mic...">
+        <button id="mic-button">&#127909;</button> <!-- Microphone icon -->
+        <button id="send-button">&#x27A4;</button> <!-- Send icon -->
+    </div>
+
+    <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script> 
+    <!-- Optional: Firebase Analytics SDK (Compat version - uncomment if needed and configured) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+
+    <script src="/__/firebase/init.js"></script>
+	
+    <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
+    <script src="common.js"></script>
+
+    <!-- Page-Specific JavaScript for main.html - MUST LOAD AFTER common.js -->
+    <script src="conversation.js"></script>
+
+</body>
+</html>

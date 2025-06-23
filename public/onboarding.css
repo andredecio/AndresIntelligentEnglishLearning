@@ -1,0 +1,26 @@
+	body { font-family: sans-serif; text-align: center; margin-top: 50px; background-color: #f7f9fc; color: #333; }
+        h1 { color: #2c3e50; }
+        form { margin: 20px auto; padding: 30px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 450px; text-align: left; background-color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        input[type="text"], select {
+            width: calc(100% - 22px); /* Adjust for padding and border */
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover { background-color: #2980b9; }
+        #loading { display: none; margin-top: 25px; font-style: italic; color: #7f8c8d; font-size: 1.1em; }
+        .error-message { color: red; margin-top: 10px; display: none; }
