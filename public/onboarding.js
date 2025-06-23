@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessage = document.getElementById('error-message');
 
     // Initialize Firebase services
-    // Assuming firebase-app-compat, firebase-auth-compat, firebase-firestore-compat are loaded in HTML
     const auth = firebase.auth();
     const db = firebase.firestore();
 
@@ -119,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        let emailVerificationNeededAfterForm = false; // Flag to indicate if verification email should be sent after form submit
+
         try {
             const userData = {
                 firstName: firstNameInput.value.trim(),
@@ -147,18 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         // This is the core step: linking the credential
                         await currentUser.linkWithCredential(credential);
                         console.log("Anonymous account successfully linked with Email/Password!");
-                        // At this point, currentUser.isAnonymous will be false and
-                        // the user object will reflect the new linked provider.
-                        userData.email = email; // Store email in Firestore for completeness
-                        userData.isAnonymous = false; // Explicitly update in Firestore to reflect change
                         
+                        // Update user data to reflect new state
+                        userData.email = email; 
+                        userData.isAnonymous = false; 
+                        emailVerificationNeededAfterForm = true; // Set flag to send email AFTER Firestore save
+
                     } catch (error) {
-                        // Handle errors during linking
-                        if (error.code === 'auth/credential-already-in-use') {
-                            errorMessage.textContent = "This email is already associated with another account. Please sign in with that account instead, or use a different email.";
-                            // In a real app, you might offer to sign them in with the existing account and merge data.
-                        } else if (error.code === 'auth/email-already-in-use') {
-                             errorMessage.textContent = "This email is already in use by another account. Please use a different email.";
+                        // Handle errors during linking (e.g., email already in use)
+                        if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
+                            errorMessage.textContent = "This email is already associated with another account. Please sign in with that account, or use a different email.";
                         } else if (error.code === 'auth/invalid-email') {
                             errorMessage.textContent = "The email address is not valid.";
                         } else if (error.code === 'auth/weak-password') {
@@ -175,17 +174,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadingMessage.style.display = 'none';
                     return;
                 }
-                // If email and password fields are left blank, proceed without linking
-                // The user will remain anonymous but their data will be saved.
+                // If email and password fields are left blank, proceed without linking (user remains anonymous).
+            } else if (currentUser.email && !currentUser.emailVerified) {
+                // User is already logged in (non-anonymous) but their email is unverified.
+                // We'll prompt them to verify via the email sent to them if they haven't.
+                emailVerificationNeededAfterForm = true;
             }
 
             // Save user data to Firestore
-            // Using setDoc with merge: true to avoid overwriting existing fields
             await db.collection("users").doc(currentUser.uid).set(userData, { merge: true });
-
             console.log("User data saved to Firestore successfully!");
 
-            // Redirect the user to the conversation.html page
+            // --- Send Email Verification (if needed) ---
+            if (emailVerificationNeededAfterForm && currentUser.email) {
+                try {
+                    await currentUser.sendEmailVerification();
+                    console.log("Verification email sent!");
+                    // No redirection here, user continues to conversation.html
+                } catch (error) {
+                    console.error("Error sending verification email:", error);
+                    // Don't block user access, just log the error or show a non-critical message.
+                    errorMessage.textContent = `(Warning: Could not send verification email: ${error.message}. Please try resending later.)`;
+                    errorMessage.style.display = 'block';
+                }
+            }
+
+            // --- FINAL REDIRECTION: Always to conversation.html ---
             window.location.href = 'conversation.html';
 
         } catch (error) {
