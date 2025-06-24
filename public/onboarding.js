@@ -48,9 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // If user is anonymous, show the email/password fields to offer linking
             if (currentUser.isAnonymous) {
                 emailFieldContainer.style.display = 'block';
-                // Make email and password required if anonymous and fields are shown
-                emailInput.setAttribute('required', 'true');
-                passwordInput.setAttribute('required', 'true');
+                // Make email and password not required 
+                emailInput.setAttribute('required', );
+                passwordInput.setAttribute('required', );
             } else {
                 // If not anonymous, hide the email/password fields
                 emailFieldContainer.style.display = 'none';
@@ -200,7 +200,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // --- FINAL REDIRECTION: Always to conversation.html ---
-            window.location.href = 'conversation.html';
+			// --- FINAL REDIRECTION ---
+			if (emailVerificationNeededAfterForm) {
+			// User provided an email: go to verify notice
+			window.location.href = 'verify_email_notice.html';
+			} else {
+			// Anonymous user, or user already verified: go to conversation
+			window.location.href = 'conversation.html';
+}
+
 
         } catch (error) {
             console.error("Error saving user data or redirecting:", error);
