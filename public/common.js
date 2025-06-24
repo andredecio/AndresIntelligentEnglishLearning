@@ -84,6 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (signOutButtonMain) signOutButtonMain.style.display = 'none';
         }
 
-      }
+     
     });
 });
