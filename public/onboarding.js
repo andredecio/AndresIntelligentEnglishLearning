@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentUser.isAnonymous) {
                 emailFieldContainer.style.display = 'block';
                 // Make email and password not required 
-                emailInput.setAttribute('required', );
-                passwordInput.setAttribute('required', );
+                emailInput.removeAttribute('required');
+                passwordInput.removeAttribute('required');
             } else {
                 // If not anonymous, hide the email/password fields
                 emailFieldContainer.style.display = 'none';
