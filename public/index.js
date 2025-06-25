@@ -1,16 +1,13 @@
 // index.js
 
-// This script expects 'auth' to be defined globally by the inline script in index.html.
-// (Or more robustly, you'd ensure Firebase is initialized and getAuth() is called here
-// if common.js doesn't expose `auth` globally).
+// This script expects 'firebase-app-compat.js', 'firebase-auth-compat.js'
+// and 'firebase-firestore-compat.js' to be loaded before it in your HTML files.
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Firebase services if not already done globally
-    // This is safer than relying on a global 'auth' if common.js isn't guaranteed
-    // to run first or expose it in the global scope.
-    // Assuming you have firebase-app-compat.js loaded.
+    // Initialize Firebase services
     const app = firebase.app(); // Gets the default Firebase app instance
     const auth = firebase.auth(); // Gets the auth service for that app
+    const db = firebase.firestore(); // ADDED: Initialize Firestore
 
     // Element references specific to index.html
     const emailInput = document.getElementById('emailInput');
@@ -18,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const signInEmailButton = document.getElementById('signInEmailButton');
     const signUpEmailButton = document.getElementById('signUpEmailButton');
     const signInGoogleButton = document.getElementById('signInGoogleButton');
-    const signInFacebookButton = document.getElementById('signInFacebookButton');
+    const signInFacebookButton = document = document.getElementById('signInFacebookButton'); // Corrected typo
     const signInAnonymousButton = document.getElementById('signInAnonymousButton');
 
     const errorMessageDiv = document.getElementById('error-message'); // Specific to index.html
@@ -81,12 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Attempt to sign in
             await auth.signInWithEmailAndPassword(email, password);
-            // Redirection based on email verification status for existing users
-            // is now handled by common.js's onAuthStateChanged (which should
-            // check if user.emailVerified is true or redirect to verify_email_notice.html)
-
+            // Redirection is now handled by common.js's onAuthStateChanged
         } catch (error) {
             console.error("Email Sign-in failed:", error);
             displayError(`Email Sign-in failed: ${getAuthErrorMessage(error.code)}`);
@@ -110,17 +103,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // 1. Create the user account
+            // 1. Create the user account in Firebase Authentication
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
 
-            // 2. Immediately send email verification
+            // 2. Create the initial user record in Firestore
+            try {
+                await db.collection("users").doc(user.uid).set({
+                    email: user.email, // Store the user's email
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(), // Timestamp of creation
+                    authProvider: 'emailpassword', // To track the initial authentication method
+                    // Add any other initial fields you want
+                });
+                console.log("Initial user document created in Firestore for new email/password signup:", user.uid);
+            } catch (firestoreError) {
+                console.error("Error creating initial user document in Firestore:", firestoreError);
+                // Decide how to handle this:
+                // - You could still proceed with signup but log the error.
+                // - You could roll back the auth creation (more complex).
+                // For now, we'll log but let the user proceed.
+            }
+
+            // 3. Immediately send email verification
             if (user) {
                 await user.sendEmailVerification();
                 console.log("Verification email sent to:", user.email);
             }
 
-            // 3. Inform the user and redirect to the email verification notice page
+            // 4. Inform the user and redirect to the email verification notice page
             alert("Account created successfully! A verification email has been sent to your inbox. Please check your email (and spam folder) to verify your account.");
             window.location.href = 'verify_email_notice.html';
 
@@ -135,9 +145,26 @@ document.addEventListener('DOMContentLoaded', () => {
         clearError();
         const provider = new firebase.auth.GoogleAuthProvider();
         try {
-            await auth.signInWithPopup(provider);
-            // Redirection is now handled by common.js's onAuthStateChanged,
-            // which will also check for email verification if provided by Google.
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+            const isNewUser = result.additionalUserInfo.isNewUser;
+
+            if (isNewUser) {
+                // This is a new user signing up with Google
+                try {
+                    await db.collection("users").doc(user.uid).set({
+                        email: user.email,
+                        displayName: user.displayName,
+                        photoURL: user.photoURL,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        authProvider: 'google.com',
+                    });
+                    console.log("Initial user document created in Firestore for new Google signup:", user.uid);
+                } catch (firestoreError) {
+                    console.error("Error creating initial user document in Firestore for Google signup:", firestoreError);
+                }
+            }
+            // Redirection is now handled by common.js's onAuthStateChanged
         } catch (error) {
             console.error("Google Sign-in failed:", error);
             displayError(`Google Sign-in failed: ${getAuthErrorMessage(error.code)}`);
@@ -151,9 +178,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Optional: request additional permissions if needed for your app (e.g., 'email')
         // provider.addScope('email');
         try {
-            await auth.signInWithPopup(provider);
-            // Redirection is now handled by common.js's onAuthStateChanged,
-            // which will also check for email verification if provided by Facebook.
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+            const isNewUser = result.additionalUserInfo.isNewUser;
+
+            if (isNewUser) {
+                // This is a new user signing up with Facebook
+                try {
+                    await db.collection("users").doc(user.uid).set({
+                        email: user.email, // Facebook might not always provide email without additional scope
+                        displayName: user.displayName,
+                        photoURL: user.photoURL,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        authProvider: 'facebook.com',
+                    });
+                    console.log("Initial user document created in Firestore for new Facebook signup:", user.uid);
+                } catch (firestoreError) {
+                    console.error("Error creating initial user document in Firestore for Facebook signup:", firestoreError);
+                }
+            }
+            // Redirection is now handled by common.js's onAuthStateChanged
         } catch (error) {
             console.error("Facebook Sign-in failed:", error);
             displayError(`Facebook Sign-in failed: ${getAuthErrorMessage(error.code)}`);
@@ -164,9 +208,24 @@ document.addEventListener('DOMContentLoaded', () => {
     signInAnonymousButton.addEventListener('click', async () => {
         clearError();
         try {
-            await auth.signInAnonymously();
+            const result = await auth.signInAnonymously();
+            const user = result.user;
+
+            // This is always a "new" anonymous user session, so create a Firestore record.
+            // Email will be empty as requested.
+            try {
+                await db.collection("users").doc(user.uid).set({
+                    email: null, // As requested: empty email for anonymous
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    authProvider: 'anonymous',
+                });
+                console.log("Initial user document created in Firestore for new anonymous signup:", user.uid);
+            } catch (firestoreError) {
+                console.error("Error creating initial user document in Firestore for anonymous signup:", firestoreError);
+            }
+
             // Redirection for anonymous users is handled by common.js's onAuthStateChanged
-            // (likely to onboarding.html as they need to provide info and possibly link account)
+            // (which likely leads to onboarding.html for data collection and optional linking)
         } catch (error) {
             console.error("Anonymous Sign-in failed:", error);
             displayError(`Anonymous Sign-in failed: ${getAuthErrorMessage(error.code)}`);
