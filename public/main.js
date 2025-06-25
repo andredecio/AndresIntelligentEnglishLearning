@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                 // Ensure FirebaseUI is stopped and hidden before re-attempting deletion
                                 // to clean up the UI, then handle redirect or error.
-                                if (ui && ui.is">()) { // Check if ui instance exists and is running
+                                if (ui && ui.is">()) { 
                                     ui.reset(); // Stop FirebaseUI
                                 }
                                 firebaseUiContainer.style.display = 'none';
