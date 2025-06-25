@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     await auth.signOut();
                     console.log("User signed out.");
+                    // --- ADDED: Confirmation message ---
+                    alert('You have been successfully signed out!');
                     // The onAuthStateChanged listener below will handle the redirection after sign-out.
                 } catch (error) {
                     console.error('Sign out error:', error.message);
@@ -42,7 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Central Authentication State Observer and Navigator ---
     auth.onAuthStateChanged((user) => {
-        // --- 1. Update UI Elements ---
+        // Get current page path to decide on redirects
+        const currentPage = window.location.pathname;
+
         if (user) {
             console.log('User logged in:', user.uid);
             if (statusMessageSpan) statusMessageSpan.textContent = `Logged in as: ${user.email || 'Anonymous'}`;
@@ -71,10 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (signOutButtonMain) signOutButtonMain.style.display = 'block';
             // IMPORTANT: The deleteAccountButtonMain visibility will be handled by main.js
         
-		// ✅ NEW: Redirect from index.html to main.html after login
-        const currentPage = window.location.pathname;
+            // Redirect from index.html to main.html after login
 			if (currentPage.endsWith('index.html') || currentPage === '/' || currentPage === '') {
-            window.location.href = 'main.html';
+                window.location.href = 'main.html';
 			}
 		
         } else {
@@ -95,6 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (signOutButtonMain) signOutButtonMain.style.display = 'none';
             // IMPORTANT: The deleteAccountButtonMain visibility will also be handled by main.js
             // or implicitly hidden if its current user check fails.
+
+            // --- ADDED: Redirect to index.html when user logs out from any page (except index.html itself) ---
+            // This prevents an infinite redirect loop if index.html is loaded directly while logged out.
+            if (!(currentPage.endsWith('index.html') || currentPage === '/')) {
+                window.location.href = 'index.html'; // Redirect to your main login/landing page
+            }
         }
     });
 });
