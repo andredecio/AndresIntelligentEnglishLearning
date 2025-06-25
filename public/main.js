@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get a reference to the Firebase Auth instance
     const auth = firebase.auth();
 
+    // Declare ui variable here so it's accessible in callbacks
+    let ui;
+
     // --- Firebase Auth State Listener for specific main.html elements ---
     // This listener is specifically for controlling the visibility of the Delete Account button
     // based on the user's authentication state. Common.js handles the general user info display.
@@ -86,7 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.warn('Recent login required for account deletion. Prompting re-authentication.');
                     alert('For security, please sign in again to confirm account deletion.');
 
-                    // Initialize FirebaseUI for re-authentication
+                    // Display the FirebaseUI container and start the UI
+                    firebaseUiContainer.style.display = 'block';
+                    ui = new firebaseui.auth.AuthUI(auth); // Assign to the 'ui' variable declared outside
+
                     const uiConfig = {
                         signInSuccessUrl: '/', // This will be overridden by signInSuccessWithAuthResult callback
                         signInOptions: [
@@ -105,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                 // Ensure FirebaseUI is stopped and hidden before re-attempting deletion
                                 // to clean up the UI, then handle redirect or error.
-                                if (ui && ui.is">()) { 
+                                if (ui) { // Corrected: simply check if ui object exists
                                     ui.reset(); // Stop FirebaseUI
                                 }
                                 firebaseUiContainer.style.display = 'none';
@@ -131,10 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                     };
-
-                    // Display the FirebaseUI container and start the UI
-                    firebaseUiContainer.style.display = 'block';
-                    const ui = new firebaseui.auth.AuthUI(auth);
                     ui.start('#firebaseui-auth-container', uiConfig);
 
                 } else {
