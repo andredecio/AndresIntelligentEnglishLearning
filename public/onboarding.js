@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // If user is anonymous, show the email/password fields to offer linking
             if (currentUser.isAnonymous) {
                 emailFieldContainer.style.display = 'block';
-                // Make email and password not required 
+                // Make email and password not required
                 emailInput.removeAttribute('required');
                 passwordInput.removeAttribute('required');
             } else {
@@ -69,12 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     firstNameInput.value = userData.firstName || '';
                     lastNameInput.value = userData.lastName || '';
                     // Convert stored date string back to input type="date" format (YYYY-MM-DD)
+                    // Note: Check if userData.dateOfBirth exists before calling toISOString()
                     dobInput.value = userData.dateOfBirth ? new Date(userData.dateOfBirth).toISOString().split('T')[0] : '';
                     nativeLanguageInput.value = userData.nativeLanguage || '';
-                    
+
                     if (userData.sex === 'male') sexMaleRadio.checked = true;
                     if (userData.sex === 'female') sexFemaleRadio.checked = true;
-                    
+
                     if (userData.learningGoal) {
                         learningGoalSelect.value = userData.learningGoal;
                         if (learningGoalSelect.value === 'other') {
@@ -119,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let emailVerificationNeededAfterForm = false; // Flag to indicate if verification email should be sent after form submit
+        let redirectToVerifyEmailPage = false; // Flag to redirect specifically to verify_email_notice.html
 
         try {
             const userData = {
@@ -144,24 +146,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (email && password) { // Only attempt linking if both are provided
                     try {
                         const credential = firebase.auth.EmailAuthProvider.credential(email, password);
-                        
+
                         // This is the core step: linking the credential
                         await currentUser.linkWithCredential(credential);
                         console.log("Anonymous account successfully linked with Email/Password!");
-                        
+
                         // Update user data to reflect new state
-                        userData.email = email; 
-                        userData.isAnonymous = false; 
+                        userData.email = email;
+                        userData.isAnonymous = false;
                         emailVerificationNeededAfterForm = true; // Set flag to send email AFTER Firestore save
+                        redirectToVerifyEmailPage = true; // Ensure redirection to verify page
 
                     } catch (error) {
-                        // Handle errors during linking (e.g., email already in use)
+                        // --- ENHANCED ERROR HANDLING FOR LINKING ---
                         if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
                             errorMessage.textContent = "This email is already associated with another account. Please sign in with that account, or use a different email.";
                         } else if (error.code === 'auth/invalid-email') {
                             errorMessage.textContent = "The email address is not valid.";
                         } else if (error.code === 'auth/weak-password') {
                             errorMessage.textContent = "The password is too weak (must be at least 6 characters).";
+                        } else if (error.code === 'auth/operation-not-allowed') {
+                            // This is the error you were seeing. It implies Firebase rejected the link
+                            // because of an issue with the email, potentially already existing or needing verification state.
+                            errorMessage.textContent = "Unable to link this email. It might already be in use or require verification. Please try a different email or sign in with your existing account.";
                         } else {
                             errorMessage.textContent = `Error linking account: ${error.message}`;
                         }
@@ -175,45 +182,54 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 // If email and password fields are left blank, proceed without linking (user remains anonymous).
+                // In this case, the userData will not have an 'email' field for the Firestore save.
             } else if (currentUser.email && !currentUser.emailVerified) {
                 // User is already logged in (non-anonymous) but their email is unverified.
                 // We'll prompt them to verify via the email sent to them if they haven't.
                 emailVerificationNeededAfterForm = true;
+                redirectToVerifyEmailPage = true; // Also redirect if existing user needs verification
             }
 
             // Save user data to Firestore
+            // For anonymous users who did NOT link, this will create the initial Firestore document.
+            // For anonymous users who DID link, this will update/create the document with their email.
+            // For non-anonymous users, this will update their existing document.
             await db.collection("users").doc(currentUser.uid).set(userData, { merge: true });
             console.log("User data saved to Firestore successfully!");
 
             // --- Send Email Verification (if needed) ---
             if (emailVerificationNeededAfterForm && currentUser.email) {
                 try {
-                    await currentUser.sendEmailVerification();
+                    // Re-fetch the user object after linking to ensure it's up-to-date for sendEmailVerification
+                    await currentUser.reload(); // Reloads user properties
+                    const updatedUser = auth.currentUser; // Get the reloaded user object
+
+                    await updatedUser.sendEmailVerification();
                     console.log("Verification email sent!");
-                    // No redirection here, user continues to conversation.html
+                    // No redirection here, final redirection is below
                 } catch (error) {
                     console.error("Error sending verification email:", error);
                     // Don't block user access, just log the error or show a non-critical message.
                     errorMessage.textContent = `(Warning: Could not send verification email: ${error.message}. Please try resending later.)`;
                     errorMessage.style.display = 'block';
+                    redirectToVerifyEmailPage = false; // Don't redirect to verify page if send failed
                 }
             }
 
-            // --- FINAL REDIRECTION: Always to conversation.html ---
-			// --- FINAL REDIRECTION ---
-			if (emailVerificationNeededAfterForm) {
-			// User provided an email: go to verify notice
-			window.location.href = 'verify_email_notice.html';
-			} else {
-			// Anonymous user, or user already verified: go to conversation
-			window.location.href = 'conversation.html';
-}
+            // --- FINAL REDIRECTION ---
+            if (redirectToVerifyEmailPage) {
+                // User provided an email for linking, or is an existing user with unverified email: go to verify notice
+                window.location.href = 'verify_email_notice.html';
+            } else {
+                // Anonymous user who chose NOT to link, or an already verified user: go to conversation
+                window.location.href = 'conversation.html';
+            }
 
 
         } catch (error) {
             console.error("Error saving user data or redirecting:", error);
             loadingMessage.style.display = 'none';
-            errorMessage.textContent = `Failed to start lesson: ${error.message}. Please try again.`;
+            errorMessage.textContent = `Failed to update profile: ${error.message}. Please try again.`;
             errorMessage.style.display = 'block';
         }
     });
