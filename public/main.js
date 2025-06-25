@@ -2,10 +2,6 @@
 // This script contains logic specific to main.html.
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Reference to the element that displays the current user's email
-    // This is handled by common.js now.
-    // const currentUserEmailSpan = document.getElementById('currentUserEmail'); // No longer directly needed here for display
-
     // Get references to the new buttons and the FirebaseUI container
     const deleteAccountButton = document.getElementById('deleteAccountButtonMain');
     const firebaseUiContainer = document.getElementById('firebaseui-auth-container');
@@ -17,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const auth = firebase.auth();
 
     // Declare ui variable here so it's accessible in callbacks
-    let ui;
+    let ui; // This was correctly added in the previous fix!
 
     // --- Firebase Auth State Listener for specific main.html elements ---
     // This listener is specifically for controlling the visibility of the Delete Account button
@@ -96,12 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const uiConfig = {
                         signInSuccessUrl: '/', // This will be overridden by signInSuccessWithAuthResult callback
                         signInOptions: [
-                            // These should match the providers enabled in your Firebase project
-                            firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-                            firebase.auth.EmailAuthProvider.PROVIDER_ID,
-                            firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-                            firebase.auth.AppleAuthProvider.PROVIDER_ID
-                            // Add other providers like PhoneAuthProvider.PROVIDER_ID if enabled
+                            // CORRECTED: Use string literals for provider IDs
+                            'google.com',
+                            'password', // Represents Email/Password provider
+                            'facebook.com',
+                            'apple.com'
+                            // Add other providers like 'phone' if enabled
                         ],
                         callbacks: {
                             signInSuccessWithAuthResult: (authResult, redirectUrl) => {
