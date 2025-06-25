@@ -5,9 +5,9 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Firebase services
-    const app = firebase.app(); // Gets the default Firebase app instance
-    const auth = firebase.auth(); // Gets the auth service for that app
-    const db = firebase.firestore(); // ADDED: Initialize Firestore
+    const app = firebase.app();
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
     // Element references specific to index.html
     const emailInput = document.getElementById('emailInput');
@@ -15,10 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const signInEmailButton = document.getElementById('signInEmailButton');
     const signUpEmailButton = document.getElementById('signUpEmailButton');
     const signInGoogleButton = document.getElementById('signInGoogleButton');
-    const signInFacebookButton = document = document.getElementById('signInFacebookButton'); // Corrected typo
+    const signInFacebookButton = document.getElementById('signInFacebookButton');
     const signInAnonymousButton = document.getElementById('signInAnonymousButton');
 
-    const errorMessageDiv = document.getElementById('error-message'); // Specific to index.html
+    const errorMessageDiv = document.getElementById('error-message');
 
     // Function to display errors (specific to index.html's error div)
     const displayError = (message) => {
@@ -79,7 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await auth.signInWithEmailAndPassword(email, password);
-            // Redirection is now handled by common.js's onAuthStateChanged
+            // After successful sign-in, redirect to main application page
+            window.location.href = 'main.html';
         } catch (error) {
             console.error("Email Sign-in failed:", error);
             displayError(`Email Sign-in failed: ${getAuthErrorMessage(error.code)}`);
@@ -118,10 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Initial user document created in Firestore for new email/password signup:", user.uid);
             } catch (firestoreError) {
                 console.error("Error creating initial user document in Firestore:", firestoreError);
-                // Decide how to handle this:
-                // - You could still proceed with signup but log the error.
-                // - You could roll back the auth creation (more complex).
-                // For now, we'll log but let the user proceed.
+                // Decide how to handle this: log, but don't block.
             }
 
             // 3. Immediately send email verification
@@ -164,7 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error("Error creating initial user document in Firestore for Google signup:", firestoreError);
                 }
             }
-            // Redirection is now handled by common.js's onAuthStateChanged
+            // After successful sign-in/up, redirect to main application page
+            window.location.href = 'main.html';
         } catch (error) {
             console.error("Google Sign-in failed:", error);
             displayError(`Google Sign-in failed: ${getAuthErrorMessage(error.code)}`);
@@ -197,7 +196,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error("Error creating initial user document in Firestore for Facebook signup:", firestoreError);
                 }
             }
-            // Redirection is now handled by common.js's onAuthStateChanged
+            // After successful sign-in/up, redirect to main application page
+            window.location.href = 'main.html';
         } catch (error) {
             console.error("Facebook Sign-in failed:", error);
             displayError(`Facebook Sign-in failed: ${getAuthErrorMessage(error.code)}`);
@@ -211,21 +211,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await auth.signInAnonymously();
             const user = result.user;
 
-            // This is always a "new" anonymous user session, so create a Firestore record.
-            // Email will be empty as requested.
-            try {
-                await db.collection("users").doc(user.uid).set({
-                    email: null, // As requested: empty email for anonymous
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    authProvider: 'anonymous',
-                });
-                console.log("Initial user document created in Firestore for new anonymous signup:", user.uid);
-            } catch (firestoreError) {
-                console.error("Error creating initial user document in Firestore for anonymous signup:", firestoreError);
-            }
+            // This is an anonymous sign-in. As requested, we are NOT creating a
+            // Firestore record here. That will happen when the user submits
+            // information on onboarding.html (or links their account).
+            console.log("Anonymous user signed in. Firestore record creation deferred.");
 
-            // Redirection for anonymous users is handled by common.js's onAuthStateChanged
-            // (which likely leads to onboarding.html for data collection and optional linking)
+            // Redirect anonymous users directly to the main application page
+            window.location.href = 'main.html'; // CHANGED: Redirect to main.html
         } catch (error) {
             console.error("Anonymous Sign-in failed:", error);
             displayError(`Anonymous Sign-in failed: ${getAuthErrorMessage(error.code)}`);
