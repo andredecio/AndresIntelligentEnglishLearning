@@ -9,17 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // const analytics = firebase.analytics(); // Uncomment if you are actually using Firebase Analytics
 
     // Get references to common UI elements that might appear on multiple pages.
-    // We check if they exist before trying to use them, as not all pages will have all elements.
+    // We check if they exist before trying to use them, as nottherners (e.g. main.html).
     const statusMessageSpan = document.getElementById('statusMessage');
     const loggedInUserEmailP = document.getElementById('loggedInUserEmail'); // For general use
     const currentUserEmailSpan = document.getElementById('currentUserEmail'); // Specific to main.html
 
-    const authSection = document.querySelector('.auth-section'); // The login form container
-    const loginInfoDiv = document.getElementById('login-info'); // Assumed user info display
+    const authSection = document.querySelector('.auth-section'); // The login form container (likely on index.html)
+    const loginInfoDiv = document.getElementById('login-info'); // Assumed user info display (likely on main.html)
 
     // Handle any global sign-out buttons.
-    const signOutButtonIndex = document.getElementById('signOutButton');
-    const signOutButtonMain = document.getElementById('signOutButtonMain');
+    const signOutButtonIndex = document.getElementById('signOutButton'); // If on index.html
+    const signOutButtonMain = document.getElementById('signOutButtonMain'); // If on main.html
 
     const handleSignOut = async (button) => {
         if (button) {
@@ -44,10 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Central Authentication State Observer and Navigator ---
     auth.onAuthStateChanged((user) => {
         // Get current page path to decide on redirects
+        // Use window.location.pathname for more reliable path comparison
         const currentPage = window.location.pathname;
 
         if (user) {
-            console.log('User logged in:', user.uid);
+            // User is signed in.
+            console.log('User logged in:', user.uid, 'Email:', user.email || 'Anonymous');
             if (statusMessageSpan) statusMessageSpan.textContent = `Logged in as: ${user.email || 'Anonymous'}`;
 
             // Update user email displays regardless of specific ID
@@ -56,7 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             // Show user info section, hide auth section
-            if (authSection) authSection.style.display = 'none';
+            // These elements might be on different pages, so we check if they exist.
+            if (authSection) authSection.style.display = 'none'; // Hide login form if user is logged in
             if (loginInfoDiv) {
                 const userUid = document.getElementById('userUid');
                 const userEmail = document.getElementById('userEmail');
@@ -66,17 +69,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (userEmail) userEmail.textContent = user.email || 'N/A';
                 if (userName) userName.textContent = user.displayName || 'N/A';
                 if (userProvider) userProvider.textContent = user.providerData && user.providerData.length > 0 ? user.providerData[0].providerId : 'Anonymous';
-                loginInfoDiv.style.display = 'block';
+                loginInfoDiv.style.display = 'block'; // Show user info if user is logged in
             }
 
             // Ensure sign-out button is visible for authenticated users
             if (signOutButtonIndex) signOutButtonIndex.style.display = 'block';
             if (signOutButtonMain) signOutButtonMain.style.display = 'block';
-            // IMPORTANT: The deleteAccountButtonMain visibility will be handled by main.js
-        
-            // Removed the premature redirect from index.html to main.html
-            // This redirect is now handled explicitly by index.js after login/signup tasks are complete.
-		
+            // IMPORTANT: The deleteAccountButtonMain visibility will be handled by main.js (or other specific scripts)
+
+            // *** IMPORTANT NAVIGATION LOGIC FOR AUTHENTICATED USERS ***
+            // If the user is logged in and they are currently on the index.html (login/landing) page,
+            // redirect them to the main application page.
+            // Check for common variations like '/index.html', 'index.html', or just '/' for the root.
+            const isIndexPage = currentPage.endsWith('index.html') || currentPage === '/';
+            if (isIndexPage) {
+                console.log("Authenticated user on index.html, redirecting to main.html");
+                window.location.assign('main.html'); // Redirect using assign for a clean history state
+            }
+            // If they are already on main.html or another protected page, they stay there.
+
         } else {
             // No user is signed in.
             console.log('No user logged in.');
@@ -87,8 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             // Hide user info section, show auth section
-            if (authSection) authSection.style.display = 'block';
-            if (loginInfoDiv) loginInfoDiv.style.display = 'none';
+            // These elements might be on different pages, so we check if they exist.
+            if (authSection) authSection.style.display = 'block'; // Show login form if user is logged out
+            if (loginInfoDiv) loginInfoDiv.style.display = 'none'; // Hide user info if user is logged out
 
             // Ensure sign-out button is hidden for logged-out users
             if (signOutButtonIndex) signOutButtonIndex.style.display = 'none';
@@ -96,10 +108,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // IMPORTANT: The deleteAccountButtonMain visibility will also be handled by main.js
             // or implicitly hidden if its current user check fails.
 
-            // This redirect to index.html when user logs out from any page (except index.html itself) is correct.
-            if (!(currentPage.endsWith('index.html') || currentPage === '/')) {
-                window.location.href = 'index.html'; // Redirect to your main login/landing page
+            // *** IMPORTANT NAVIGATION LOGIC FOR UNAUTHENTICATED USERS ***
+            // If no user is signed in, ensure they are on the index.html page.
+            // Only redirect if they are NOT ALREADY on index.html or the root path.
+            const isIndexPage = currentPage.endsWith('index.html') || currentPage === '/';
+            if (!isIndexPage) {
+                console.log("Unauthenticated user not on index.html, redirecting to index.html");
+                window.location.assign('index.html'); // Redirect to your main login/landing page
             }
+            // If they ARE on index.html, let them stay there and see the login form.
         }
     });
 });

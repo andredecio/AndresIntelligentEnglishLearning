@@ -79,8 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await auth.signInWithEmailAndPassword(email, password);
-            // After successful sign-in, redirect to main application page
-            window.location.href = 'main.html';
+            // SUCCESS! common.js's onAuthStateChanged will now handle the redirection to main.html.
+            // No explicit redirect needed here.
         } catch (error) {
             console.error("Email Sign-in failed:", error);
             displayError(`Email Sign-in failed: ${getAuthErrorMessage(error.code)}`);
@@ -91,7 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
     signUpEmailButton.addEventListener('click', async () => {
         clearError();
         const email = emailInput.value.trim();
-        const password = passwordInput.value;
+        const password = passwordInput.value; // This is the line that caused the previous error.
+                                           // Re-confirming it is syntactically correct.
 
         if (!email || !password) {
             displayError('Please enter both email and password.');
@@ -128,9 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Verification email sent to:", user.email);
             }
 
-            // 4. Inform the user and redirect to the email verification notice page
-            alert("Account created successfully! A verification email has been sent to your inbox. Please check your email (and spam folder) to verify your account.");
-            window.location.href = 'verify_email_notice.html';
+            // 4. ***CRITICAL CHANGE: Immediately sign out the user after creation***
+            // This prevents them from being automatically logged in after registration.
+            await auth.signOut();
+            console.log("User signed out immediately after registration to force manual login.");
+
+            // 5. Inform the user and redirect to the index.html page (login page)
+            alert("Account created successfully! A verification email has been sent to your inbox. Please check your email (and spam folder) to verify your account. You can now log in.");
+            window.location.href = 'index.html'; // Redirect back to the login page
 
         } catch (error) {
             console.error("Email Sign-up failed:", error);
@@ -162,8 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error("Error creating initial user document in Firestore for Google signup:", firestoreError);
                 }
             }
-            // After successful sign-in/up, redirect to main application page
-            window.location.href = 'main.html';
+            // SUCCESS! common.js's onAuthStateChanged will now handle the redirection to main.html.
+            // No explicit redirect needed here.
         } catch (error) {
             console.error("Google Sign-in failed:", error);
             displayError(`Google Sign-in failed: ${getAuthErrorMessage(error.code)}`);
@@ -196,8 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error("Error creating initial user document in Firestore for Facebook signup:", firestoreError);
                 }
             }
-            // After successful sign-in/up, redirect to main application page
-            window.location.href = 'main.html';
+            // SUCCESS! common.js's onAuthStateChanged will now handle the redirection to main.html.
+            // No explicit redirect needed here.
         } catch (error) {
             console.error("Facebook Sign-in failed:", error);
             displayError(`Facebook Sign-in failed: ${getAuthErrorMessage(error.code)}`);
@@ -216,8 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // information on onboarding.html (or links their account).
             console.log("Anonymous user signed in. Firestore record creation deferred.");
 
-            // Redirect anonymous users directly to the main application page
-            window.location.href = 'main.html'; // CHANGED: Redirect to main.html
+            // SUCCESS! common.js's onAuthStateChanged will now handle the redirection to main.html.
+            // No explicit redirect needed here.
         } catch (error) {
             console.error("Anonymous Sign-in failed:", error);
             displayError(`Anonymous Sign-in failed: ${getAuthErrorMessage(error.code)}`);
