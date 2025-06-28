@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentPage = window.location.pathname;
 
         if (user) {
-            console.log('User logged in:', user.uid);
+            // User is signed in.
+            console.log('User logged in:', user.uid, 'Email:', user.email || 'Anonymous');
             if (statusMessageSpan) statusMessageSpan.textContent = `Logged in as: ${user.email || 'Anonymous'}`;
 
             // Update user email displays regardless of specific ID
@@ -56,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             // Show user info section, hide auth section
+            // These might be on index.html, so we conditionally hide/show based on if they exist.
             if (authSection) authSection.style.display = 'none';
             if (loginInfoDiv) {
                 const userUid = document.getElementById('userUid');
@@ -73,10 +75,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (signOutButtonIndex) signOutButtonIndex.style.display = 'block';
             if (signOutButtonMain) signOutButtonMain.style.display = 'block';
             // IMPORTANT: The deleteAccountButtonMain visibility will be handled by main.js
-        
-            // Removed the premature redirect from index.html to main.html
-            // This redirect is now handled explicitly by index.js after login/signup tasks are complete.
-		
+
+            // Redirect if the user is on the login/landing page and is now authenticated.
+            // We use 'assign' for full page reload and clean history.
+            // Check for both 'index.html' and root '/' for common web server setups.
+            if (currentPage.endsWith('index.html') || currentPage === '/') {
+                console.log("Authenticated user on index.html, redirecting to main.html");
+                window.location.assign('main.html');
+            }
+
         } else {
             // No user is signed in.
             console.log('No user logged in.');
@@ -87,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             // Hide user info section, show auth section
+            // These might be on index.html, so we conditionally hide/show based on if they exist.
             if (authSection) authSection.style.display = 'block';
             if (loginInfoDiv) loginInfoDiv.style.display = 'none';
 
@@ -96,10 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // IMPORTANT: The deleteAccountButtonMain visibility will also be handled by main.js
             // or implicitly hidden if its current user check fails.
 
-            // This redirect to index.html when user logs out from any page (except index.html itself) is correct.
+            // If no user is signed in, ensure they are on the index.html page.
+            // Only redirect if they are not ALREADY on index.html or the root path.
             if (!(currentPage.endsWith('index.html') || currentPage === '/')) {
-                window.location.href = 'index.html'; // Redirect to your main login/landing page
+                console.log("Unauthenticated user not on index.html, redirecting to index.html");
+                window.location.assign('index.html'); // Redirect to your main login/landing page
             }
+            // If they ARE on index.html, let them stay there and see the login form.
         }
     });
 });
