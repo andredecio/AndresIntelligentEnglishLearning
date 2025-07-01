@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 5. Inform the user and redirect to the index.html page (login page)
             alert("Account created successfully! A verification email has been sent to your inbox. Please check your email (and spam folder) to verify your account. You can now log in.");
-            window.location.href = 'index.html'; // Redirect back to the login page
+            window.location.href = 'verify_email_notice.html';
 
         } catch (error) {
             console.error("Email Sign-up failed:", error);
