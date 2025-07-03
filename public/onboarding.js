@@ -1,4 +1,4 @@
-// onboarding.js
+// onboarding.js I'm new on 3rd 10.44
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get references to HTML elements
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         loadingMessage.style.display = 'none';
                         return; // Stop execution if linking fails
                     }
-                } else if (email || password) { // If only one is provided
+                } else if ((email && !password) || (!email && password)) { // If only one is provided
                     errorMessage.textContent = "To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.";
                     loadingMessage.style.display = 'none';
                     return;
