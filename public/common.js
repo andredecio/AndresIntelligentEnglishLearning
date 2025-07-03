@@ -1,4 +1,4 @@
-// common.js
+// common.js  THIS IS NEW AS AT 7.40AM ON 3/7/2025
 
 // This script expects firebase-app-compat.js, firebase-auth-compat.js
 // to be loaded before it in your HTML files.
