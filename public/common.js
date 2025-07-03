@@ -1,7 +1,4 @@
-// common.js  THIS IS NEW AS AT Thursday 3.30pm
-
-// This script expects firebase-app-compat.js, firebase-auth-compat.js
-// to be loaded before it in your HTML files.
+// common.js  UPDATED FIXED VERSION 4.19
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = firebase.auth();
@@ -34,17 +31,17 @@ document.addEventListener('DOMContentLoaded', () => {
     handleSignOut(signOutButtonIndex);
     handleSignOut(signOutButtonMain);
 
-    // --- Central Authentication State Observer and Navigator ---
     auth.onAuthStateChanged((user) => {
         const currentPage = window.location.pathname;
+        const isIndexPage = currentPage.endsWith('index.html') || currentPage === '/';
+        const isVerifyPage = currentPage.endsWith('verify_email_notice.html');
         const isSigningUp = sessionStorage.getItem("signingUp");
 
         if (user) {
             const isVerified = user.emailVerified || user.isAnonymous;
 
             if (!isVerified) {
-                // Prevent redirect if user is currently signing up and still on index page
-                if (!currentPage.endsWith("verify_email_notice.html") && !isSigningUp) {
+                if (!isVerifyPage && !isSigningUp) {
                     console.log("User not verified. Redirecting to verify_email_notice.html");
                     window.location.href = "verify_email_notice.html";
                     return;
@@ -73,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (signOutButtonIndex) signOutButtonIndex.style.display = 'block';
             if (signOutButtonMain) signOutButtonMain.style.display = 'block';
 
-            const isIndexPage = currentPage.endsWith('index.html') || currentPage === '/';
             if (isIndexPage && isVerified) {
                 console.log("Verified user on index.html, redirecting to main.html");
                 window.location.assign('main.html');
@@ -92,9 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (signOutButtonIndex) signOutButtonIndex.style.display = 'none';
             if (signOutButtonMain) signOutButtonMain.style.display = 'none';
 
-            const isIndexPage = currentPage.endsWith('index.html') || currentPage === '/';
-            if (!isIndexPage) {
-                console.log("Unauthenticated user not on index.html, redirecting to index.html");
+            if (!isIndexPage && !isVerifyPage) {
+                console.log("Unauthenticated user not on index.html or verify_email_notice.html, redirecting to index.html");
                 window.location.assign('index.html');
             }
         }

@@ -1,4 +1,4 @@
-// index.js  I'M NEW TODAY Thursday 3pm
+// index.js  UPDATED FIXED VERSION 4.19
 
 document.addEventListener('DOMContentLoaded', () => {
     const app = firebase.app();
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Set flag to prevent early redirect in common.js
+            // Set flag to prevent redirect in common.js
             sessionStorage.setItem("signingUp", "true");
 
             console.log("🔧 Creating Firebase Auth user...");
@@ -66,8 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = userCredential.user;
             console.log("✅ User created:", user.uid);
 
-            // Create Firestore user document
-            try {
+            // Create Firestore user document only if email is present
+            if (user.email) {
                 console.log("📄 Creating Firestore user document...");
                 await db.collection("users").doc(user.uid).set({
                     email: user.email,
@@ -75,8 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     authProvider: 'emailpassword',
                 });
                 console.log("✅ Firestore user document created.");
-            } catch (firestoreError) {
-                console.error("❌ Error writing to Firestore:", firestoreError);
+            } else {
+                console.warn("⚠️ Skipped Firestore user creation due to missing email.");
             }
 
             // Send email verification
@@ -88,21 +88,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("❌ Failed to send verification email:", emailError);
             }
 
-            // Clear the signing up flag so common.js can resume normal redirects
+            // Remove flag and sign out
             sessionStorage.removeItem("signingUp");
-
             await auth.signOut();
             console.log("👋 User signed out after registration.");
 
-            // Redirect to verification notice
+            // Redirect
             window.location.href = 'verify_email_notice.html';
 
         } catch (error) {
             console.error("❌ Sign-up failed:", error);
             displayError(`Sign-up failed: ${getAuthErrorMessage(error.code)}`);
-            // Clear flag on failure as well
             sessionStorage.removeItem("signingUp");
         }
     });
 });
-
