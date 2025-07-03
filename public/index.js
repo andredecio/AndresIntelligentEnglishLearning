@@ -1,4 +1,4 @@
-// index.js
+// index.js  I'M NEW TODAY 
 
 document.addEventListener('DOMContentLoaded', () => {
     const app = firebase.app();
