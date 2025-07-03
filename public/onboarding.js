@@ -1,4 +1,4 @@
-// onboarding.js I'm new on 3rd 10.44
+// onboarding.js I'm new on 3rd 11.02
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get references to HTML elements
@@ -139,6 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // --- ACCOUNT LINKING LOGIC ---
+	console.log("Email value: " || emailInput.value.trim()  ||"  Password value: " ||passwordInput.value );
+
             if (currentUser.isAnonymous) {
                 const email = emailInput.value.trim();
                 const password = passwordInput.value; // Get the password
