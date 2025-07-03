@@ -1,4 +1,4 @@
-// common.js  THIS IS NEW AS AT 7.40AM ON 3/7/2025
+// common.js  THIS IS NEW AS AT Thursday 3.30pm
 
 // This script expects firebase-app-compat.js, firebase-auth-compat.js
 // to be loaded before it in your HTML files.
@@ -37,13 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Central Authentication State Observer and Navigator ---
     auth.onAuthStateChanged((user) => {
         const currentPage = window.location.pathname;
+        const isSigningUp = sessionStorage.getItem("signingUp");
 
         if (user) {
             const isVerified = user.emailVerified || user.isAnonymous;
 
             if (!isVerified) {
-                console.log("User not verified. Redirecting to verify_email_notice.html");
-                if (!currentPage.endsWith("verify_email_notice.html")) {
+                // Prevent redirect if user is currently signing up and still on index page
+                if (!currentPage.endsWith("verify_email_notice.html") && !isSigningUp) {
+                    console.log("User not verified. Redirecting to verify_email_notice.html");
                     window.location.href = "verify_email_notice.html";
                     return;
                 }
