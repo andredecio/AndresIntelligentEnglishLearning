@@ -1,4 +1,4 @@
-// index.js  UPDATED WITH SIGN-IN AND SIGN-UP
+// index.js — COMPLETE WITH SIGN-UP, SIGN-IN, AND ANONYMOUS SIGN-IN
 
 document.addEventListener('DOMContentLoaded', () => {
     const app = firebase.app();
@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('passwordInput');
     const signInEmailButton = document.getElementById('signInEmailButton');
     const signUpEmailButton = document.getElementById('signUpEmailButton');
+    const signInAnonymousButton = document.getElementById('signInAnonymousButton');
     const errorMessageDiv = document.getElementById('error-message');
 
     const displayError = (message) => {
@@ -66,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = userCredential.user;
             console.log("✅ User created:", user.uid);
 
-            // Save Firestore user record only if email exists
             if (user.email) {
                 console.log("📄 Creating Firestore user document...");
                 await db.collection("users").doc(user.uid).set({
@@ -75,11 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     authProvider: 'emailpassword',
                 });
                 console.log("✅ Firestore user document created.");
-            } else {
-                console.warn("⚠️ Skipped Firestore user creation due to missing email.");
             }
 
-            // Send verification email
             try {
                 console.log("📤 Sending verification email...");
                 await user.sendEmailVerification();
@@ -134,4 +131,24 @@ document.addEventListener('DOMContentLoaded', () => {
             displayError(`Sign-in failed: ${getAuthErrorMessage(error.code)}`);
         }
     });
+
+    // 🔹 Anonymous Sign-In
+    if (signInAnonymousButton) {
+        signInAnonymousButton.addEventListener('click', async () => {
+            clearError();
+            console.log("🟢 Continue as Guest clicked");
+
+            try {
+                const userCredential = await auth.signInAnonymously();
+                const user = userCredential.user;
+                console.log("✅ Signed in anonymously:", user.uid);
+
+                window.location.href = 'main.html';
+
+            } catch (error) {
+                console.error("❌ Anonymous sign-in failed:", error);
+                displayError(`Guest sign-in failed: ${getAuthErrorMessage(error.code)}`);
+            }
+        });
+    }
 });
