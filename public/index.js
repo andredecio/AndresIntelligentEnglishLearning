@@ -1,4 +1,4 @@
-// index.js  I'M NEW TODAY 
+// index.js  I'M NEW TODAY Thursday 3.30pm
 
 document.addEventListener('DOMContentLoaded', () => {
     const app = firebase.app();
@@ -58,42 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            // Set flag to prevent early redirect in common.js
+            sessionStorage.setItem("signingUp", "true");
+
             console.log("🔧 Creating Firebase Auth user...");
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
             console.log("✅ User created:", user.uid);
-
-            // Create Firestore user document
-            try {
-                console.log("📄 Creating Firestore user document...");
-                await db.collection("users").doc(user.uid).set({
-                    email: user.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    authProvider: 'emailpassword',
-                });
-                console.log("✅ Firestore user document created.");
-            } catch (firestoreError) {
-                console.error("❌ Error writing to Firestore:", firestoreError);
-            }
-
-            // Send email verification
-            try {
-                console.log("📤 Sending verification email...");
-                await user.sendEmailVerification();
-                console.log("✅ Verification email sent to:", user.email);
-            } catch (emailError) {
-                console.error("❌ Failed to send verification email:", emailError);
-            }
-
-            await auth.signOut();
-            console.log("👋 User signed out after registration.");
-
-            // Redirect to verification notice
-            window.location.href = 'verify_email_notice.html';
-
-        } catch (error) {
-            console.error("❌ Sign-up failed:", error);
-            displayError(`Sign-up failed: ${getAuthErrorMessage(error.code)}`);
-        }
-    });
-});
