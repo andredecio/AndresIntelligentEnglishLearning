@@ -1,4 +1,4 @@
-// index.js  UPDATED FIXED VERSION 4.19
+// index.js  UPDATED WITH SIGN-IN AND SIGN-UP
 
 document.addEventListener('DOMContentLoaded', () => {
     const app = firebase.app();
@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // 🔹 Sign-Up Flow
     signUpEmailButton.addEventListener('click', async () => {
         clearError();
         const email = emailInput.value.trim();
@@ -58,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Set flag to prevent redirect in common.js
             sessionStorage.setItem("signingUp", "true");
 
             console.log("🔧 Creating Firebase Auth user...");
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = userCredential.user;
             console.log("✅ User created:", user.uid);
 
-            // Create Firestore user document only if email is present
+            // Save Firestore user record only if email exists
             if (user.email) {
                 console.log("📄 Creating Firestore user document...");
                 await db.collection("users").doc(user.uid).set({
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn("⚠️ Skipped Firestore user creation due to missing email.");
             }
 
-            // Send email verification
+            // Send verification email
             try {
                 console.log("📤 Sending verification email...");
                 await user.sendEmailVerification();
@@ -88,18 +88,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("❌ Failed to send verification email:", emailError);
             }
 
-            // Remove flag and sign out
             sessionStorage.removeItem("signingUp");
             await auth.signOut();
             console.log("👋 User signed out after registration.");
 
-            // Redirect
             window.location.href = 'verify_email_notice.html';
 
         } catch (error) {
             console.error("❌ Sign-up failed:", error);
             displayError(`Sign-up failed: ${getAuthErrorMessage(error.code)}`);
             sessionStorage.removeItem("signingUp");
+        }
+    });
+
+    // 🔹 Sign-In Flow
+    signInEmailButton.addEventListener('click', async () => {
+        clearError();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        console.log("🔵 Sign-in button clicked");
+
+        if (!email || !password) {
+            console.log("⚠️ Missing email or password");
+            displayError('Please enter both email and password.');
+            return;
+        }
+
+        try {
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+            console.log("✅ Signed in:", user.uid);
+
+            if (!user.emailVerified) {
+                console.warn("⚠️ Email not verified");
+                await auth.signOut();
+                displayError('Please verify your email before signing in.');
+                return;
+            }
+
+            window.location.href = 'main.html';
+
+        } catch (error) {
+            console.error("❌ Sign-in failed:", error);
+            displayError(`Sign-in failed: ${getAuthErrorMessage(error.code)}`);
         }
     });
 });
