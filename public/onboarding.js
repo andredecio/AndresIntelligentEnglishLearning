@@ -1,9 +1,9 @@
 // onboarding.js I'm new on 4th 8.19 
 
 document.addEventListener('DOMContentLoaded', () => {
-	
+	    
+		const errorMessage = document.getElementById('errorMessage');
 	    function showError(message) {   // make a nice error message display
-        const errorMessage = document.getElementById('errorMessage');
         if (!errorMessage) return; // failsafe
         errorMessage.textContent = message;
         errorMessage.style.display = 'block';
