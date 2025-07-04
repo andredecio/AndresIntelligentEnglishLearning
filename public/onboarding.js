@@ -1,4 +1,13 @@
-// onboarding.js I'm new on 4th 9.23 
+// onboarding.js I'm new on 4th 16.41 
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    if (!errorDiv) return;
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+    setTimeout(() => {
+        errorDiv.style.display = 'none';
+    }, 10000);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
 	    
@@ -182,8 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         return; // Stop execution if linking fails
                     }
                 } else if ((email && !password) || (!email && password)) { // If only one is provided
-					window.popupReady.then(() => {
-							showError("To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.");
+					showError("To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.");
 });
 
 					return;
