@@ -1,4 +1,4 @@
-// onboarding.js I'm new on 4th 8.19 
+// onboarding.js I'm new on 4th 8.53 
 
 document.addEventListener('DOMContentLoaded', () => {
 	    
@@ -120,8 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault(); // Prevent default form submission
 
         // Reset messages
-        errorMessage.style.display = 'none';
-        errorMessage.textContent = '';
+        //errorMessage.style.display = 'none';
+        //errorMessage.textContent = '';
         loadingMessage.style.display = 'block';
 
         if (!currentUser) {
