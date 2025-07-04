@@ -1,96 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tell Us More About You</title>
-	<!-- Link to your common/global CSS file -->
-    <link rel="stylesheet" href="style.css">
-    <!-- Link to your page-specific CSS file for main.html -->
-    <link rel="stylesheet" href="onboarding.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tell Us More About You</title>
+
+  <!-- Global & Page-Specific Styles -->
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="onboarding.css" />
 </head>
 <body>
-	<div id="common-html-placeholder"></div> <!-- This just for the common error pop up -->
+  <!-- 🔁 Injected popup content (from common.html) -->
+  <div id="common-html-placeholder"></div>
 
-    <h1>Help us personalize your experience!</h1>
-    <form id="onboarding-form">
-        <!-- New: First Name -->
-        <label for="first-name">First Name:</label>
-        <input type="text" id="first-name" placeholder="e.g., John" required>
+  <h1>Help us personalize your experience!</h1>
 
-        <!-- New: Last Name -->
-        <label for="last-name">Last Name:</label>
-        <input type="text" id="last-name" placeholder="e.g., Doe" required>
+  <form id="onboarding-form">
+    <!-- User Details -->
+    <label for="first-name">First Name:</label>
+    <input type="text" id="first-name" placeholder="e.g., John" required />
 
-        <!-- New: Date of Birth -->
-        <label for="dob">Date of Birth:</label>
-        <input type="date" id="dob" required>
+    <label for="last-name">Last Name:</label>
+    <input type="text" id="last-name" placeholder="e.g., Doe" required />
 
-        <!-- Existing: Native Language / Preferred Language to interact with -->
-        <label for="native-language">What's your native language? (Or preferred interaction language)</label>
-        <input type="text" id="native-language" placeholder="e.g., Japanese, Spanish" required autocomplete="off">
+    <label for="dob">Date of Birth:</label>
+    <input type="date" id="dob" required />
 
-        <!-- Updated: Email Address & NEW Password Field (Conditional - see JS explanation) -->
-        <div id="email-field-container" style="display: none;">
-            <p><strong>To save your progress, create a permanent account:</strong></p>
-            <label for="email">Email Address:</label>
-            <input type="email" id="email" placeholder="you@example.com " autocomplete="off">
-            
-            <label for="password">Password:</label>
-            <input type="password" id="password" placeholder="At least 6 characters" autocomplete="off" >
-            <small>Provide your email and a password to create an account and save your progress!</small>
-        </div>
-        
-        <!-- New: Sex/Gender -->
-        <label>Sex/Gender:</label>
-        <div class="radio-group">
-            <input type="radio" id="sex-male" name="sex" value="male" required>
-            <label for="sex-male">Male</label>
-            <input type="radio" id="sex-female" name="sex" value="female">
-            <label for="sex-female">Female</label>
-            <!-- Consider adding "Prefer not to say" or "Other" options for inclusivity if appropriate for your app. -->
-        </div>
+    <label for="native-language">Your native or preferred language:</label>
+    <input type="text" id="native-language" placeholder="e.g., Japanese" required autocomplete="off" />
 
-        <!-- Existing: Reason for Study / Learning Goal -->
-        <label for="learning-goal">What are your English learning goals?</label>
-        <select id="learning-goal" required>
-            <option value="">Select a goal</option>
-            <option value="conversation">Improve conversation skills</option>
-            <option value="grammar">Understand grammar better</option>
-            <option value="pronunciation">Improve pronunciation</option>
-            <option value="vocabulary">Expand vocabulary</option>
-            <option value="business">English for business</option>
-            <option value="travel">English for travel</option>
-            <option value="other">Other (please specify in notes)</option>
-        </select>
-        <!-- Optional: A textarea for "Other" goals -->
-        <textarea id="other-goal-notes" placeholder="e.g., prepare for IELTS" style="display: none; margin-top: 10px;"></textarea>
+    <!-- Optional Email Sign-Up -->
+    <div id="email-field-container" style="display: none;">
+      <p><strong>Create a permanent account:</strong></p>
+      <label for="email">Email Address:</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="off" />
 
+      <label for="password">Password:</label>
+      <input type="password" id="password" placeholder="At least 6 characters" autocomplete="off" />
+      <small>Provide email + password to save your progress!</small>
+    </div>
 
-        <button type="submit" id="startDemoButton">Start Demo Lesson</button>
-    </form>
-    <div id="loading" style="display: none;">Saving your preferences and preparing your lesson...</div>
-    <div id="error-message" class="error-message" style="display: none;"></div>
-	
+    <!-- Gender -->
+    <label>Sex/Gender:</label>
+    <div class="radio-group">
+      <input type="radio" id="sex-male" name="sex" value="male" required />
+      <label for="sex-male">Male</label>
+      <input type="radio" id="sex-female" name="sex" value="female" />
+      <label for="sex-female">Female</label>
+    </div>
 
+    <!-- Learning Goal -->
+    <label for="learning-goal">Your English learning goals:</label>
+    <select id="learning-goal" required>
+      <option value="">Select a goal</option>
+      <option value="conversation">Improve conversation</option>
+      <option value="grammar">Understand grammar</option>
+      <option value="pronunciation">Improve pronunciation</option>
+      <option value="vocabulary">Expand vocabulary</option>
+      <option value="business">English for business</option>
+      <option value="travel">English for travel</option>
+      <option value="other">Other (see notes)</option>
+    </select>
 
-    <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <!-- We need Firestore to save data! -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- Optional: Firebase Analytics SDK (Compat version - uncomment if needed and configured) -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script> -->
+    <textarea id="other-goal-notes" placeholder="e.g., prepare for IELTS" style="display: none; margin-top: 10px;"></textarea>
 
-    <!-- This script automatically loads your Firebase project config from Hosting -->
-    <script src="/__/firebase/init.js"></script>
-	
-    <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
-    <!-- <script src="common.js"></script>-->
-	<script src="loadCommon.js"></script><!-- For the pop up error display -->
+    <button type="submit" id="startDemoButton">Start Demo Lesson</button>
+  </form>
 
-    <!-- Page-Specific JavaScript for onboarding.html - MUST LOAD AFTER common.js -->
-    <script src="onboarding.js"></script>
+  <!-- Status Messages -->
+  <div id="loading" style="display: none;">Saving your preferences...</div>
+  <div id="error-message" class="error-message" style="display: none;"></div>
 
+  <!-- Firebase SDKs (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/init.js"></script>
+
+  <!-- Load common popup HTML first -->
+  <script>
+    fetch('common.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('common-html-placeholder').innerHTML = html;
+      });
+  </script>
+
+  <!-- Common logic (auth + popup display) -->
+  <script src="common.js"></script>
+
+  <!-- Page-specific logic -->
+  <script src="onboarding.js"></script>
 </body>
 </html>
