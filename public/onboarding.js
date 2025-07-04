@@ -1,5 +1,7 @@
-// onboarding.js I'm new on 4th 16.41 
-function showError(message) {
+// onboarding.js I'm new on 4th 1705 
+
+document.addEventListener('DOMContentLoaded', () => {
+	 function showError(message) {
     const errorDiv = document.getElementById('error-message');
     if (!errorDiv) return;
     errorDiv.textContent = message;
@@ -8,9 +10,7 @@ function showError(message) {
         errorDiv.style.display = 'none';
     }, 10000);
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-	    
+   
 
 
     // Get references to HTML elements

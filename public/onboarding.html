@@ -82,37 +82,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
 
-  <!-- Load common popup HTML first -->
-<script>
-  fetch('common.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('common-html-placeholder').innerHTML = html;
-
-      // Initialize popup functionality after HTML is inserted
-      window.showError = function(message) {
-        const popup = document.getElementById('popup');
-        const popupMessage = document.getElementById('popup-message');
-        const popupClose = document.getElementById('popup-close');
-
-        if (!popup || !popupMessage || !popupClose) {
-          console.warn('Popup element(s) not found.');
-          return;
-        }
-
-        popupMessage.textContent = message;
-        popup.style.display = 'block';
-
-        popupClose.onclick = () => {
-          popup.style.display = 'none';
-        };
-
-        setTimeout(() => {
-          popup.style.display = 'none';
-        }, 10000);
-      };
-    });
-</script>
 
 
   <!-- Common logic (auth + popup display) -->
