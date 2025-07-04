@@ -1,4 +1,4 @@
-// common.js  UPDATED FIXED VERSION 4.19
+// common.js  UPDATED FIXED VERSION 4.20 — now with popup error support
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = firebase.auth();
@@ -94,4 +94,44 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // ✅ Inject common.html (popup container etc.)
+    const placeholder = document.getElementById('common-html-placeholder');
+    if (placeholder) {
+        fetch('common.html')
+            .then(response => response.text())
+            .then(html => {
+                placeholder.innerHTML = html;
+
+                // After injection, wire up close button event
+                const closeBtn = document.querySelector('.popup-close-button');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        const popup = document.getElementById('popup-error');
+                        if (popup) popup.style.display = 'none';
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Failed to load common.html:', error);
+            });
+    }
+
+    // ✅ Popup display function (make globally available)
+    window.showError = function(message, duration = 10000) {
+        const popup = document.getElementById('popup-error');
+        const popupMessage = document.getElementById('popup-error-message');
+
+        if (popup && popupMessage) {
+            popupMessage.textContent = message;
+            popup.style.display = 'block';
+
+            // Auto-dismiss after [duration] ms
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, duration);
+        } else {
+            console.warn("Popup element(s) not found.");
+        }
+    };
 });

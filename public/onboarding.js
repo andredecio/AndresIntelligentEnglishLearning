@@ -2,20 +2,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 	    
-	function showError(message) {
-		const popup = document.getElementById('popup-error');
-		if (!popup) return;
-
-		// If using close button, keep it and update only the text
-		const closeBtn = popup.querySelector('.close-btn');
-		popup.innerHTML = closeBtn ? closeBtn.outerHTML + message : message;
-
-		popup.style.display = 'block';
-
-		setTimeout(() => {
-        popup.style.display = 'none';
-		}, 7000);
-								}
 
 
     // Get references to HTML elements
