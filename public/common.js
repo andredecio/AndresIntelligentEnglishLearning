@@ -1,32 +1,37 @@
 // common.js
 
-// 🔔 Global error popup function — accessible from any page
-function showError(message) {
-    const popup = document.getElementById('popup-error');
-    const text = document.getElementById('popup-error-text');
-    const closeButton = document.getElementById('popup-error-close');
-
-    if (!popup || !text || !closeButton) {
-        console.warn("Popup element(s) not found.");
-        return;
-    }
-
-    text.textContent = message;
-    popup.style.display = 'block';
-
-    // Allow manual close
-    closeButton.onclick = () => {
-        popup.style.display = 'none';
-    };
-
-    // Auto-hide after 10 seconds
-    setTimeout(() => {
-        popup.style.display = 'none';
-    }, 10000);
-}
-
-// 🧠 Firebase auth + sign-out handler
 document.addEventListener('DOMContentLoaded', () => {
+    // 🔄 Load shared popup HTML (once DOM is ready)
+    fetch('common.html')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('common-html-placeholder').innerHTML = html;
+
+            // 🔔 Define global error popup function AFTER HTML is loaded
+            window.showError = function (message) {
+                const popup = document.getElementById('popup-error');
+                const text = document.getElementById('popup-error-text');
+                const closeButton = document.getElementById('popup-error-close');
+
+                if (!popup || !text || !closeButton) {
+                    console.warn("Popup element(s) not found.");
+                    return;
+                }
+
+                text.textContent = message;
+                popup.style.display = 'block';
+
+                closeButton.onclick = () => {
+                    popup.style.display = 'none';
+                };
+
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                }, 10000);
+            };
+        });
+
+    // 🔐 Firebase authentication and UI handling
     const auth = firebase.auth();
 
     const statusMessageSpan = document.getElementById('statusMessage');
@@ -46,7 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('You have been successfully signed out!');
                 } catch (error) {
                     console.error('Sign out error:', error.message);
-                    showError('Error signing out: ' + error.message);
+                    if (typeof showError === 'function') {
+                        showError('Error signing out: ' + error.message);
+                    }
                 }
             });
         }
@@ -76,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentUserEmailSpan) currentUserEmailSpan.textContent = user.isAnonymous ? 'Guest User' : user.email || 'N/A';
 
             if (authSection) authSection.style.display = 'none';
+
             if (loginInfoDiv) {
                 const userUid = document.getElementById('userUid');
                 const userEmail = document.getElementById('userEmail');
@@ -95,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Verified user on index.html, redirecting to main.html");
                 window.location.assign('main.html');
             }
-
         } else {
             console.log('No user logged in.');
             if (statusMessageSpan) statusMessageSpan.textContent = 'Not logged in.';
