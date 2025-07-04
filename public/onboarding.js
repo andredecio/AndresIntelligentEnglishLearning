@@ -1,250 +1,101 @@
-// onboarding.js I'm new on 4th 1705 
-
 document.addEventListener('DOMContentLoaded', () => {
-	 function showError(message) {
-    const errorDiv = document.getElementById('error-message');
-    if (!errorDiv) return;
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
-    setTimeout(() => {
-        errorDiv.style.display = 'none';
-    }, 10000);
-}
-   
-
-
-    // Get references to HTML elements
-    const onboardingForm = document.getElementById('onboarding-form');
-    const firstNameInput = document.getElementById('first-name');
-    const lastNameInput = document.getElementById('last-name');
-    const dobInput = document.getElementById('dob');
-    const nativeLanguageInput = document.getElementById('native-language');
-    const emailFieldContainer = document.getElementById('email-field-container');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password'); // Get password input
-    const sexMaleRadio = document.getElementById('sex-male');
-    const sexFemaleRadio = document.getElementById('sex-female');
-    const learningGoalSelect = document.getElementById('learning-goal');
-    const otherGoalNotes = document.getElementById('other-goal-notes'); // For "Other" learning goal
-    const startDemoButton = document.getElementById('startDemoButton');
-    const loadingMessage = document.getElementById('loading');
-    const errorMessage = document.getElementById('error-message'); 
-
-    // Initialize Firebase services
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let currentUser = null; // To hold the authenticated user object
+    const form = document.getElementById('onboarding-form');
+    const loading = document.getElementById('loading');
 
-    // Add event listener for "Other" learning goal
-    learningGoalSelect.addEventListener('change', () => {
-        if (learningGoalSelect.value === 'other') {
-            otherGoalNotes.style.display = 'block';
-            otherGoalNotes.setAttribute('required', 'true'); // Make it required if "Other" is chosen
-        } else {
-            otherGoalNotes.style.display = 'none';
-            otherGoalNotes.removeAttribute('required');
-            otherGoalNotes.value = ''; // Clear its value if not "Other"
-        }
-    });
+    // 🔔 Local popup-style error display function
+    function showError(message) {
+        const popup = document.getElementById('popup-error');
+        const text = document.getElementById('popup-error-text');
+        const closeButton = document.getElementById('popup-error-close');
 
-    // Listen for authentication state changes
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            currentUser = user;
-            console.log("Current user:", currentUser.uid, "Is Anonymous:", currentUser.isAnonymous);
-
-            // Enable the button once we know who the user is
-            startDemoButton.disabled = false;
-
-            // If user is anonymous, show the email/password fields to offer linking
-            if (currentUser.isAnonymous) {
-                emailFieldContainer.style.display = 'block';
-                // Make email and password not required
-                emailInput.removeAttribute('required');
-                passwordInput.removeAttribute('required');
-            } else {
-                // If not anonymous, hide the email/password fields
-                emailFieldContainer.style.display = 'none';
-                emailInput.removeAttribute('required');
-                passwordInput.removeAttribute('required');
-                // You might pre-fill the email field if available from user.email
-                if (currentUser.email) {
-                    emailInput.value = currentUser.email;
-                }
-            }
-
-            // Optional: Pre-fill form if user data already exists in Firestore
-            db.collection("users").doc(currentUser.uid).get().then(docSnapshot => {
-                if (docSnapshot.exists) {
-                    const userData = docSnapshot.data();
-                    firstNameInput.value = userData.firstName || '';
-                    lastNameInput.value = userData.lastName || '';
-                    // Convert stored date string back to input type="date" format (YYYY-MM-DD)
-                    // Note: Check if userData.dateOfBirth exists before calling toISOString()
-                    dobInput.value = userData.dateOfBirth ? new Date(userData.dateOfBirth).toISOString().split('T')[0] : '';
-                    nativeLanguageInput.value = userData.nativeLanguage || '';
-
-                    if (userData.sex === 'male') sexMaleRadio.checked = true;
-                    if (userData.sex === 'female') sexFemaleRadio.checked = true;
-
-                    if (userData.learningGoal) {
-                        learningGoalSelect.value = userData.learningGoal;
-                        if (learningGoalSelect.value === 'other') {
-                            otherGoalNotes.style.display = 'block';
-                            otherGoalNotes.setAttribute('required', 'true');
-                            otherGoalNotes.value = userData.otherGoalNotes || '';
-                        }
-                    }
-                }
-            }).catch(error => {
-                console.error("Error loading user data for pre-fill:", error);
-                errorMessage.textContent = `Error loading your saved preferences: ${error.message}`;
-                errorMessage.style.display = 'block';
-            });
-
-        } else {
-            // No user is signed in. This onboarding process assumes an existing session
-            // (even an anonymous one).
-            errorMessage.textContent = "Please ensure you are signed in to personalize your experience. Redirecting...";
-            errorMessage.style.display = 'block';
-            startDemoButton.disabled = true; // Keep button disabled
-            console.log("No user signed in. Redirecting to sign-in or initial page.");
-            // In a real app, you might redirect to your main entry or sign-in page here
-            // setTimeout(() => { window.location.href = 'index.html'; }, 3000); // Example redirect
-        }
-    });
-
-    // Handle form submission
-    onboardingForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Prevent default form submission
-
-        // Reset messages
-        errorMessage.style.display = 'none';
-        errorMessage.textContent = '';
-        loadingMessage.style.display = 'block';
-
-        if (!currentUser) {
-            errorMessage.textContent = "No user logged in. Please refresh or sign in.";
-            errorMessage.style.display = 'block';
-            loadingMessage.style.display = 'none';
+        if (!popup || !text || !closeButton) {
+            console.warn("Popup element(s) not found.");
             return;
         }
 
-        let emailVerificationNeededAfterForm = false; // Flag to indicate if verification email should be sent after form submit
-        let redirectToVerifyEmailPage = false; // Flag to redirect specifically to verify_email_notice.html
+        text.textContent = message;
+        popup.style.display = 'flex';
+
+        closeButton.onclick = () => {
+            popup.style.display = 'none';
+        };
+
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 10000);
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const firstName = document.getElementById('first-name').value.trim();
+        const lastName = document.getElementById('last-name').value.trim();
+        const dob = document.getElementById('dob').value;
+        const language = document.getElementById('native-language').value.trim();
+        const goal = document.getElementById('learning-goal').value;
+        const goalNotes = document.getElementById('other-goal-notes').value.trim();
+        const sex = document.querySelector('input[name="sex"]:checked')?.value;
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!firstName || !lastName || !dob || !language || !goal || !sex) {
+            showError("Please fill in all required fields.");
+            return;
+        }
+
+        // If one of email/password is filled in, both must be filled in
+        if ((email && !password) || (!email && password)) {
+            showError("To create a permanent account, both email and password are required.");
+            return;
+        }
+
+        loading.style.display = 'block';
 
         try {
+            let user = auth.currentUser;
+
+            // Create permanent account if email/password provided and current user is anonymous
+            if (email && password && user?.isAnonymous) {
+                const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+                user = await user.linkWithCredential(credential);
+                console.log("Anonymous account upgraded:", user.uid);
+            }
+
             const userData = {
-                firstName: firstNameInput.value.trim(),
-                lastName: lastNameInput.value.trim(),
-                dateOfBirth: dobInput.value ? new Date(dobInput.value).toISOString() : null,
-                nativeLanguage: nativeLanguageInput.value.trim(),
-                sex: document.querySelector('input[name="sex"]:checked')?.value || null,
-                learningGoal: learningGoalSelect.value,
-                onboardingComplete: true,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                firstName,
+                lastName,
+                dob,
+                language,
+                goal,
+                goalNotes: goal === 'other' ? goalNotes : '',
+                sex,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            if (userData.learningGoal === 'other') {
-                userData.otherGoalNotes = otherGoalNotes.value.trim();
-            }
-
-            // --- ACCOUNT LINKING LOGIC ---
-
-            if (currentUser.isAnonymous) {
-                const email = emailInput.value.trim();
-                const password = passwordInput.value; // Get the password
-
-                if (email && password) { // Only attempt linking if both are provided
-                    try {
-                        const credential = firebase.auth.EmailAuthProvider.credential(email, password);
-
-                        // This is the core step: linking the credential
-                        await currentUser.linkWithCredential(credential);
-                        console.log("Anonymous account successfully linked with Email/Password!");
-
-                        // Update user data to reflect new state
-                        userData.email = email;
-                        userData.isAnonymous = false;
-                        emailVerificationNeededAfterForm = true; // Set flag to send email AFTER Firestore save
-                        redirectToVerifyEmailPage = true; // Ensure redirection to verify page
-
-                    } catch (error) {
-                        // --- ENHANCED ERROR HANDLING FOR LINKING ---
-                        if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
-                            errorMessage.textContent = "This email is already associated with another account. Please sign in with that account, or use a different email.";
-                        } else if (error.code === 'auth/invalid-email') {
-                            errorMessage.textContent = "The email address is not valid.";
-                        } else if (error.code === 'auth/weak-password') {
-                            errorMessage.textContent = "The password is too weak (must be at least 6 characters).";
-                        } else if (error.code === 'auth/operation-not-allowed') {
-                            // This is the error you were seeing. It implies Firebase rejected the link
-                            // because of an issue with the email, potentially already existing or needing verification state.
-                            errorMessage.textContent = "Unable to link this email. It might already be in use or require verification. Please try a different email or sign in with your existing account.";
-                        } else {
-                            errorMessage.textContent = `Error linking account: ${error.message}`;
-                        }
-                        console.error("Error linking anonymous account:", error);
-                        loadingMessage.style.display = 'none';
-						errorMessage.style.display = 'block';
-                        return; // Stop execution if linking fails
-                    }
-                } else if ((email && !password) || (!email && password)) { // If only one is provided
-					showError("To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.");
-					return;
-						};
-                }
-                // If email and password fields are left blank, proceed without linking (user remains anonymous).
-                // In this case, the userData will not have an 'email' field for the Firestore save.
-            } else if (currentUser.email && !currentUser.emailVerified) {
-                // User is already logged in (non-anonymous) but their email is unverified.
-                // We'll prompt them to verify via the email sent to them if they haven't.
-                emailVerificationNeededAfterForm = true;
-                redirectToVerifyEmailPage = true; // Also redirect if existing user needs verification
-            }
-
-            // Save user data to Firestore
-            // For anonymous users who did NOT link, this will create the initial Firestore document.
-            // For anonymous users who DID link, this will update/create the document with their email.
-            // For non-anonymous users, this will update their existing document.
-            await db.collection("users").doc(currentUser.uid).set(userData, { merge: true });
-            console.log("User data saved to Firestore successfully!");
-
-            // --- Send Email Verification (if needed) ---
-            if (emailVerificationNeededAfterForm && currentUser.email) {
-                try {
-                    // Re-fetch the user object after linking to ensure it's up-to-date for sendEmailVerification
-                    await currentUser.reload(); // Reloads user properties
-                    const updatedUser = auth.currentUser; // Get the reloaded user object
-
-                    await updatedUser.sendEmailVerification();
-                    console.log("Verification email sent!");
-                    // No redirection here, final redirection is below
-                } catch (error) {
-                    console.error("Error sending verification email:", error);
-                    // Don't block user access, just log the error or show a non-critical message.
-                    errorMessage.textContent = `(Warning: Could not send verification email: ${error.message}. Please try resending later.)`;
-                    errorMessage.style.display = 'block';
-                    redirectToVerifyEmailPage = false; // Don't redirect to verify page if send failed
-                }
-            }
-
-            // --- FINAL REDIRECTION ---
-            if (redirectToVerifyEmailPage) {
-                // User provided an email for linking, or is an existing user with unverified email: go to verify notice
-                window.location.href = 'verify_email_notice.html';
-            } else {
-                // Anonymous user who chose NOT to link, or an already verified user: go to conversation
-                window.location.href = 'conversation.html';
-            }
-
+            await db.collection('users').doc(auth.currentUser.uid).set(userData, { merge: true });
+            window.location.href = 'main.html';
 
         } catch (error) {
             console.error("Error saving user data or redirecting:", error);
-            loadingMessage.style.display = 'none';
-            errorMessage.textContent = `Failed to update profile: ${error.message}. Please try again.`;
-            errorMessage.style.display = 'block';
+            showError("An error occurred: " + error.message);
+        } finally {
+            loading.style.display = 'none';
+        }
+    });
+
+    // Handle showing "other" goal notes field
+    document.getElementById('learning-goal').addEventListener('change', function () {
+        const notesField = document.getElementById('other-goal-notes');
+        notesField.style.display = this.value === 'other' ? 'block' : 'none';
+    });
+
+    // Show email/password fields if user is anonymous
+    auth.onAuthStateChanged((user) => {
+        if (user?.isAnonymous) {
+            document.getElementById('email-field-container').style.display = 'block';
         }
     });
 });
