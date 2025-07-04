@@ -10,10 +10,7 @@
     <link rel="stylesheet" href="onboarding.css">
 </head>
 <body>
-		<div id="popup-error" class="error-alert" style="display: none;">
-			<span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
-			<!-- Message text will be injected here via JS -->
-		</div>
+	<div id="common-html-placeholder"></div> <!-- This just for the common error pop up -->
 
     <h1>Help us personalize your experience!</h1>
     <form id="onboarding-form">
@@ -74,6 +71,14 @@
     </form>
     <div id="loading" style="display: none;">Saving your preferences and preparing your lesson...</div>
     <div id="error-message" class="error-message" style="display: none;"></div>
+	
+	<script> <!-- to load common html used for the pop up. Put this in all htmls -->
+		fetch('common.html')
+			.then(response => response.text())
+			.then(html => {
+			document.getElementById('common-html-placeholder').innerHTML = html;
+			});
+	</script>
 
     <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>

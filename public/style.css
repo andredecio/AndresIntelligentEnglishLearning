@@ -160,3 +160,41 @@ button:hover {
 .hidden {
     display: none !important;
 }
+.error-alert {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #218b5f;
+  color: white;
+  padding: 14px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  z-index: 10000;
+  animation: fadeInDown 0.3s ease-out;
+  text-align: center;
+  max-width: 90%;
+  width: fit-content;
+}
+
+.error-button {
+  background-color: #218b5f;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.error-button:hover {
+  background-color: #45a049;
+}
+
+@keyframes fadeInDown {
+  0% { opacity: 0; transform: translate(-50%, -10px); }
+  100% { opacity: 1; transform: translate(-50%, 0); }
+}
+
