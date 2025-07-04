@@ -1,4 +1,4 @@
-// onboarding.js I'm new on 3rd 11.07
+// onboarding.js I'm new on 4th 
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get references to HTML elements
@@ -139,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // --- ACCOUNT LINKING LOGIC ---
-	console.log("Email value: " , emailInput.value.trim()  ,"  Password value: " ,passwordInput.value );
 
             if (currentUser.isAnonymous) {
                 const email = emailInput.value.trim();
@@ -176,11 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         console.error("Error linking anonymous account:", error);
                         loadingMessage.style.display = 'none';
+						errorMessage.style.display = 'block';
                         return; // Stop execution if linking fails
                     }
                 } else if ((email && !password) || (!email && password)) { // If only one is provided
                     errorMessage.textContent = "To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.";
                     loadingMessage.style.display = 'none';
+					errorMessage.style.display = 'block';
                     return;
                 }
                 // If email and password fields are left blank, proceed without linking (user remains anonymous).
