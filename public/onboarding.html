@@ -72,13 +72,7 @@
     <div id="loading" style="display: none;">Saving your preferences and preparing your lesson...</div>
     <div id="error-message" class="error-message" style="display: none;"></div>
 	
-	<script> <!-- to load common html used for the pop up. Put this in all htmls -->
-		fetch('common.html')
-			.then(response => response.text())
-			.then(html => {
-			document.getElementById('common-html-placeholder').innerHTML = html;
-			});
-	</script>
+
 
     <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -92,7 +86,8 @@
     <script src="/__/firebase/init.js"></script>
 	
     <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
-    <script src="common.js"></script>
+    <!-- <script src="common.js"></script>-->
+	<script src="loadCommon.js"></script><!-- For the pop up error display -->
 
     <!-- Page-Specific JavaScript for onboarding.html - MUST LOAD AFTER common.js -->
     <script src="onboarding.js"></script>
