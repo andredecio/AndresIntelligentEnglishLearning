@@ -1,17 +1,17 @@
-// onboarding.js I'm new on 4th 8.53 
+// onboarding.js I'm new on 4th 9.10 
 
 document.addEventListener('DOMContentLoaded', () => {
 	    
-		const errorMessage = document.getElementById('errorMessage');
 	    function showError(message) {   // make a nice error message display
-        if (!errorMessage) return; // failsafe
-        errorMessage.textContent = message;
-        errorMessage.style.display = 'block';
+			const error1 = document.getElementById('error-message');
+			if (!error1) return; // failsafe
+			error1.textContent = message;
+			error1.style.display = 'block';
 
-        // Optional: auto-hide after 10 seconds
-        setTimeout(() => {
-            errorMessage.style.display = 'none';
-        }, 10000);
+			// Optional: auto-hide after 10 seconds
+			setTimeout(() => {
+				error1.style.display = 'none';
+			}, 10000);
     }
     // Get references to HTML elements
     const onboardingForm = document.getElementById('onboarding-form');
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const otherGoalNotes = document.getElementById('other-goal-notes'); // For "Other" learning goal
     const startDemoButton = document.getElementById('startDemoButton');
     const loadingMessage = document.getElementById('loading');
-    //const errorMessage = document.getElementById('error-message'); Its now in the function above
+    const errorMessage = document.getElementById('error-message'); 
 
     // Initialize Firebase services
     const auth = firebase.auth();
@@ -120,8 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault(); // Prevent default form submission
 
         // Reset messages
-        //errorMessage.style.display = 'none';
-        //errorMessage.textContent = '';
+        errorMessage.style.display = 'none';
+        errorMessage.textContent = '';
         loadingMessage.style.display = 'block';
 
         if (!currentUser) {
