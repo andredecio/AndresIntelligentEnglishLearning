@@ -2,17 +2,21 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 	    
-	    const popupError = document.getElementById('popup-error');
+	function showError(message) {
+		const popup = document.getElementById('popup-error');
+		if (!popup) return;
 
-		function showError(message) {
-			if (!popupError) return; // failsafe
-				popupError.textContent = message;
-				popupError.style.display = 'block';
+		// If using close button, keep it and update only the text
+		const closeBtn = popup.querySelector('.close-btn');
+		popup.innerHTML = closeBtn ? closeBtn.outerHTML + message : message;
 
-				setTimeout(() => {
-				popupError.style.display = 'none';
-				}, 10000);
-									}
+		popup.style.display = 'block';
+
+		setTimeout(() => {
+        popup.style.display = 'none';
+		}, 7000);
+								}
+
 
     // Get references to HTML elements
     const onboardingForm = document.getElementById('onboarding-form');

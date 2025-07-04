@@ -25,22 +25,42 @@
         #loading { display: none; margin-top: 25px; font-style: italic; color: #7f8c8d; font-size: 1.1em; }
         .error-message { color: red; margin-top: 10px; display: none; }
 		
+/* ---------- Error Alert Styling ---------- */
 		.error-alert {
 			position: fixed;
 			top: 20px;
 			left: 50%;
 			transform: translateX(-50%);
-			background-color: #f44336;
+			background-color: #f44336; /* Red tone matching sign-out buttons */
 			color: white;
 			padding: 14px 24px;
-			border-radius: 5px;
+			border-radius: 8px;
 			font-size: 16px;
-			box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 			z-index: 10000;
-			animation: fadeInDown 0.3s ease-out;
-					}
+			animation: fadeInDown 0.4s ease-out;
+			max-width: 90%;
+			text-align: center;
+						}
 
-				@keyframes fadeInDown {
-				0% { opacity: 0; transform: translate(-50%, -10px); }
-				100% { opacity: 1; transform: translate(-50%, 0); }
-										}
+			/* Optional: Close button for alert messages */
+			.error-alert .close-btn {
+				position: absolute;
+				top: 6px;
+				right: 12px;
+				color: white;
+				font-size: 18px;
+				cursor: pointer;
+									}
+
+			@keyframes fadeInDown {
+				0% {
+					opacity: 0;
+					transform: translate(-50%, -20px);
+					}
+				100% {
+					opacity: 1;
+					transform: translate(-50%, 0);
+					}
+}
