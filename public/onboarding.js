@@ -182,7 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         return; // Stop execution if linking fails
                     }
                 } else if ((email && !password) || (!email && password)) { // If only one is provided
-                    showError("To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.");
+					window.popupReady.then(() => {
+							showError("To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.");
+});
 
 					return;
                 }
