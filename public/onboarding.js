@@ -1,6 +1,18 @@
-// onboarding.js I'm new on 4th 
+// onboarding.js I'm new on 4th 8.19 
 
 document.addEventListener('DOMContentLoaded', () => {
+	
+	    function showError(message) {   // make a nice error message display
+        const errorMessage = document.getElementById('errorMessage');
+        if (!errorMessage) return; // failsafe
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+
+        // Optional: auto-hide after 10 seconds
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+        }, 10000);
+    }
     // Get references to HTML elements
     const onboardingForm = document.getElementById('onboarding-form');
     const firstNameInput = document.getElementById('first-name');
@@ -16,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const otherGoalNotes = document.getElementById('other-goal-notes'); // For "Other" learning goal
     const startDemoButton = document.getElementById('startDemoButton');
     const loadingMessage = document.getElementById('loading');
-    const errorMessage = document.getElementById('error-message');
+    //const errorMessage = document.getElementById('error-message'); Its now in the function above
 
     // Initialize Firebase services
     const auth = firebase.auth();
@@ -179,10 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         return; // Stop execution if linking fails
                     }
                 } else if ((email && !password) || (!email && password)) { // If only one is provided
-                    errorMessage.textContent = "To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.";
-                    loadingMessage.style.display = 'none';
-					errorMessage.style.display = 'block';
-                    return;
+                    showError("To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.");
+
+					return;
                 }
                 // If email and password fields are left blank, proceed without linking (user remains anonymous).
                 // In this case, the userData will not have an 'email' field for the Firestore save.
