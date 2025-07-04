@@ -1,18 +1,19 @@
-// onboarding.js I'm new on 4th 9.10 
+// onboarding.js I'm new on 4th 9.23 
 
 document.addEventListener('DOMContentLoaded', () => {
 	    
-	    function showError(message) {   // make a nice error message display
-			const error1 = document.getElementById('error-message');
-			if (!error1) return; // failsafe
-			error1.textContent = message;
-			error1.style.display = 'block';
+	    const popupError = document.getElementById('popup-error');
 
-			// Optional: auto-hide after 10 seconds
-			setTimeout(() => {
-				error1.style.display = 'none';
-			}, 10000);
-    }
+		function showError(message) {
+			if (!popupError) return; // failsafe
+				popupError.textContent = message;
+				popupError.style.display = 'block';
+
+				setTimeout(() => {
+				popupError.style.display = 'none';
+				}, 10000);
+									}
+
     // Get references to HTML elements
     const onboardingForm = document.getElementById('onboarding-form');
     const firstNameInput = document.getElementById('first-name');
