@@ -192,9 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else if ((email && !password) || (!email && password)) { // If only one is provided
 					showError("To create a permanent account, both email and password are required. If you don't want to create one now, leave both fields blank.");
-});
-
 					return;
+						};
                 }
                 // If email and password fields are left blank, proceed without linking (user remains anonymous).
                 // In this case, the userData will not have an 'email' field for the Firestore save.
