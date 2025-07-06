@@ -170,7 +170,9 @@ button:hover {
   padding: 14px 24px;
   border-radius: 6px;
   font-size: 16px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+ /* box-shadow: 0 4px 8px rgba(0,0,0,0.3);*/
+  box-shadow: 0 6px #0056b3, /* Deeper shadow for the 'bottom' part of the pop up */
+              0 2px 4px rgba(0,0,0,0.3); /* Softer shadow for overall lift */
   z-index: 10000;
   animation: fadeInDown 0.3s ease-out;
   text-align: center;
