@@ -186,11 +186,31 @@ button:hover {
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  box-shadow: 0 6px #0056b3, /* Deeper shadow for the 'bottom' part of the button */
+              0 2px 4px rgba(0,0,0,0.3); /* Softer shadow for overall lift */
   transition: background-color 0.3s ease;
 }
 
 .error-button:hover {
-  background-color: #298f2c;
+background-color: #298f2c;}
+  /* The Press Effect: When the button is clicked/active */
+.error-button:active {
+    background-color: #0056b3; /* Even darker blue when pressed */
+
+    /* The "Press" Animation: */
+    /* Move the button down slightly */
+    transform: translateY(4px); /* Pushes the button down by 4px */
+
+    /* Reduce the box-shadow to simulate it being "pressed into" the surface */
+    /* We effectively "hide" the deeper shadow and keep only a subtle one */
+    box-shadow: 0 2px #004085, /* Smaller, subtle shadow for the 'bottom' */
+                0 1px 2px rgba(0,0,0,0.2); /* Even softer overall shadow */
+}
+
+/* If you want a focus style for keyboard navigation */
+.error-button:focus {
+    outline: none; /* Remove default outline */
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.5); /* A subtle focus ring */
 }
 
 @keyframes fadeInDown {
