@@ -107,53 +107,38 @@ button:hover {
     background-color: #45a049; /* Darker green on hover */
 }
 
-/* General button styling */
-button {
-    background-color: #4CAF50; /* Green */
-    color: white;
-    padding: 12px 20px;
-    margin: 8px 0;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+/* --- NEW: Styling for visually non-clickable buttons (controlled by JS class 'non-clickable') --- */
+/* This class changes appearance but *does not* prevent click events. */
+button.non-clickable {
+    background-color: #cccccc; /* Light gray background */
+    color: #888888; /* Darker gray text */
+    cursor: default; /* Change cursor to default, not 'not-allowed' for visual-only */
+    opacity: 0.7; /* Slightly dim the button */
+    box-shadow: none; /* Ensure no 3D or lift effect */
+    /* IMPORTANT: pointer-events: none; is NOT present here to allow clicks to go through */
 }
 
-button:hover {
-    background-color: #45a049; /* Darker green on hover */
+/* Ensure non-clickable buttons don't react to hover/active with original styles */
+button.non-clickable:hover,
+button.non-clickable:active {
+    background-color: #cccccc; /* Keep the non-clickable background color */
+    color: #888888; /* Keep the non-clickable text color */
+    transform: none; /* Remove any transform (like the press effect) */
+    box-shadow: none; /* Remove any box shadows */
+    cursor: default; /* Keep default cursor */
 }
 
-/* --- NEW: Styling for disabled buttons --- */
-button.disabled-button,
+/* --- Styling for truly disabled buttons (controlled by HTML 'disabled' attribute) --- */
+/* This style applies when the 'disabled' attribute is set on the button. */
 button:disabled {
     background-color: #cccccc; /* Light gray background */
     color: #888888; /* Darker gray text */
-    cursor: not-allowed; /* Change cursor to indicate it's not clickable */
-    opacity: 0.7; /* Slightly dim the button */
-    box-shadow: none; /* Ensure no 3D or lift effect for disabled state */
-    pointer-events: none; /* Prevents any pointer events (like hover) */
+    cursor: not-allowed; /* Change cursor to indicate it's truly not clickable */
+    opacity: 0.5; /* More opaque than non-clickable for distinctness */
+    box-shadow: none; /* Ensure no 3D or lift effect */
+    pointer-events: none; /* Prevents *all* pointer events, making it truly unclickable */
     transition: none; /* Remove transition for instant disabled state */
 }
-
-/* Ensure disabled buttons don't react to hover/active */
-button.disabled-button:hover,
-button:disabled:hover,
-button.disabled-button:active,
-button:disabled:active {
-    background-color: #cccccc; /* Keep the disabled background color */
-    color: #888888; /* Keep the disabled text color */
-    transform: none; /* Remove any transform (like the press effect) */
-    box-shadow: none; /* Remove any box shadows */
-}
-
-
-/* Specific styling for sign-out buttons (can be applied to various IDs) */
-#signOutButton, #signOutButtonMain {
-    background-color: #f44336; /* Red */
-}
-
-/* ... (Rest of your existing CSS code) ... */
 
 /* Specific styling for sign-out buttons (can be applied to various IDs) */
 #signOutButton, #signOutButtonMain {
@@ -247,7 +232,7 @@ background-color: #298f2c;}
 .error-button:active {
     background-color: #0056b3; /* Even darker blue when pressed */
 
-    /* The "Press" Animation: */
+    /* The "Press Animation: */
     /* Move the button down slightly */
     transform: translateY(4px); /* Pushes the button down by 4px */
 
@@ -267,4 +252,3 @@ background-color: #298f2c;}
   0% { opacity: 0; transform: translate(-50%, -10px); }
   100% { opacity: 1; transform: translate(-50%, 0); }
 }
-
