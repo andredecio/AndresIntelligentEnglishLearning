@@ -107,6 +107,54 @@ button:hover {
     background-color: #45a049; /* Darker green on hover */
 }
 
+/* General button styling */
+button {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 12px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+/* --- NEW: Styling for disabled buttons --- */
+button.disabled-button,
+button:disabled {
+    background-color: #cccccc; /* Light gray background */
+    color: #888888; /* Darker gray text */
+    cursor: not-allowed; /* Change cursor to indicate it's not clickable */
+    opacity: 0.7; /* Slightly dim the button */
+    box-shadow: none; /* Ensure no 3D or lift effect for disabled state */
+    pointer-events: none; /* Prevents any pointer events (like hover) */
+    transition: none; /* Remove transition for instant disabled state */
+}
+
+/* Ensure disabled buttons don't react to hover/active */
+button.disabled-button:hover,
+button:disabled:hover,
+button.disabled-button:active,
+button:disabled:active {
+    background-color: #cccccc; /* Keep the disabled background color */
+    color: #888888; /* Keep the disabled text color */
+    transform: none; /* Remove any transform (like the press effect) */
+    box-shadow: none; /* Remove any box shadows */
+}
+
+
+/* Specific styling for sign-out buttons (can be applied to various IDs) */
+#signOutButton, #signOutButtonMain {
+    background-color: #f44336; /* Red */
+}
+
+/* ... (Rest of your existing CSS code) ... */
+
 /* Specific styling for sign-out buttons (can be applied to various IDs) */
 #signOutButton, #signOutButtonMain {
     background-color: #f44336; /* Red */
