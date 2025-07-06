@@ -28,6 +28,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 10000);
     }
 
+    // 🔄 Pre-populate form if user data exists
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) return;
+
+        // Show email/password fields if user is anonymous
+        if (user.isAnonymous) {
+            document.getElementById('email-field-container').style.display = 'block';
+        }
+
+        try {
+            const doc = await db.collection('users').doc(user.uid).get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.firstName) document.getElementById('first-name').value = data.firstName;
+                if (data.lastName) document.getElementById('last-name').value = data.lastName;
+                if (data.dob) document.getElementById('dob').value = data.dob;
+                if (data.language) document.getElementById('native-language').value = data.language;
+                if (data.goal) document.getElementById('learning-goal').value = data.goal;
+                if (data.goal === 'other' && data.goalNotes) {
+                    document.getElementById('other-goal-notes').value = data.goalNotes;
+                    document.getElementById('other-goal-notes').style.display = 'block';
+                }
+                if (data.sex) {
+                    const sexRadio = document.querySelector(`input[name="sex"][value="${data.sex}"]`);
+                    if (sexRadio) sexRadio.checked = true;
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            showError("Failed to load your saved data.");
+        }
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -46,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // If one of email/password is filled in, both must be filled in
         if ((email && !password) || (!email && password)) {
             showError("To create a permanent account, both email and password are required.");
             return;
@@ -57,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             let user = auth.currentUser;
 
-            // Create permanent account if email/password provided and current user is anonymous
             if (email && password && user?.isAnonymous) {
                 const credential = firebase.auth.EmailAuthProvider.credential(email, password);
                 user = await user.linkWithCredential(credential);
@@ -90,12 +121,5 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('learning-goal').addEventListener('change', function () {
         const notesField = document.getElementById('other-goal-notes');
         notesField.style.display = this.value === 'other' ? 'block' : 'none';
-    });
-
-    // Show email/password fields if user is anonymous
-    auth.onAuthStateChanged((user) => {
-        if (user?.isAnonymous) {
-            document.getElementById('email-field-container').style.display = 'block';
-        }
     });
 });
