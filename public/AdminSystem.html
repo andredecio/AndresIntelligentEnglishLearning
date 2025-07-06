@@ -4,133 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firebase AI Content Generator AdminSystem</title>
+    <!-- Global & Page-Specific Styles -->
+    <!-- It's good practice to link CSS in the <head> -->
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="AdminSystem.css" />
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
-        h1 { text-align: center; color: #333; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
-        input[type="number"], input[type="text"], select {
-            width: calc(100% - 22px); /* Account for padding and border */
-            padding: 10px;
+        /* Minimal inline styles to ensure initial hiding/showing for quick demo.
+           You can move these to AdminSystem.css if preferred. */
+        #generatorSection {
+            display: none; /* Hidden by default until JavaScript shows it */
+        }
+        #loginError {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        #logoutButton {
             margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            background-color: #f44336; /* Red for logout button */
+            width: auto; /* Allow button to size naturally */
+            padding: 8px 15px;
             font-size: 16px;
-        }
-        button {
-            background-color: #4CAF50; /* Green */
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 18px;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #response {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e9e9e9;
-            border-radius: 4px;
-            white-space: pre-wrap; /* Preserve formatting for JSON/text */
-            font-family: monospace;
-        }
-        .loading {
-            text-align: center;
-            margin-top: 15px;
-            font-style: italic;
-            color: #888;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Generate Vocabulary Content (AdminSystem)</h1>
-        <form id="contentGeneratorForm">
-            <label for="cefrLevel">CEFR Level:</label>
-            <select id="cefrLevel" required>
-                <option value="A1">A1</option>
-                <option value="A2">A2</option>
-                <option value="B1">B1</option>
-                <option value="B2">B2</option>
-                <option value="C1">C1</option>
-                <option value="C2">C2</option>
-            </select>
+        <!-- Section for Authentication (Login Form) -->
+        <div id="authSection">
+            <h1>Admin Login</h1>
+            <form id="loginForm">
+                <label for="loginEmail">Email:</label>
+                <input type="email" id="loginEmail" required>
 
-            <label for="numWords">Number of Words:</label>
-            <input type="number" id="numWords" value="50" min="1" max="200" required>
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" required>
 
-            <label for="theme">Theme (e.g., Daily Life, Animals, Food):</label>
-            <input type="text" id="theme" value="General English" required>
+                <button type="submit">Log In</button>
+            </form>
+            <p id="loginError" class="error-message"></p>
+        </div>
 
-            <button type="submit">Generate Content</button>
-        </form>
+        <!-- Section for Content Generator (Visible only after successful admin login) -->
+        <div id="generatorSection">
+            <h1>Generate Vocabulary Content (AdminSystem)</h1>
+            <button id="logoutButton" type="button">Log Out</button>
 
-        <div id="loading" class="loading" style="display: none;">Generating content... This might take a moment.</div>
-        <div id="response"></div>
+            <form id="contentGeneratorForm">
+                <label for="cefrLevel">CEFR Level:</label>
+                <select id="cefrLevel" required>
+                    <option value="A1">A1</option>
+                    <option value="A2">A2</option>
+                    <option value="B1">B1</option>
+                    <option value="B2">B2</option>
+                    <option value="C1">C1</option>
+                    <option value="C2">C2</option>
+                </select>
+
+                <label for="numWords">Number of Words:</label>
+                <input type="number" id="numWords" value="50" min="1" max="500" required>
+
+                <label for="theme">Theme (e.g., Daily Life, Animals, Food):</label>
+                <input type="text" id="theme" value="General English" required>
+
+                <button type="submit">Generate Content</button>
+            </form>
+
+            <div id="loading" class="loading" style="display: none;">Generating content... This might take a moment.</div>
+            <div id="response"></div>
+        </div>
     </div>
 
-    <!-- Firebase SDK for your project -->
-    <!-- Replace with your actual Firebase project configuration -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <!-- Firebase SDKs (Compat) -->
+    <!-- Load these first so AdminSystem.js can use them -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
-    <script>
-        // Your Firebase project configuration goes here
-        // You can find this in your Firebase Console -> Project settings -> General -> Your apps
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "enduring-victor-460703-a2.firebaseapp.com",
-            projectId: "enduring-victor-460703-a2",
-            storageBucket: "enduring-victor-460703-a2.appspot.com",
-            messagingSenderId: "190391960875",
-            appId: "YOUR_APP_ID" // This is usually web app ID, not mobile app ID
-        };
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-
-        // Get a reference to the functions service
-        const functions = firebase.functions();
-        // If you are testing locally with Firebase Emulator Suite
-        // functions.useEmulator("localhost", 5001); // Uncomment and adjust port if needed
-
-        // Get a reference to your callable Cloud Function
-        const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
-
-        document.getElementById('contentGeneratorForm').addEventListener('submit', async (e) => {
-            e.preventDefault(); // Prevent default form submission
-
-            const cefrLevel = document.getElementById('cefrLevel').value;
-            const numWords = parseInt(document.getElementById('numWords').value, 10);
-            const theme = document.getElementById('theme').value;
-
-            const responseDiv = document.getElementById('response');
-            const loadingDiv = document.getElementById('loading');
-
-            responseDiv.textContent = ''; // Clear previous response
-            loadingDiv.style.display = 'block'; // Show loading message
-
-            try {
-                // Call the Cloud Function
-                const result = await generateVocabularyContent({
-                    cefrLevel: cefrLevel,
-                    numWords: numWords,
-                    theme: theme
-                });
-
-                // Display the result
-                responseDiv.textContent = 'Success! Check your Firestore database.\n' + JSON.stringify(result.data, null, 2);
-            } catch (error) {
-                console.error("Error calling Cloud Function:", error);
-                responseDiv.textContent = `Error: ${error.message}\n${JSON.stringify(error.details || {}, null, 2)}`;
-                responseDiv.style.color = 'red';
-            } finally {
-                loadingDiv.style.display = 'none'; // Hide loading message
-            }
-        });
-    </script>
+    <!-- Page-specific logic -->
+    <!-- Your AdminSystem.js will handle the login, logout, and form submission -->
+    <script src="AdminSystem.js"></script>
 </body>
 </html>
