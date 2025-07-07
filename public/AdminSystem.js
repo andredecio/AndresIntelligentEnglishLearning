@@ -4,9 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // So we can directly get references to the Firebase services here.
     const auth = firebase.auth(); // Get Auth instance
 
-    // --- KEY CHANGE HERE: Specify the region for Cloud Functions ---
-    const functions = firebase.functions('asia-east2'); // Get Functions instance, explicitly set to asia-east2
-
+// --- CORRECTED: Get Functions instance without region here for v8 SDK ---
+	const functions = firebase.functions();
     // Note: You don't strictly need firebase.app() or firebase.firestore()
     // if you're only using auth and callable functions on this page,
     // but they don't hurt anything if you decide to add more features later.
@@ -32,9 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingDiv = document.getElementById('loading');
 
 
-    // --- Firebase Callable Cloud Function Reference ---
-    const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
-
+	// --- KEY CHANGE HERE: Specify the region when getting the callable function ---
+	const generateVocabularyContent = functions.region('asia-east2').httpsCallable('generateVocabularyContent');
 
     // --- Firebase Authentication State Listener ---
     // This listener runs every time the user's authentication state changes (login, logout).
