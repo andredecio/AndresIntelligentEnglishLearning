@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = firebase.app(); // <-- Add this line
 
     // --- KEY CHANGE HERE: Get the Functions service for the specific region from the app instance ---
-    const functions = app.functions('asia-east2'); // <-- This is the correct v8 way
+    const functions = app.functions('asia-southeast1'); // <-- This is the correct v8 way
 
     // --- References to HTML Elements ---
     // Auth Section elements
