@@ -1,46 +1,97 @@
-name: Deploy to Firebase Hosting on Merge
+name: Smart Firebase Deploy (Auto Triggered)
 
 on:
   push:
     branches:
-      - main # Or the name of your main branch (e.g., master)
+      - main # Trigger this workflow automatically on pushes to the 'main' branch
 
 jobs:
-  build_and_deploy:
-    runs-on: ubuntu-latest # Uses the latest Ubuntu environment on GitHub Actions
+  # Job 1: Determine what parts of the code have changed
+  # This job will run first and identify if frontend or functions code was modified.
+  check_for_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      hosting_changed: ${{ steps.filter.outputs.hosting }} # Output for hosting changes
+      functions_changed: ${{ steps.filter.outputs.functions }} # Output for functions changes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for changed paths
+        id: filter # Assign an ID to this step to reference its outputs later
+        uses: dorny/paths-filter@v2 # This action makes it easy to detect changes in specific paths
+        with:
+          filters: |
+            hosting:
+              - 'public/**'          # Match any file within the 'public' directory
+              - 'firebase.json'      # Important for hosting configuration changes
+            functions:
+              - 'functions/**'       # Match any file within the 'functions' directory.
+
+  # Job 2: Deploy Firebase Hosting (Frontend)
+  # This job will only run if 'hosting_changed' is true from the previous job.
+  deploy_hosting:
+    needs: check_for_changes # This job depends on the 'check_for_changes' job completing successfully
+    if: ${{ needs.check_for_changes.outputs.hosting_changed == 'true' }} # Conditional execution
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 # Action to check out your repository's code
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4 # Action to set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20' # Or the Node.js version your project needs
-          # Optional: Cache npm dependencies
+          node-version: '20' # Or the Node.js version your frontend project needs
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci # Installs dependencies, 'ci' is often preferred in CI environments
+      - name: Install Frontend Dependencies
+        # Assuming your frontend package.json is in the root of the repo
+        run: npm ci
 
       - name: Build Project
-        run: npm run build # Command to build your web app (adjust if your build command is different)
-        # Optional: Add a step to check if the build output directory exists
-        # - name: Verify build output
-        #   run: ls ./dist # Replace ./dist with your actual build output directory
+        # Assuming your build command is 'npm run build' and runs from the repo root
+        run: npm run build
 
-      # Authenticate with Google Cloud using your service account
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2 # Use the standard Google Auth action
+        uses: google-github-actions/auth@v2
         with:
-          # Pass the service account key JSON directly as credentials
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ENDURING_VICTOR_460703_A2 }}
 
-      # Deploy to Firebase Hosting (live channel) using the Firebase CLI directly
       - name: Deploy to Firebase Hosting Live
-        # Use npx to run firebase-tools without installing it globally
-        # --only hosting deploys the main hosting config defined in firebase.json
-        # --project <project-id> specifies the project
-        run: npx firebase-tools deploy --only hosting --project enduring-victor-460703-a2 # <-- Changed this line
-        # The google-github-actions/auth step above sets up the environment
-        # for firebase-tools to pick up credentials automatically.
+        run: npx firebase-tools deploy --only hosting --project enduring-victor-460703-a2
+
+  # Job 3: Deploy Firebase Functions (Backend)
+  # This job will only run if 'functions_changed' is true from the previous job.
+  deploy_functions:
+    needs: check_for_changes # This job also depends on 'check_for_changes'
+    if: ${{ needs.check_for_changes.outputs.functions_changed == 'true' }} # Conditional execution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js for Functions
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # IMPORTANT: Match the Node.js version specified in your functions/package.json
+                              # for Cloud Functions runtime (e.g., "engines": { "node": "18" })
+          cache: 'npm'
+          cache-dependency-path: 'functions/package-lock.json' # Cache specifically for functions
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install Functions Dependencies
+        run: npm install # Install dependencies specific to your functions
+        working-directory: functions # Crucial: run command inside 'functions' directory
+
+      - name: Deploy Firebase Functions
+        # Use the Firebase CLI token for functions deployment.
+        # Ensure FIREBASE_TOKEN secret is set in your GitHub repo.
+        run: firebase deploy --only functions --project enduring-victor-460703-a2 --token ${{ secrets.FIREBASE_TOKEN }}
+        working-directory: functions # Crucial: ensures deployment command runs from 'functions' directory
+        env:
+          GCLOUD_PROJECT: enduring-victor-460703-a2 # Useful for some Firebase/GCP operations
