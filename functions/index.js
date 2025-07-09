@@ -1,4 +1,4 @@
-// functions/index.js
+// functions/index.js Modified today 9/7/25
 
 // --- 1. Module Imports ---
 const functions = require("firebase-functions/v1"); // Main Firebase Functions module MUST BE V1.
