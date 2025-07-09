@@ -1,0 +1,457 @@
+[
+  {
+    "No.": "1",
+    "Student ID": "2022JB00078",
+    "Student Name": "ZHANG ZIXUE",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "616853911@qq.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "N / E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022SJ00108",
+    "Student Name": "MAYMUNAH ABDULAZIZ A. ALOMAR",
+    "Gender": "F",
+    "Nationality": "SAUDI",
+    "Email": "memoomar1409@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY (KL)",
+    "Remark": "SE/REPEAT",
+    "PASS / REPEAT": "INCOMPLETE (RETAIN)"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022JB00072",
+    "Student Name": "ZHENG JINGWEN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "562935618@qq.com",
+    "Visa": "UTM / PG",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022SJ00248",
+    "Student Name": "PENG RUIYANG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2273304623@qq.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2022PM00071",
+    "Student Name": "GU YUHAN",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "guyuhan.gentle@gmail.com",
+    "Visa": "UPM",
+    "Current Location": "HC",
+    "Remark": "N / E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2022PM00070",
+    "Student Name": "LU TIANXI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "lutianxi.gentle@gmail.com",
+    "Visa": "UPM",
+    "Current Location": "HC",
+    "Remark": "N / E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2022SJ00321",
+    "Student Name": "ZHANG SIJIA",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "2379133430@qq.com",
+    "Visa": "UPM",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2022PM00082",
+    "Student Name": "SHANGGUAN HAO",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "shangguanhaostudy@gmail.com",
+    "Visa": "UPM/UG",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2022JB00094",
+    "Student Name": "XIE ZIYI",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "sandysoso819@gmail.com; 957465220@qq.com",
+    "Visa": "UTM",
+    "Current Location": "HC",
+    "Remark": "N / E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2021JB00177",
+    "Student Name": "NASEF MAGDI MAHMOUD EL RASHDI",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "elrashdinasef@gmail.com",
+    "Visa": "UTM/PG\n(JB)",
+    "Current Location": "MY (KL)",
+    "Remark": "LE",
+    "PASS / REPEAT": "REPEAT (PROCEED)"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022JB00002",
+    "Student Name": "ABDULHADI M ABDULHADI GHAWARI",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "gawary87@gmail.com",
+    "Visa": "UTM/PG\n(JB)",
+    "Current Location": "MY (JB)",
+    "Remark": "LE",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022JB00005",
+    "Student Name": "HABIB ABDULGADER ALI BASHA",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "habibbasha21@gmail.com",
+    "Visa": "UTM/PG\n(JB)",
+    "Current Location": "MY (KL)",
+    "Remark": "LE",
+    "PASS / REPEAT": "REPEAT (RETAIN)"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022JB00049",
+    "Student Name": "ALANAZI, NAWAL EID N",
+    "Gender": "F",
+    "Nationality": "SAUDI",
+    "Email": "alnzynwal91@gmail.com",
+    "Visa": "UTM/PG\n(JB)",
+    "Current Location": "MY (JB)",
+    "Remark": "SE",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2022JB00063",
+    "Student Name": "YEO HUI XUAN",
+    "Gender": "F",
+    "Nationality": "MALAYSIA",
+    "Email": "astridyeo2004@gmail.com",
+    "Visa": "-",
+    "Current Location": "MY (JB)",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2022JB00033",
+    "Student Name": "SHIREEN TAWFEEQ ALI ALHAFDHI",
+    "Gender": "F",
+    "Nationality": "IRAQ",
+    "Email": "shireen.alhafdhi@gmail.com",
+    "Visa": "UTM/PG\n(JB)",
+    "Current Location": "MY (JB)",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2022PM00049",
+    "Student Name": "ALKHARRAZ, MODHI YOUSEF A",
+    "Gender": "F",
+    "Nationality": "SAUDI",
+    "Email": "modhiyousef9@gmail.com",
+    "Visa": "UPM",
+    "Current Location": "MY (KL)",
+    "Remark": "SE",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2022PM00077",
+    "Student Name": "MAHA ABDULRAHMAN S ALDAHAM",
+    "Gender": "M",
+    "Nationality": "SAUDI",
+    "Email": "aldaham.m@hotmail.com",
+    "Visa": "UPM",
+    "Current Location": "MY (KL)",
+    "Remark": "N / SE",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2022JB00042",
+    "Student Name": "HUSSEIN ALAA JASIM AL-KHAFAJI",
+    "Gender": "M",
+    "Nationality": "IRAQ",
+    "Email": "hussain.alkhafaji24@gmail.com",
+    "Visa": "UTM/UG\n(JB)",
+    "Current Location": "MY (JB)",
+    "Remark": "EBOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "10",
+    "Student ID": "2022JB00088",
+    "Student Name": "WEN SHUTING",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "wst15234461948@gmail.com; wenshuting2022@126.com",
+    "Visa": "UTM/UG\n(JB)",
+    "Current Location": "HC",
+    "Remark": "N /EBOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "11",
+    "Student ID": "2022PM00079",
+    "Student Name": "LI WEIJIA",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "epptanyadfnv369@gmail.com",
+    "Visa": "UPM",
+    "Current Location": "HC",
+    "Remark": "N/ EBOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "12",
+    "Student ID": "2022PM00081",
+    "Student Name": "GAO YANXI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "tokamak1710@gmail.com",
+    "Visa": "UPM",
+    "Current Location": "HC",
+    "Remark": "N /EBOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "13",
+    "Student ID": "2022SJ00103",
+    "Student Name": "TENGKU DAMIA LUTFIAH BT TENGKU MOHAMAD",
+    "Gender": "F",
+    "Nationality": "MALAYSIA",
+    "Email": "tengkudamialutfiah@icloud.com",
+    "Visa": "-",
+    "Current Location": "MY (SJ)",
+    "PASS / REPEAT": "REPEAT (RETAIN)"
+  },
+  {
+    "No.": "14",
+    "Student ID": "2022PM00084",
+    "Student Name": "LI ZEKUN",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "1299059804@qq.com",
+    "Visa": "UPM",
+    "Current Location": "HC",
+    "Remark": "N /EBOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2021SJ00952",
+    "Student Name": "GUO YIYING (Ying)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "563884049@qq.com,\nying702100@gmail.com",
+    "Visa": "ELS",
+    "Current Location": "MY (SJ)",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022JB00053",
+    "Student Name": "JAMEELAH ALHADI SALIH OTHMAN",
+    "Gender": "F",
+    "Nationality": "LIBYA",
+    "Email": "othmanjamila66@gmail.com",
+    "Visa": "UTM/PG\n(JB)",
+    "Current Location": "MY (KL)",
+    "Remark": "LE",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022SJ00222",
+    "Student Name": "GOH KAI LEE",
+    "Gender": "F",
+    "Nationality": "MALAYSIA",
+    "Email": "gohkailee6@gmail.com",
+    "Visa": "-",
+    "Current Location": "MY (KELANTAN)",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022SJ00120",
+    "Student Name": "NIU YIDI (Heidi)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "nyd20051005@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2021JB00202",
+    "Student Name": "ALI DAKHIL SAKHIL AL HASANI",
+    "Gender": "M",
+    "Nationality": "IRAQ",
+    "Email": "ali.dakhil.alhasani@gmail.com",
+    "Visa": "UTM/PG\n(JB)",
+    "Current Location": "MY (JB)",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2021JB00216",
+    "Student Name": "ALI ABDURABU MOHAMMED FURAISH (Almossabi)",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "aliamossabi@gmail.com",
+    "Visa": "UTM/UG\n(JB)",
+    "Current Location": "MY (JB)",
+    "PASS / REPEAT": "REPEAT"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2022JB00074",
+    "Student Name": "SARMID SHAKIR ABDULSATTAR",
+    "Gender": "M",
+    "Nationality": "IRAQ",
+    "Email": "eng.sarmad86@yahoo.com , abdulsattar-20@graduate.utm.my",
+    "Visa": "UTM/PG\n(JB)",
+    "Current Location": "MY (JB)",
+    "PASS / REPEAT": "REPEAT"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2022SJ00252",
+    "Student Name": "CHEN SIZHE (Ash)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2394570439@qq.com; cmapsz.8@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2021JB00154",
+    "Student Name": "ALI ABDULQADIR ABOULQASIM ABU ALEID",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "ali.belgasim86@gmail.com",
+    "Visa": "UTM/PG\n(JB)",
+    "Current Location": "MY (JB)",
+    "Remark": "LE/REPEAT 2",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "10",
+    "Student ID": "2021PM00160",
+    "Student Name": "LI YANG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "lee1533047266@gmail.com",
+    "Visa": "UPM",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "11",
+    "Student ID": "2022JB00056",
+    "Student Name": "ABDELRAHMAN MOSTAFA ISMAIL MOHAMED (Pexus)",
+    "Gender": "M",
+    "Nationality": "EGYPT",
+    "Email": "am99533006@gmail.com",
+    "Visa": "UTM/UG \n(JB)",
+    "Current Location": "MY (JB)",
+    "Remark": "FAIL READING",
+    "PASS / REPEAT": "REPEAT"
+  },
+  {
+    "No.": "12",
+    "Student ID": "2022PM00034",
+    "Student Name": "MOHAMED FARAH OMAR",
+    "Gender": "M",
+    "Nationality": "SOMALIA",
+    "Email": "mohfaarax@gmail.com",
+    "Visa": "UPM",
+    "Current Location": "MY (UPM)",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2022JB00017",
+    "Student Name": "NASER MOHAMMUD DRWISH MOSTAFA ABDO",
+    "Gender": "M",
+    "Nationality": "PALESTINE",
+    "Email": "naser.2020345@gmail.com",
+    "Visa": "UTM/UG\n(JB)",
+    "Current Location": "MY (JB)",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022PM00020",
+    "Student Name": "IQBAL JAWADI",
+    "Gender": "M",
+    "Nationality": "AFGHAN",
+    "Email": "iqbaljawadi1370@gmail.com",
+    "Visa": "UPM",
+    "Current Location": "MY (UPM)",
+    "Remark": "2208-2209",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3"
+  },
+  {
+    "No.": "4"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  }
+]

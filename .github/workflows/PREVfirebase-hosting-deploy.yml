@@ -1,0 +1,46 @@
+name: Deploy to Firebase Hosting on Merge
+
+on:
+  push:
+    branches:
+      - main # Or the name of your main branch (e.g., master)
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest # Uses the latest Ubuntu environment on GitHub Actions
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 # Action to check out your repository's code
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4 # Action to set up Node.js
+        with:
+          node-version: '20' # Or the Node.js version your project needs
+          # Optional: Cache npm dependencies
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci # Installs dependencies, 'ci' is often preferred in CI environments
+
+      - name: Build Project
+        run: npm run build # Command to build your web app (adjust if your build command is different)
+        # Optional: Add a step to check if the build output directory exists
+        # - name: Verify build output
+        #   run: ls ./dist # Replace ./dist with your actual build output directory
+
+      # Authenticate with Google Cloud using your service account
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2 # Use the standard Google Auth action
+        with:
+          # Pass the service account key JSON directly as credentials
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ENDURING_VICTOR_460703_A2 }}
+
+      # Deploy to Firebase Hosting (live channel) using the Firebase CLI directly
+      - name: Deploy to Firebase Hosting Live
+        # Use npx to run firebase-tools without installing it globally
+        # --only hosting deploys the main hosting config defined in firebase.json
+        # --project <project-id> specifies the project
+        run: npx firebase-tools deploy --only hosting --project enduring-victor-460703-a2 # <-- Changed this line
+        # The google-github-actions/auth step above sets up the environment
+        # for firebase-tools to pick up credentials automatically.

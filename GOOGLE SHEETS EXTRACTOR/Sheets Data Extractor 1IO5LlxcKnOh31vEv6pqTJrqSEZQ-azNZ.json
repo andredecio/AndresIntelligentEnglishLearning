@@ -1,0 +1,147 @@
+[
+  {
+    "No.": "1",
+    "Student ID": "2022JB00133",
+    "Student Name": "AL-HEBSHI ALI ABDULLAH ABDURABU",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "alialhebshi3@gmail.com",
+    "Visa": "UTM / UG               (JB)",
+    "Remark": "KLG",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022JB00147",
+    "Student Name": "AMMAR WALEED YAHYA KHALED NASR",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "ammarwaleedalhumydy@gmail.com",
+    "Visa": "UTM / UG               (JB)",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT (RETAIN)"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022JB00138",
+    "Student Name": "MOHAMED SABER MOHAMED AHMED",
+    "Gender": "M",
+    "Nationality": "EGYPT",
+    "Email": "mohsaber9@gmail.com",
+    "Visa": "UTM / UG               (JB)",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022JB00155",
+    "Student Name": "AMRO MMDOUH EID ABDELGALIL MOHSEN",
+    "Gender": "M",
+    "Nationality": "EGYPT",
+    "Email": "Amr.eid.w1@gmail.com",
+    "Visa": "UTM / UG               (JB)",
+    "Remark": "KLG",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2022JB00139",
+    "Student Name": "MOHAMED ABDEL GAWWAD ABDEL GHANI MOUSTAFA HASSAN DAOUD",
+    "Gender": "M",
+    "Nationality": "EGYPT",
+    "Email": "mhmddawd878@gmail.com",
+    "Visa": "UTM / UG               (JB)",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2022JB00060",
+    "Student Name": "ALMAKRAMI, MOHAMMED ABDULLAH M",
+    "Gender": "M",
+    "Nationality": "SAUDI",
+    "Email": "Frasalk051@gmail.com",
+    "Visa": "SOCIAL",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8",
+    "PASS /\nFAIL /\nREPEAT": "TOTAL STUDENTS PRESENT"
+  },
+  {
+    "PASS /\nFAIL /\nREPEAT": "TOTAL PRESENT (%)"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2022JB00171",
+    "Student Name": "FADI SAMER OTHMAN TABRIZI",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "faditbrizi11@gmail.com",
+    "Visa": "UTM/UG",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022KL00096",
+    "Student Name": "ZAINAB HLAICHI MOHAMMED MOHAMMED",
+    "Gender": "F",
+    "Nationality": "IRAQ",
+    "Email": "zeinabhlachi@gmail.com",
+    "Visa": "UTM/PG",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022JB00125",
+    "Student Name": "PENG JUNHAO (Jovan)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "peng_junhao_ml@163.com",
+    "Visa": "UTM/UG",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022JB00140",
+    "Student Name": "GUO XIANGYU  (Grace)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "maomaoyu072@gmail.com; gxy200908@163.com",
+    "Visa": "UTM/PG",
+    "Remark": "REPEAT",
+    "PASS /\nFAIL /\nREPEAT": "Dropped out"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8",
+    "PASS /\nFAIL /\nREPEAT": "TOTAL STUDENTS PRESENT"
+  },
+  {
+    "PASS /\nFAIL /\nREPEAT": "TOTAL PRESENT (%)"
+  },
+  {
+    "Student ID": "2022JB00087",
+    "Student Name": "ALZOBER ISSAM SAAD ZAID",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "ayayaayaya476@gmail.com",
+    "Visa": "UTM/UG\n(JB)",
+    "Remark": "REPEAT",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT /RETAIN"
+  }
+]

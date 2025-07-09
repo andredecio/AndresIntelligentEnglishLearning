@@ -1,21 +1,63 @@
 {
   "hosting": {
-    "public": "public",  // <-- Your actual build output directory (likely 'public' based on your original file)
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
-    // Removed the "site": "enduring-victor-460703-a2-47c46" from here
-    // If this is the only hosting block, it will target the default site.
-    // If you need configurations for multiple sites, you'd use the array format,
-    // but then you would need to configure targets in .firebaserc as well, which is more complex for CI.
-    // For a single target deployment to the default site, this simpler structure is best.
+    ],
+    "headers": [
+      {
+        "source": "/index.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "/conversation.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "/main.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "/onboarding.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+	        {
+        "source": "/common.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
 
-    // Add any other hosting configurations specific to this site here
-    // For example, rewrites, headers, cleanUrls, etc. from your original firebase.json
-  }
-  // Keep any other service configurations here (e.g., "functions", "firestore")
-  // Ensure you have a "project": {"default": "your-project-id"} or similar in your .firebaserc
-  // in your repository's root for the Firebase CLI to know which project to use.
+      {
+        "source": "/verify_email_notice.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      }
+    ]
+  },
+
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "functions",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
 }

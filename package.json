@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	"build": "echo 'No build process configured yet, skipping build step.'" 
+    "build": "echo 'No build process configured yet, skipping build step.'"
   },
   "repository": {
     "type": "git",
@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/andredecio/AndresIntelligentEnglishLearning/issues"
   },
-  "homepage": "https://github.com/andredecio/AndresIntelligentEnglishLearning#readme"
+  "homepage": "https://github.com/andredecio/AndresIntelligentEnglishLearning#readme",
+  "dependencies": {
+    "firebase-admin": "^13.4.0"
+  }
 }

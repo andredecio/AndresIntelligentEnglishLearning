@@ -17,12 +17,13 @@ let isRecording = false;
 let recognition; // For Web Speech API SpeechRecognition
 const synth = window.speechSynthesis; // For Web Speech API SpeechSynthesis
 
-// Ensure user is authenticated
 auth.onAuthStateChanged((user) => {
     if (!user) {
-        window.location.href = '/login.html'; // Redirect if not logged in
+        console.warn('No user authenticated. Redirecting to index...');
+        window.location.href = 'index.html';
     }
 });
+
 
 // Function to display messages in the chat UI
 function addMessageToChat(text, sender) {

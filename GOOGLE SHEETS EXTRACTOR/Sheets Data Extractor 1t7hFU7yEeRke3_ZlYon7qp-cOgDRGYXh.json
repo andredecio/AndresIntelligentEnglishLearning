@@ -1,0 +1,718 @@
+[
+  {
+    "No.": "1",
+    "Student ID": "2022JB00142",
+    "Student Name": "MASOUD MOHAMED SALEH MOHAMED",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "mohammdprikose@gmail.com",
+    "Visa": "UTM / PG",
+    "Remark": "N / 100",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022JB00149",
+    "Student Name": "AKRAR AHMED YOUNS YAKHLF",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "ahmadakrar909@gmail.com",
+    "Visa": "UTM / PG",
+    "Remark": "N / 100 / LE",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022JB00160",
+    "Student Name": "ALKADEEKI MOHAMMED KHAMEES ALFADHEEL",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "mohamedkadiki7@gmail.com",
+    "Visa": "UTM / PG",
+    "Remark": "N / 100 / LE",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022KL00051",
+    "Student Name": "KELIEBI HUSAM MOHAMMED A",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "hhgh07@gmail.com",
+    "Visa": "ELS",
+    "Remark": "N / 100",
+    "PASS /\nFAIL /\nREPEAT": "F-PROCEED"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2022KL00059",
+    "Student Name": "NASSER FADHL MOHSEN ALI",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "fadelwy6r65@gmail.com",
+    "Visa": "ELS",
+    "Remark": "N / 100",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2022KL00069",
+    "Student Name": "ABDULLAH MUAADH MUNASSAR AFEF",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "mwdj16@gmail.com",
+    "Visa": "ELS",
+    "Remark": "N / 100",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2022KL00072",
+    "Student Name": "ALSHAMMARY KHALID MHASAN O",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "khalidalshammary84@gmail.com",
+    "Visa": "USM / PG",
+    "Remark": "N / 100 / SE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2022KL00074",
+    "Student Name": "ALMUFAZZER MUGAHED MURAD HAOOD SALEH",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "mojahedalmofazer1@gmail.com",
+    "Visa": "Social",
+    "Remark": "N / 100",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2022KL00076",
+    "Student Name": "AL-ASHWAL SHEHAB ADDIN YAHYA SALEH",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "shehabalashwal6@gmail.com",
+    "Visa": "Social",
+    "Remark": "N / 100",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "10",
+    "Student ID": "2022KL00080",
+    "Student Name": "AL-AKWAA OMAR ABDULKARIM ABDULLAH",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "omaralakwa00@gmail.com",
+    "Visa": "Social",
+    "Remark": "N / 100",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "11",
+    "Student ID": "2022KL00081",
+    "Student Name": "AWADH WESAM HUSSEIN HUSSEIN",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "wessamoawed7734@gmail.com",
+    "Visa": "Social",
+    "Remark": "N / 100",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8",
+    "PASS /\nFAIL /\nREPEAT": "TOTAL STUDENTS PRESENT"
+  },
+  {
+    "PASS /\nFAIL /\nREPEAT": "TOTAL PRESENT (%)"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2022JB00117",
+    "Student Name": "ELSHARIF ISMAIL HASSAN ISMAIL",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "alsahilcom001@gmail.com",
+    "Visa": "UTM / PG",
+    "Remark": "LE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022KL00003",
+    "Student Name": "SIDDIG ADAM EISA YOUSIF",
+    "Gender": "M",
+    "Nationality": "SUDAN",
+    "Email": "musah58@gmail.com",
+    "Visa": "ELS",
+    "Remark": "F-READING",
+    "PASS /\nFAIL /\nREPEAT": "F-PROCEED"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022KL00007",
+    "Student Name": "ABU FOR ALI RIDHA A",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "monestrxoxo@gmail.com",
+    "Visa": "ELS",
+    "Remark": "F-READING",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022KL00008",
+    "Student Name": "MOHAMED GAMERELANBIA ELIMAM",
+    "Gender": "M",
+    "Nationality": "SUDAN",
+    "Email": "mohamedgamar09123@gmail.com",
+    "Visa": "ELS",
+    "Remark": "F-WRITING",
+    "PASS /\nFAIL /\nREPEAT": "F-PROCEED"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2022KL00010",
+    "Student Name": "HAIDARAH OMAR AHMED ALI",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "omarx0550@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "F-PROCEED"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2022KL00016",
+    "Student Name": "ALOMRAN ABDULLAH ABDULAZIZ A",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "abdullahbn3zez@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "F-PROCEED"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2022KL00030",
+    "Student Name": "TATEOKA MAHO",
+    "Gender": "F",
+    "Nationality": "JAPAN",
+    "Email": "tateokamito.999@gmail.com",
+    "Visa": "ELS",
+    "Remark": "REPEAT 2",
+    "PASS /\nFAIL /\nREPEAT": "F-PROCEED"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2022KL00031",
+    "Student Name": "ALBATREKE IBRAHIM AHMED IBRAHIM",
+    "Gender": "M",
+    "Nationality": "PALESTINE",
+    "Email": "hoomyahmed.2015@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2022KL00035",
+    "Student Name": "HE JINGWEN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "450593877@qq.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "10",
+    "Student ID": "2022KL00037",
+    "Student Name": "BAZARAH OSAMAH",
+    "Gender": "M",
+    "Nationality": "TURKEY",
+    "Email": "baosama91@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "11",
+    "Student ID": "2022KL00043",
+    "Student Name": "ALOWAINI FAISAL FAHD OBAID",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "faisal.bord@gmail.com",
+    "Visa": "ELS",
+    "Remark": "F-WRITING",
+    "PASS /\nFAIL /\nREPEAT": "F-PROCEED"
+  },
+  {
+    "No.": "12",
+    "Student ID": "2022KL00049",
+    "Student Name": "AHMED HANADI HUSSEIN AHMED SHUEAI",
+    "Gender": "F",
+    "Nationality": "YEMEN",
+    "Email": "hanadi95922@icloud.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "13",
+    "Student ID": "2022KL00079",
+    "Student Name": "AL-AKWAA ABDULAZIZ ABDULHAFIDH ABDULLAH",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "abdulazizalakwa@gmail.com",
+    "Visa": "Social",
+    "Remark": "N / 102",
+    "PASS /\nFAIL /\nREPEAT": "F-PROCEED"
+  },
+  {
+    "No.": "14",
+    "Student ID": "2022PM00078",
+    "Student Name": "ALTAMIMI LAYLA RASHID O",
+    "Gender": "F",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "layla.altamimi80@gmail.com",
+    "Visa": "UPM / PG2",
+    "Remark": "SE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "15"
+  },
+  {
+    "No.": "16"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8",
+    "PASS /\nFAIL /\nREPEAT": "TOTAL STUDENTS PRESENT"
+  },
+  {
+    "PASS /\nFAIL /\nREPEAT": "TOTAL PRESENT (%)"
+  },
+  {
+    "Student ID": "2022JB00046",
+    "Student Name": "NIBOU ISMAIL MOHAMED",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "esmail.nibo17@gmail.com",
+    "Visa": "UTM / PG",
+    "Remark": "LE / REPEAT 2"
+  },
+  {
+    "Student ID": "2022KL00066",
+    "Student Name": "ALODAILY KHLOOD MASAD S",
+    "Gender": "F",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "khlood-_-1989@hotmail.com",
+    "Visa": "DEPENDENT PASS (USM)",
+    "Remark": "SE"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2022JB00067",
+    "Student Name": "KHAMAG NADIR AHMED H",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "naderkhmaj7@gmail.com",
+    "Visa": "UTM / UG",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022JB00115",
+    "Student Name": "SHWIHDI  FTIMA MOHAMED ABDULLAH",
+    "Gender": "F",
+    "Nationality": "LIBYA",
+    "Email": "ftima5@yahoo.com",
+    "Visa": "UTM / PG",
+    "Remark": "LE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022KL00001",
+    "Student Name": "ALMUTAIRI BADER MASHAN S",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "bader.bm99@gmail.com",
+    "Visa": "ELS",
+    "Remark": "F-SSP",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022KL00009",
+    "Student Name": "ALAEMA YOUSUF KHALID AREEBI",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "fareenasalema1997@gmail.com",
+    "Visa": "ELS",
+    "Remark": "F-SSP",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2022KL00017",
+    "Student Name": "AL-YAZIDI ALI OMAR ALI",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "namer.1991@hotmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2022KL00028",
+    "Student Name": "LEE ZER YOU",
+    "Gender": "M",
+    "Nationality": "MALAYSIA",
+    "Email": "leezeryou2003@icloud.com",
+    "Visa": "-",
+    "Remark": "REPEAT 1",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2022KL00036",
+    "Student Name": "QADER SARKAR TAYEB QADER",
+    "Gender": "M",
+    "Nationality": "IRAQ",
+    "Email": "sarkartaeeb372@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2022KL00047",
+    "Student Name": "AL SHAMMRY FAIZ MAYAH M",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "faiz7378@hotmail.com",
+    "Visa": "UTM / PG",
+    "Remark": "SE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2022PM00092",
+    "Student Name": "ALMASALEHA ISMAIL KHALEEL MOHAMMAD",
+    "Gender": "M",
+    "Nationality": "JORDAN",
+    "Email": "masalha55@yahoo.com",
+    "Visa": "UPM / PG",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "10",
+    "Student ID": "2022SJ00070",
+    "Student Name": "ALSHEHRI AMINAH ABDALLH A.",
+    "Gender": "F",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "amoonhe63@gmail.com",
+    "Visa": "Diplomatic Pass",
+    "Remark": "N / REPEAT 4 / SE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8",
+    "PASS /\nFAIL /\nREPEAT": "TOTAL STUDENTS PRESENT"
+  },
+  {
+    "PASS /\nFAIL /\nREPEAT": "TOTAL PRESENT (%)"
+  },
+  {
+    "Student ID": "2022KL00024",
+    "Student Name": "WANG MING SIEW",
+    "Gender": "F",
+    "Nationality": "MALAYSIA",
+    "Email": "tracy@sjee.com.my"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2022JB00069",
+    "Student Name": "BALHAJ AYIMAN ABDULLAH ALMAHDI",
+    "Gender": "F",
+    "Nationality": "LIBYA",
+    "Email": "ayimanbilhaj@gmail.com",
+    "Visa": "UTM / PG",
+    "Remark": "LE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022JB00089",
+    "Student Name": "HELAL NOUR",
+    "Gender": "F",
+    "Nationality": "SYRIA",
+    "Email": "nouribrahem2003@gmail.com",
+    "Visa": "UTM / UG",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022KL00019",
+    "Student Name": "ALFALAH ALI MOHAMED FARAG RUMADAN",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "alizeko218@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022KL00048",
+    "Student Name": "ALSHAMMARI WALEED MANSI G",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "waleed55222@hotmail.com",
+    "Visa": "UTM / PG",
+    "Remark": "SE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2022KL00052",
+    "Student Name": "LIEU HONG WEI",
+    "Gender": "M",
+    "Nationality": "MALAYSIA",
+    "Email": "hwlieu89892002@gmail.com",
+    "Visa": "-",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2022KL00065",
+    "Student Name": "HAMAMH ABDULLAH AHMED MOHAMMED",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "abdullahhamamh@gmail.com",
+    "Visa": "UTM / PG",
+    "PASS /\nFAIL /\nREPEAT": "F-PROCEED"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2022PM00066",
+    "Student Name": "ALSHAMMARI MARYAM SALEM H",
+    "Gender": "F",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "nnmmmn@hotmail.com",
+    "Visa": "UPM / PG2",
+    "Remark": "SE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2022PM00083",
+    "Student Name": "MUHAMMAD FIRDAUS BIN ALI",
+    "Gender": "M",
+    "Nationality": "MALAYSIA",
+    "Email": "muhamfirdaus24@gmail.com",
+    "Visa": "-",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2022SJ00105",
+    "Student Name": "ALJUMAIAH MUNIRAH ABDULRAHMAN M.",
+    "Gender": "F",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "imno1404@hotmail.com",
+    "Visa": "Diplomatic Pass",
+    "Remark": "SE",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "10",
+    "Student ID": "2022SJ00373",
+    "Student Name": "ALQAHTANI MALAK FAISAL M",
+    "Gender": "F",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "malaketa30@gmail.com",
+    "Visa": "Dependent Pass",
+    "Remark": "N / 104 / SE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8",
+    "PASS /\nFAIL /\nREPEAT": "TOTAL STUDENTS PRESENT"
+  },
+  {
+    "PASS /\nFAIL /\nREPEAT": "TOTAL PRESENT (%)"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2021JB00215",
+    "Student Name": "ALHAWITI FAHAD MUSALLAM O",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "hsffahad2@gmail.com; husah2011@hotmail.com",
+    "Visa": "ELS",
+    "Remark": "SE",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022JB00113",
+    "Student Name": "HELAL BAIAN",
+    "Gender": "F",
+    "Nationality": "SYRIA",
+    "Email": "bayanhelal88@gmail.com",
+    "Visa": "UTM / UG",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022JB00116",
+    "Student Name": "SHAGAABI WALID M S",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "walidalshgaby2017@gmail.com",
+    "Visa": "UTM / PG",
+    "Remark": "LE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022KL00011",
+    "Student Name": "MUSABEH IBRAHIM I I",
+    "Gender": "M",
+    "Nationality": "PALESTINE",
+    "Email": "i.musabah92@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2022KL00014",
+    "Student Name": "LEE DONGHYUNG",
+    "Gender": "M",
+    "Nationality": "S. KOREA",
+    "Email": "eunjobz@nate.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2022KL00018",
+    "Student Name": "BINAFIF MOHAMMED ABDULRAHIM AHMED",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "mohammed.a.binafif@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2022KL00026",
+    "Student Name": "TAJURI WESAM SALEH MABRUK",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "waltajory@yahoo.com",
+    "Visa": "UTM / PG",
+    "Remark": "LE",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2022KL00032",
+    "Student Name": "ERICA LOH KER YING",
+    "Gender": "F",
+    "Nationality": "MALAYSIA",
+    "Email": "ericalohky@gmail.com",
+    "Visa": "-",
+    "PASS /\nFAIL /\nREPEAT": "REPEAT"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8",
+    "PASS /\nFAIL /\nREPEAT": "TOTAL STUDENTS PRESENT"
+  },
+  {
+    "PASS /\nFAIL /\nREPEAT": "TOTAL PRESENT (%)"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2021JB00036",
+    "Student Name": "HELAL MUHIEDDIN",
+    "Gender": "M",
+    "Nationality": "SYRIA",
+    "Email": "mohye2720@gmail.com",
+    "Visa": "Social",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2022KL00004",
+    "Student Name": "AL-JUMAILI ALI ADIL JAWAD",
+    "Gender": "M",
+    "Nationality": "IRAQ",
+    "Email": "aliadeljawad93@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2022KL00005",
+    "Student Name": "AL-AWADHI SHAKER HASAN SALEM",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "iifrezy@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2022KL00012",
+    "Student Name": "NGUYEN THI HUYEN TRAN",
+    "Gender": "F",
+    "Nationality": "VIETNAM",
+    "Email": "huyentran03022003@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2022KL00013",
+    "Student Name": "ALBEHADILI ABO ALHASAN GHAZI RAHEEM",
+    "Gender": "M",
+    "Nationality": "IRAQ",
+    "Email": "hi554344@gmail.com",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2022KL00015",
+    "Student Name": "LEE KYEONGHYUNG",
+    "Gender": "M",
+    "Nationality": "S. KOREA",
+    "Email": "claim846@hanmail.net",
+    "Visa": "ELS",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2022KL00040",
+    "Student Name": "EUGENE CHEOW EU CHOONG",
+    "Gender": "M",
+    "Nationality": "MALAYSIA",
+    "Email": "eugenecheow@gmail.com",
+    "Visa": "-",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2022KL00053",
+    "Student Name": "MA YIJIU",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "1439070655@qq.com",
+    "Visa": "MM2H",
+    "PASS /\nFAIL /\nREPEAT": "PASS"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8",
+    "PASS /\nFAIL /\nREPEAT": "TOTAL STUDENTS PRESENT"
+  },
+  {
+    "PASS /\nFAIL /\nREPEAT": "TOTAL PRESENT (%)"
+  }
+]

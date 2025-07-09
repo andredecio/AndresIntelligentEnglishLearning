@@ -1,0 +1,1237 @@
+[
+  {
+    "No.": "1"
+  },
+  {
+    "No.": "2"
+  },
+  {
+    "No.": "3"
+  },
+  {
+    "No.": "4"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2024SJ00087",
+    "Student Name": "LIANG JINGYE",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "liangiingye86@gmail.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "NEW PT 100"
+  },
+  {
+    "Student ID": "2024KL00080",
+    "Student Name": "LIU MAOCAI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "3513167590@qq.com",
+    "Visa": "SOCIAL/ PAULINE",
+    "Current Location": "HC",
+    "Remark": "REPEAT"
+  },
+  {
+    "Student ID": "2024SJ00086",
+    "Student Name": "LUO BANGHE",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2634480276@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PAID"
+  },
+  {
+    "Student ID": "202406",
+    "Student Name": "ELSSJ-102A",
+    "Current Location": "1",
+    "Remark": "PRESENT"
+  },
+  {
+    "Student ID": "SSP :",
+    "Gender": "10:00 - 11:15",
+    "Current Location": "0",
+    "Remark": "ABSENT"
+  },
+  {
+    "Student ID": "RW :",
+    "Gender": "11:30 - 12:45",
+    "Current Location": "1",
+    "Remark": "LATE"
+  },
+  {
+    "Student ID": "CLS :",
+    "Gender": "8:30 - 9:45",
+    "Current Location": "1",
+    "Remark": "N/E",
+    "PASS / REPEAT": "IMPORTANT!"
+  },
+  {
+    "Student ID": "ADMIN :"
+  },
+  {
+    "No.": "No.",
+    "Student ID": "Student ID",
+    "Student Name": "Student Name",
+    "Gender": "Gender",
+    "Nationality": "Nationality",
+    "Email": "Email",
+    "Visa": "Visa",
+    "Current Location": "Current Location",
+    "Remark": "Remark",
+    "PASS / REPEAT": "PASS / REPEAT"
+  },
+  {
+    "No.": "1"
+  },
+  {
+    "No.": "2"
+  },
+  {
+    "No.": "3"
+  },
+  {
+    "No.": "4"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "11"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2024SJ00089",
+    "Student Name": "CHEN WENJIE",
+    "Nationality": "CHINA",
+    "Email": "1115394502@qq.com",
+    "Visa": "GENTLE EDU",
+    "Current Location": "HC",
+    "Remark": "NEW PT 102"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2024JB00061",
+    "Student Name": "SAEED MUBARAK AL SHAHRANI",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "salshahrani1413@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY (JB)",
+    "Remark": "SE",
+    "PASS / REPEAT": "Repeat\n(Proceed)"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2024JB00064",
+    "Student Name": "MOHAMED MAHADI BANAFEA",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "mohabanaf@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY (JB)",
+    "PASS / REPEAT": "Pass"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2024JB00070",
+    "Student Name": "ALABAYECHI MUNTADHER AHMED RAHEEM",
+    "Gender": "M",
+    "Nationality": "IRAQ",
+    "Email": "ahmadmmo56@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "Repeat \n(Proceed)"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2024KL00077",
+    "Student Name": "LIU JUNDA",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "77432064@qq.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "INCOMPLETE"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2024KL00079",
+    "Student Name": "WU MENGDI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "wumengdi0922@gmail.com; 2325771766@qq.com",
+    "Visa": "SOCIAL/ PAULINE",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "Pass"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2024SJ00057",
+    "Student Name": "FAN SHUHUI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2078250132@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "Repeat \n(Retain)"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2024SJ00058",
+    "Student Name": "SHA YUDI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "ss11122@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "Pass"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2024SJ00088",
+    "Student Name": "FENG BOCHAO",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "3783113926@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "Repeat \n(Proceed)"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2024SJ00102",
+    "Student Name": "LIU XINYU",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "liux090500@gmail.com; 18890162311@163.com",
+    "Visa": "SOCIAL/ PAULINE",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "Pass"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "202405",
+    "Student Name": "ELSSJ-101A",
+    "Current Location": "1",
+    "Remark": "PRESENT"
+  },
+  {
+    "Student ID": "SSP :",
+    "Gender": "10:00 - 11:15",
+    "Current Location": "0",
+    "Remark": "ABSENT"
+  },
+  {
+    "Student ID": "RW :",
+    "Gender": "11:30 - 12:45",
+    "Current Location": "1",
+    "Remark": "LATE"
+  },
+  {
+    "Student ID": "CLS :",
+    "Gender": "8:30 - 9:45",
+    "Current Location": "1",
+    "Remark": "N/E",
+    "PASS / REPEAT": "IMPORTANT!"
+  },
+  {
+    "Student ID": "ADMIN :"
+  },
+  {
+    "No.": "No.",
+    "Student ID": "Student ID",
+    "Student Name": "Student Name",
+    "Gender": "Gender",
+    "Nationality": "Nationality",
+    "Email": "Email",
+    "Visa": "Visa",
+    "Current Location": "Current Location",
+    "Remark": "Remark",
+    "PASS / REPEAT": "PASS / REPEAT"
+  },
+  {
+    "No.": "1"
+  },
+  {
+    "No.": "2"
+  },
+  {
+    "No.": "3"
+  },
+  {
+    "No.": "4"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2024KL00080",
+    "Student Name": "LIU MAOCAI",
+    "Gender": "PT 100"
+  },
+  {
+    "Student ID": "2024JB00061",
+    "Student Name": "SAEED MUBARAK AL SHAHRANI",
+    "Gender": "PT 101"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2023KL00013",
+    "Student Name": "HUSSEIN MOUSA AHMAD MAABREH",
+    "Gender": "M",
+    "Nationality": "JORDAN",
+    "Email": "husseinmaabreh@gmail.com",
+    "Visa": "UKM / PG",
+    "Current Location": "MY / JORDAN",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "FAIL/INCOMPLETE"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2024JB00027",
+    "Student Name": "ZHAO QING (Qing)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "zhaoq_04@163.com; didi_9119@qq.com",
+    "Visa": "UTM / UG",
+    "Current Location": "Hybrid - UTM",
+    "Remark": "REPEAT",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2024JB00040",
+    "Student Name": "JIANG QUANYU (Leo)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "csw20040219@163.com",
+    "Visa": "UTM / UG",
+    "Current Location": "Hybrid - UTM",
+    "Remark": "REPEAT",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2024JB00055",
+    "Student Name": "GONG YINGYING Gloria",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "gongyingying198905@163.com; 395344639@qq.com",
+    "Visa": "UTM / PG",
+    "Current Location": "HC",
+    "Remark": "REPEAT",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2024SJ00089",
+    "Student Name": "CHEN WENJIE (James)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "1115394502@qq.com",
+    "Visa": "GENTLE EDU",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2024SJ00103",
+    "Student Name": "WANG YISHU",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "1679752395@qq.com",
+    "Visa": "SOCIAL/ PAULINE",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2024SJ00104",
+    "Student Name": "TAN CHUER",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "tanchuer16@gmail.com; 1770783416@qq.com",
+    "Visa": "SOCIAL/ PAULINE",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2024JB00063",
+    "Student Name": "MOHAMED OSAMA ELAMIN FADL ELSIED",
+    "Gender": "M",
+    "Nationality": "SUDAN",
+    "Email": "mohammedosama889@gmail.com",
+    "Visa": "UTM / UG",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "INCOMPLETE"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2024KL00069",
+    "Student Name": "LIU WENJING",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "lwj031010@gmail.com; xiaqi20220808@163.com",
+    "Visa": "SOCIAL/ PAULINE",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2024KL00078",
+    "Student Name": "XIANG YIFENG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "xiangyf666@gmail.com",
+    "Visa": "SOCIAL/ PAULINE",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2024SJ00022",
+    "Student Name": "TONG YANG Jessica",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "1258986863@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR - XI'AN KDGX",
+    "Current Location": "HC",
+    "Remark": "REPEAT",
+    "PASS / REPEAT": "REPEAT"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2024SJ00026",
+    "Student Name": "XIRUI HOU (Jenny)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "houxirui65@gmail.com; 1809533622@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR - XI'AN KDGX",
+    "Current Location": "HC",
+    "Remark": "REPEAT",
+    "PASS / REPEAT": "REPEAT"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2024SJ00027",
+    "Student Name": "JIAYAO LI",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "lijiayaoli70@gmail.com ; ljy2005092_2024@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR - XI'AN KDGX",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "REPEAT"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2024SJ00061",
+    "Student Name": "LI BOYANG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "liboyangli75@gmail.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2024SJ00069",
+    "Student Name": "XIAO RUOLAN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "shemoryrystrom95873626@gmail.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2024SJ00085",
+    "Student Name": "YIFAN YANG Jojo",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "1283975119@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "INCOMPLETE"
+  },
+  {
+    "No.": "10",
+    "Student ID": "2024SJ00093",
+    "Student Name": "LIU XIN",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "liuxinsy202329@gmail.com; 3117759998@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "REPEAT"
+  },
+  {
+    "No.": "11",
+    "Student ID": "2024SJ00096",
+    "Student Name": "XU LIMIN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "819923562@qq.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "12",
+    "Student ID": "2024JB00049",
+    "Student Name": "ANNA TAKAHASHI",
+    "Gender": "F",
+    "Nationality": "JAPAN",
+    "Email": "anna_takahashi07@yahoo.co.jp",
+    "Visa": "SOCIAL APPLYING",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2023KL00232",
+    "Student Name": "BEN OTHMAN ANAS FOUAD MOHAMED",
+    "Gender": "M",
+    "Nationality": "LIBYA",
+    "Email": "anasfouadbenothman@gmail.com",
+    "Visa": "ELS VISA",
+    "Current Location": "HC",
+    "Remark": "REPEAT",
+    "PASS / REPEAT": "INCOMPLETE"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2024KL00115",
+    "Student Name": "ALOBEEDI NASSER SALEH D",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "alobeedi555@gmail.com",
+    "Visa": "EMPLOYMENT",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2024SJ00020",
+    "Student Name": "HANRUI ZHAO",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2685885981@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR - XI'AN KDGX",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "REPEAT (retain)"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2024SJ00037",
+    "Student Name": "MA MENGHUI Malinda",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "mamenghui305@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY (Serdang)",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2024SJ00055",
+    "Student Name": "NUR ALYYAH-Alia",
+    "Gender": "F",
+    "Nationality": "INDONESIA",
+    "Email": "alyyahnur29@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2024SJ00070",
+    "Student Name": "CHEN ZHONGHAN-Zhohan",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "zhonghanc57@gmail.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2024SJ00082",
+    "Student Name": "JIA XINING (Ning)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "jxn548732896@163.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "INCOMPLETE"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2024SJ00099",
+    "Student Name": "LIU ZHI QING Aoran",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "3195262904@qq.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2024JB00039",
+    "Student Name": "YUAN QIAN (Qian)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "yq13420022180@qq.com",
+    "Visa": "UTM / UG",
+    "Current Location": "Hybrid - UTM",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2024JB00044",
+    "Student Name": "WANG TAIXI",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "1853760284@qq.com",
+    "Visa": "UTM / UG",
+    "Current Location": "Hybrid - UTM",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2024PM00010",
+    "Student Name": "ZHANG NING-Jenny",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "yingzhang762@gmail.com; zxnlzx0320@163.com",
+    "Visa": "UPM PG",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2024SJ00011",
+    "Student Name": "DAI MINGYI (Dai)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "skydmy03@gmail.com; 947123567@qq.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2024SJ00018",
+    "Student Name": "WEI SHUAI (Shuai)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "weishuai1002@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2024SJ00019",
+    "Student Name": "ZHANCHEN AN",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "193179720@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR - XI'AN KDGX",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2024SJ00021",
+    "Student Name": "KEXIN JIN (Kexin)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "1982047465@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR - XI'AN KDGX",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2024SJ00041",
+    "Student Name": "JIEXIN FENG (Fiona)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "1037576128@qq.com",
+    "Visa": "SOCIAL / BKT PINTAR - XI'AN",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2024SJ00047",
+    "Student Name": "CUI SHIJIA (Peter)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "cuishijiahs@gmail.com",
+    "Visa": "SOCIAL / BRI CROSS",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "REPEAT/(PROCEED)"
+  },
+  {
+    "No.": "10",
+    "Student ID": "2024SJ00053",
+    "Student Name": "SONG JIACHENG (Song)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "1905667347@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "11",
+    "Student ID": "2024SJ00062",
+    "Student Name": "TAO PINLIN (Daniel)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "pinlintao@gmail.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "12",
+    "Student ID": "2024SJ00072",
+    "Student Name": "LIU XIAOYING (Xiaoying)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "xiaoying8602@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "13",
+    "Student ID": "2024SJ00097",
+    "Student Name": "GAO JINGKAI (Jingkai)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "gaojingkai00@gmail.com; gjk122772092@163.com",
+    "Visa": "SOCIAL / BKT PINTAR - XI'AN",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2024JB00001",
+    "Student Name": "QIN RUIRUI (Rennie)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "rennierr.qin@gmail.com",
+    "Visa": "UTM/UG",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2024JB00002",
+    "Student Name": "CHEN ZHONGYOU (Johnny)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "chenzhongyou47@gmail.com",
+    "Visa": "UTM/PG",
+    "Current Location": "MY (KL)",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2024SJ00010",
+    "Student Name": "KONG LINGYANG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "lingyangkong940@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2024SJ00039",
+    "Student Name": "YULIN HUANG (Lin)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "1793244304@qq.com",
+    "Visa": "SOCIAL/ BKT PINTAR",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2023JB00157",
+    "Student Name": "MOU JUNCHENG (Moon)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "3011589281@qq.com",
+    "Visa": "UTM / UG",
+    "Current Location": "HC",
+    "Remark": "EBOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2023SJ00178",
+    "Student Name": "JANA TAREQ SAEED BA ZYAD",
+    "Gender": "F",
+    "Nationality": "YEMEN",
+    "Email": "baziyadjana@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2024KL00064",
+    "Student Name": "KUOK SIN TENG",
+    "Gender": "F",
+    "Nationality": "M'SIAN",
+    "Email": "kuoksintengteng@gmail.com",
+    "Visa": "-",
+    "Current Location": "MY(KL)",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2024PM00004",
+    "Student Name": "WANG SISHI (Oliver)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "maoxiandaohaowuliao@gmail.com",
+    "Visa": "UPM/PG1",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2024SJ00023",
+    "Student Name": "YAOWEN XIE",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2158274319@qq.com",
+    "Visa": "SOCIAL / BKT PINTAR - XI'AN",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "REPEAT (RETAIN)"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2024SJ00024",
+    "Student Name": "YUQI NI (Chris)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "1278515503@qq.com",
+    "Visa": "SOCIAL / BKT PINTAR - XI'AN",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "202405",
+    "Student Name": "ELSSJ-106A",
+    "Current Location": "1",
+    "Remark": "PRESENT"
+  },
+  {
+    "Student ID": "SSP :",
+    "Gender": "11:30 - 12:45",
+    "Current Location": "0",
+    "Remark": "ABSENT"
+  },
+  {
+    "Student ID": "RW :",
+    "Gender": "10:00 - 11:15",
+    "Current Location": "1",
+    "Remark": "LATE"
+  },
+  {
+    "Student ID": "CLS :",
+    "Gender": "1.30 - 2.45",
+    "Current Location": "1",
+    "Remark": "N/E",
+    "PASS / REPEAT": "IMPORTANT!"
+  },
+  {
+    "Student ID": "ADMIN :"
+  },
+  {
+    "No.": "No.",
+    "Student ID": "Student ID",
+    "Student Name": "Student Name",
+    "Gender": "Gender",
+    "Nationality": "Nationality",
+    "Email": "Email",
+    "Visa": "Visa",
+    "Current Location": "Current Location",
+    "Remark": "Remark",
+    "PASS / REPEAT": "PASS / REPEAT"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2023SJ00178",
+    "Student Name": "JANA TAREQ SAEED BA ZYAD",
+    "Gender": "F",
+    "Nationality": "YEMEN",
+    "Email": "baziyadjana@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "REPEAT"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2024SJ00024",
+    "Student Name": "YUQI NI (Chris)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "1278515503@qq.com",
+    "Visa": "XI'AN KDGX",
+    "Current Location": "HC",
+    "Remark": "E-BOOK"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2024SJ00023",
+    "Student Name": "YAOWEN XIE",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2158274319@qq.com",
+    "Visa": "XI'AN KDGX",
+    "Current Location": "HC",
+    "Remark": "E-BOOK"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2024PM00004",
+    "Student Name": "WANG SISHI (Oliver)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "maoxiandaohaowuliao@gmail.com",
+    "Visa": "UPM/PG1",
+    "Current Location": "HC",
+    "Remark": "E-BOOK"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2024PM00057",
+    "Student Name": "SONG TAO",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "gs69503@student.upm.edu.my",
+    "Visa": "UPM",
+    "Current Location": "HC",
+    "Remark": "N/E-BOOK"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2022SJ00362",
+    "Student Name": "WANG BINGCHEN (Bryan)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "bingchenwang526@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "REPEAT",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2023JB00141",
+    "Student Name": "GUO FANG (Grace)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "184774785@qq.com",
+    "Visa": "UTM/PG2",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2023JB00156",
+    "Student Name": "MA CHENHAO -Mark",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "machenhao1999@163.com",
+    "Visa": "UTM / PG",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2023JB00159",
+    "Student Name": "ZHANG YUANXU-Will",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "zhangyuanxu@graduate.utm.my",
+    "Visa": "UTM / UG",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "REPEAT"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2023JB00161",
+    "Student Name": "NIU TIEZHU",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "n2245238658@163.com",
+    "Visa": "UTM / PG",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2023SJ00206",
+    "Student Name": "TIAN KANG-Andrew",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "tian-kang@163.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2023JB00152",
+    "Student Name": "WU CUILI",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "wucuili@graduate.utm.my; 479063045@qq.com",
+    "Visa": "UTM",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2023SJ00164",
+    "Student Name": "XIA GUOQING (Edison)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "18356435313@163.com; 18356435313x@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2023SJ00194",
+    "Student Name": "WANG LU",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "jollymariolatella@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2023SJ00217",
+    "Student Name": "HUANG YINTONG",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "huangyintong1999@163.com; gwen22881@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2024SJ00002",
+    "Student Name": "ZHAO MIN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "zz05141248@gmail.com; zjkzm20000514@163.com",
+    "Visa": "SOCIAL / SAJE EDULINKS SDN BHD",
+    "Current Location": "HC",
+    "Remark": "E-BOOK",
+    "PASS / REPEAT": "PASS"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  }
+]
