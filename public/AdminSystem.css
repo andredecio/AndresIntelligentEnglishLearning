@@ -32,8 +32,8 @@ body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; 
             font-family: monospace;
         }
         .loading {
-            text-align: center;
+            text-align: left;
             margin-top: 15px;
-            font-style: italic;
-            color: #888;
+            font-style: normal;
+            color: #075d25;
         }
