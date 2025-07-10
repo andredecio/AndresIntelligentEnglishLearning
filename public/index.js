@@ -1,4 +1,4 @@
-// index.js — COMPLETE WITH SIGN-UP, SIGN-IN, AND ANONYMOUS SIGN-IN
+// index.js — Version 1.01 for webpage logic
 
 document.addEventListener('DOMContentLoaded', () => {
     const app = firebase.app();
