@@ -37,3 +37,19 @@ body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; 
             font-style: normal;
             color: #075d25;
         }
+		        /* Minimal inline styles to ensure initial hiding/showing for quick demo.
+           You can move these to AdminSystem.css if preferred. */
+        #generatorSection {
+            display: none; /* Hidden by default until JavaScript shows it */
+        }
+        #loginError {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        #logoutButton {
+            margin-bottom: 20px;
+            background-color: #f44336; /* Red for logout button */
+            width: auto; /* Allow button to size naturally */
+            padding: 8px 15px;
+            font-size: 16px;
+        }

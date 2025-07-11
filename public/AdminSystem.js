@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-
+    // Modified today 12/7/25 code deployed: v1.004
     // Firebase is initialized by /__/firebase/init.js via AdminSystem.html
     // So we can directly get references to the Firebase services here.
     const auth = firebase.auth(); // Get Auth instance
@@ -111,6 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const cefrLevel = cefrLevelSelect.value; // Corrected variable name
         const numWords = parseInt(numWordsInput.value, 10); // Corrected variable name
+		if (isNaN(numWords) || numWords < 1 || numWords > 100) {
+                responseDiv.textContent = 'Please enter a number of words between 1 and 100.';
+                return; // Stop execution if validation fails
+            }
         const theme = themeInput.value; // Corrected variable name
 
         responseDiv.textContent = ''; // Clear previous response
