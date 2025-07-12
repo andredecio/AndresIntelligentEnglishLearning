@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 skippedWordsDisplay.textContent = '';
 					} 
 		
-		) catch (error) {
+		} catch (error) {
             console.error("Error calling Cloud Function:", error);
             // Display error message from Cloud Function or generic error
             responseDiv.textContent = `Error: ${error.message}\n${JSON.stringify(error.details || {}, null, 2)}`;
