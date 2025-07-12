@@ -1,13 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Modified today 12/7/25 code deployed: v1.004
+    // Modified today 12/7/25 code deployed: v1.005
     // Firebase is initialized by /__/firebase/init.js via AdminSystem.html
     // So we can directly get references to the Firebase services here.
     const auth = firebase.auth(); // Get Auth instance
 
     // Explicitly get the default Firebase App instance
-    const app = firebase.app(); // <-- Add this line
+    const app = firebase.app(); 
 
-    // --- KEY CHANGE HERE: Get the Functions service for the specific region from the app instance ---
     const functions = app.functions('asia-southeast1'); // <-- This is the correct v8 way
 
     // --- References to HTML Elements ---
@@ -27,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeInput = document.getElementById('theme');
     const responseDiv = document.getElementById('response');
     const loadingDiv = document.getElementById('loading');
-
+	const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
 
     // --- Firebase Callable Cloud Function Reference ---
     const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
@@ -63,7 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             // User is signed out. Show the login form and hide the generator.
-            authSection.style.display = 'block'; // Show login form
+            responseDiv.textContent = ''; 
+            skippedWordsDisplay.textContent = '';
+			authSection.style.display = 'block'; // Show login form
             generatorSection.style.display = 'none'; // Hide generator form
             console.log("User signed out or no user found.");
         }
@@ -113,15 +114,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const numWords = parseInt(numWordsInput.value, 10); // Corrected variable name
 		if (isNaN(numWords) || numWords < 1 || numWords > 100) {
                 responseDiv.textContent = 'Please enter a number of words between 1 and 100.';
-                return; // Stop execution if validation fails
+                skippedWordsDisplay.textContent = '';
+				return; // Stop execution if validation fails
             }
         const theme = themeInput.value; // Corrected variable name
 
         responseDiv.textContent = ''; // Clear previous response
         loadingDiv.style.display = 'block'; // Show loading message
         responseDiv.style.color = 'initial'; // Reset text color
-
-        try {
+		skippedWordsDisplay.textContent = '';
+       
+	   try {
             // Call the Cloud Function - this will now automatically include the user's ID token
             // The Cloud Function itself will verify the admin custom claim.
             const result = await generateVocabularyContent({
@@ -131,13 +134,23 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Display the result
-            responseDiv.textContent = 'Success! Check your Firestore database.\n' + JSON.stringify(result.data, null, 2);
-        } catch (error) {
+            //responseDiv.textContent = 'Success! Check your Firestore database.\n' + JSON.stringify(result.data, null, 2);
+			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
+		
+		if (result.data.skippedWords && result.data.skippedWords.length > 0) {
+                const skippedWordsList = result.data.skippedWords.join(', ');
+                skippedWordsDisplay.textContent = `The following words were skipped as duplicates: ${skippedWordsList}.`;
+                skippedWordsDisplay.style.color = 'orange'; // Make it stand out
+            } else {
+                skippedWordsDisplay.textContent = '';
+		
+		} catch (error) {
             console.error("Error calling Cloud Function:", error);
             // Display error message from Cloud Function or generic error
             responseDiv.textContent = `Error: ${error.message}\n${JSON.stringify(error.details || {}, null, 2)}`;
             responseDiv.style.color = 'red';
-        } finally {
+			skippedWordsDisplay.textContent = '';
+		} finally {
             loadingDiv.style.display = 'none'; // Hide loading message
         }
     });
