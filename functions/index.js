@@ -1,27 +1,23 @@
-// functions/index.js Modified today 9/7/25 at 21.51
-
-// --- 1. Module Imports ---
+// functions/index.js Modified today 12/7/25
+// --- 1. Module Imports, Firebase Admin SDK Initialization, Gemini Model Initialization, and Schema Definition ---
 const functions = require("firebase-functions/v1"); // Main Firebase Functions module MUST BE V1.
 const admin = require('firebase-admin'); // Firebase Admin SDK
-// IMPORTANT: Import Schema alongside GoogleGenerativeAI
-//const { GoogleGenerativeAI, Schema } = require('@google/generative-ai'); // Google Generative AI SDK (Gemini)
 const { GoogleGenerativeAI } = require('@google/generative-ai'); // Core Google Generative AI SDK (Gemini)
-const { Schema } = require('@firebase/ai'); // Firebase AI SDK for Schema ONLY
+//const { Schema } = require('@firebase/ai'); // Firebase AI SDK for Schema ONLY
+const { Schema, ResponseModality } = require('@firebase/ai'); // IMPORT ResponseModality HERE
 
-// --- 2. Firebase Admin SDK Initialization ---
-// Initialize the Firebase Admin SDK once at the top level.
-// This is the recommended practice for Cloud Functions.
+functions.logger.info('Firebase Functions code deployed: v1.006b');  //Version control
+
+// --- CHANGE: Direct initialization of Firebase Admin SDK. This is the most robust way. ---
 admin.initializeApp();
 
-// --- 3. Lazy Initialization for Gemini Models and Schema Definition ---
-// These variables will hold our Gemini client and models.
-// They are initialized only when a function that needs them is first invoked
-// to prevent "timeout during initialization" errors during deployment.
+// --- CHANGE: Removed previous commented-out 'let _adminAppInstance;' and 'getAdminApp()' helper and their comments.
+// These are no longer needed as admin.initializeApp() is called directly.
+
 let _genAIClient;
 let _textGenModel;
+let _imageGenModel; // Variable for the image generation model
 
-// Define the expected JSON schema for vocabulary content.
-// This is super important! It guides Gemini to produce output that perfectly matches your data structure.
 // Define the expected JSON schema for vocabulary content.
 const vocabularySchema = Schema.array({
     items: Schema.object({
@@ -31,9 +27,9 @@ const vocabularySchema = Schema.array({
             DESCRIPTION: Schema.string(),
             THEME: Schema.enumString({ enum: ['General English'] }),
             MODULETYPE: Schema.string(), // Expected: "VOCABULARY" or "VOCABULARY_GROUP"
-            WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', 'Conjunction', 'Interjection', 'Article', 'Determiner'] }), // <--- ADD THIS
-            MEANING_ORIGIN: Schema.string(),             
-			imagePrompt: Schema.string(),
+            WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', 'Conjunction', 'Interjection', 'Article', 'Determiner'] }),
+            MEANING_ORIGIN: Schema.string(),
+            imagePrompt: Schema.string(),
             items: Schema.array({
                 items: Schema.object({
                     properties: {
@@ -42,152 +38,128 @@ const vocabularySchema = Schema.array({
                         DESCRIPTION: Schema.string(),
                         THEME: Schema.enumString({ enum: ['General English'] }),
                         MODULETYPE: Schema.string(), // Expected: "VOCABULARY" for nested items
-						WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', 'Conjunction', 'Interjection', 'Article', 'Determiner'] }), // <--- ADD THIS
-						MEANING_ORIGIN: Schema.string(), 
+                        WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', 'Conjunction', 'Interjection', 'Article', 'Determiner'] }),
+                        MEANING_ORIGIN: Schema.string(),
                         imagePrompt: Schema.string(),
                     },
-                    // Ensure WORD_TYPE is in the required list for nested vocabulary
-                    required: ["TITLE", "CEFR", "DESCRIPTION", "THEME", "MODULETYPE", "WORD_TYPE", "MEANING_ORIGIN", "imagePrompt"], 
-                     // *** ADD PROPERTY ORDERING FOR NESTED VOCABULARY ITEMS ***
+                    required: ["TITLE", "CEFR", "DESCRIPTION", "THEME", "MODULETYPE", "WORD_TYPE", "MEANING_ORIGIN", "imagePrompt"],
                     propertyOrdering: [
-                        "MODULETYPE",
-                        "TITLE",
-                        "DESCRIPTION",						
-                        "WORD_TYPE",
-                        "CEFR",
-                        "THEME",
-						"MEANING_ORIGIN",
-                        "imagePrompt"
-                    ]               
-				}),
+                        "MODULETYPE", "TITLE", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", "imagePrompt"
+                    ]
+                }),
             }),
         },
-        // Ensure WORD_TYPE is in the required list for top-level vocabulary
-        required: ["TITLE", "CEFR", "DESCRIPTION", "THEME", "MODULETYPE", "WORD_TYPE", "MEANING_ORIGIN"], 
+        required: ["TITLE", "CEFR", "DESCRIPTION", "THEME", "MODULETYPE", "WORD_TYPE", "MEANING_ORIGIN"],
         optionalProperties: ["imagePrompt", "items"],
-                     // *** ADD PROPERTY ORDERING FOR NESTED VOCABULARY ITEMS *** 
-                    propertyOrdering: [
-                        "MODULETYPE",
-                        "TITLE",
-                        "DESCRIPTION",						
-                        "WORD_TYPE",
-                        "CEFR",
-                        "THEME",
-						"MEANING_ORIGIN",
-                        "imagePrompt",
-						"items"         // This is optional for VOCABULARY
-					]
+        propertyOrdering: [
+            "MODULETYPE", "TITLE", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", "imagePrompt", "items"
+        ]
     }),
 });
-
-
 // Helper function to get or create the Gemini text generation model instance
 function getTextGenModel() {
     if (!_textGenModel) {
-        // Re-introduce API key retrieval for direct GoogleGenerativeAI client
         const GEMINI_API_KEY = functions.config().gemini.api_key;
         if (!GEMINI_API_KEY) {
             throw new Error("Gemini API Key is not configured. Run 'firebase functions:config:set gemini.api_key=\"YOUR_KEY\"' and redeploy.");
         }
-        _genAIClient = new GoogleGenerativeAI(GEMINI_API_KEY); // Initialize GoogleGenerativeAI directly
-        _textGenModel = _genAIClient.getGenerativeModel({ // Get model from _genAIClient
-            model: "gemini-1.5-flash", // Keep your preferred Gemini model
+        _genAIClient = new GoogleGenerativeAI(GEMINI_API_KEY);
+        _textGenModel = _genAIClient.getGenerativeModel({
+            model: "gemini-1.5-flash",
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: vocabularySchema,
+                maxOutputTokens: 20000, // <--- ADD THIS LINE (Line 67)
             }
         });
     }
     return _textGenModel;
 }
 
-/*
-// Placeholder for a potential image generation model.
-// Uncomment and implement if you use a specific Gemini model for text-to-image or image understanding.
+// Helper function to get or create the Gemini image generation model instance
 function getImageGenModel() {
     if (!_imageGenModel) {
         const GEMINI_API_KEY = functions.config().gemini.api_key;
         if (!GEMINI_API_KEY) {
-            throw new Error("Gemini API Key is not configured.");
+            throw new Error("Gemini API Key is not configured for image generation. Run 'firebase functions:config:set gemini.api_key=\"YOUR_KEY\"' and redeploy.");
         }
-        _genAIClient = _genAIClient || new GoogleGenerativeAI(GEMINI_API_KEY); // Ensure client is initialized
-        _imageGenModel = _genAIClient.getGenerativeModel({ model: "gemini-pro-vision" }); // Example vision model
+        // Ensure _genAIClient is initialized before getting the model
+        _genAIClient = _genAIClient || new GoogleGenerativeAI(GEMINI_API_KEY);
+        _imageGenModel = _genAIClient.getGenerativeModel({
+            model: "gemini-2.0-flash-preview-image-generation", // Use the new image generation model
+            // ADD THIS CONFIGURATION BLOCK:
+            generationConfig: {
+                responseModalities: ["TEXT", "IMAGE"]
+
+            },
+        });
     }
     return _imageGenModel;
 }
-*/
 
+// This is the last line of section 1
+// This is the beginning of section 2
 
-// --- 4. Helper Functions (General Purpose) ---
+// --- 2. Helper Functions, User Deletion Handler, and Vocabulary Content Generation ---
 
 // Helper Function to generate new, unique Firestore Document IDs
-// This doesn't write to Firestore, just creates an ID string for use as a document ID.
+// --- CHANGE: Updated to use admin.firestore() directly. ---
 const generateUniqueFirestoreId = () => admin.firestore().collection('learningContent').doc().id;
 
 // Helper Function to normalize titles for consistent lookup (e.g., for deduplication)
 const normalizeTitle = (title) => {
     return title.toLowerCase().trim();
 };
-
-//Part 2 from here:
-// --- 5. Existing: Mark User as Deleted Function ---
+// --- Existing: Mark User as Deleted Function ---
 // This function is triggered when a user is deleted from Firebase Authentication.
 // It marks their corresponding Firestore document as deleted rather than removing it.
 const handleUserDeletion = async (userRecord) => {
-    const db = admin.firestore(); // Get Firestore instance from the initialized admin app
-
+    // --- CHANGE: Updated to use admin.firestore() directly. ---
+    const db = admin.firestore();
     const userId = userRecord.uid;
     const userEmail = userRecord.email;
 
     functions.logger.log(`Auth user deletion detected for UID: ${userId}, Email: ${userEmail || 'N/A'}.`);
 
-    const userDocRef = db.collection("users").doc(userId); // Reference to the user's document in 'users' collection
+    const userDocRef = db.collection("users").doc(userId);
 
     try {
-        const docSnapshot = await userDocRef.get(); // Check if the document exists
+        const docSnapshot = await userDocRef.get();
 
         if (docSnapshot.exists) {
-            // If it exists, update it to mark as deleted
+            // --- CHANGE: Fixed typo (removed 'f' before await). ---
             await userDocRef.update({
                 isDeleted: true,
-                deletedAt: admin.firestore.FieldValue.serverTimestamp(), // Firestore server timestamp
+                deletedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
             functions.logger.log(`Firestore document for user ${userId} successfully marked as deleted. All data retained.`);
             return { status: "success", message: `Document for ${userId} marked as deleted, data retained.` };
         } else {
-            // If the document doesn't exist, no action is needed
             functions.logger.log(`Firestore document for UID ${userId} not found. No marking needed as no data exists to retain.`);
             return { status: "success", message: `No document found for ${userId}.` };
         }
     } catch (error) {
-        // Log and throw an error if the update fails
         functions.logger.error(`Error marking user ${userId} as deleted in Firestore:`, error);
-        // Re-throw as a generic Error; for background triggers, a re-thrown error indicates failure.
         throw new Error(`Failed to mark user as deleted: ${error.message}`);
     }
 };
-
-// Export the function trigger for user deletion
 exports.markUserAsDeletedInFirestore = functions.region('asia-southeast1').auth.user().onDelete(handleUserDeletion);
 
-// --- 6. generateVocabularyContent Callable Function ---
+// --- generateVocabularyContent Callable Function ---
 // This function is called from your AdminSystem webpage to generate new vocabulary content using Gemini.
-exports.generateVocabularyContent = functions.region('asia-southeast1').https.onCall(async (data, context) => {
-
+// --- CHANGE: Added .runWith() for timeout configuration. ---
+exports.generateVocabularyContent = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).https.onCall(async (data, context) => {
     // --- Security Check (Crucial for Admin Functions) ---
-    // Ensure the caller is authenticated.
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
-    // Check for the 'admin: true' custom claim. Only users with this claim can proceed.
     if (!context.auth.token.admin) {
         throw new functions.https.HttpsError('permission-denied', 'Only authorized administrators can perform this action.');
     }
     // --- End Security Check ---
 
-    const { cefrLevel, numWords, theme } = data; // Destructure inputs from the frontend
+    const { cefrLevel, numWords, theme } = data;
 
-    // Basic input validation
     if (!cefrLevel || !numWords || !theme || numWords <= 0) {
         throw new functions.https.HttpsError(
             'invalid-argument',
@@ -197,17 +169,18 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').https.on
 
     functions.logger.info(`AdminSystem: Starting content generation for CEFR: ${cefrLevel}, Words: ${numWords}, Theme: ${theme}`);
 
-    // Get the Gemini text generation model instance inside the function (lazy initialization)
-    const textGenModel = getTextGenModel();
-
-    const firestore = admin.firestore(); // Get Firestore instance
-    const batch = firestore.batch(); // Create a Firestore write batch for efficiency and atomicity
-    const createdModuleIds = []; // List to store IDs of newly created modules
-    let numSkipped = 0; // Counter for skipped (duplicate) modules
-
+    const textGenModel = getTextGenModel(); // Get the Gemini text generation model instance
+    const firestore = admin.firestore(); // --- CHANGE: Using admin.firestore() directly. ---
+    const batch = firestore.batch();
+    const createdModuleIds = [];
+    let numSkipped = 0;
+	const skippedWords = [];
+	let geminiReturnedItemCount = 0;
+    let topLevelVocabCount = 0;
+    let vocabGroupCount = 0;
+    let nestedVocabCount = 0;
     try {
         // --- 1. Construct the sophisticated prompt for Gemini ---
-        // This prompt instructs Gemini on the desired structure and content rules.
         const geminiPrompt = `
         Generate a JSON array of ${numWords} vocabulary items for CEFR ${cefrLevel} level, themed around "${theme}".
         Each item in the array MUST represent a module and adhere to the following strict JSON schema and rules:
@@ -218,36 +191,36 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').https.on
         - "DESCRIPTION": String.
         - "THEME": String.
 
-
         **Module Types and Their Specific Fields:**
 
         1.  **VOCABULARY_GROUP** (for words with multiple distinct meanings ):
             - "MODULETYPE": "VOCABULARY_GROUP"
-			- "TITLE": The word (or phrase)
-			- "CEFR": This must be "A1"
+            - "TITLE": The word (or phrase)
+            - "CEFR": This must be "A1"
             - "DESCRIPTION": This must be empty
-			- "THEME":This must be ${theme}
-			- "WORD_TYPE": This must be empty 
+            - "THEME":This must be ${theme}
+            - "WORD_TYPE": This must be empty
             - "MEANING_ORIGIN": This must contain details of the group's origin, etymology, common prefixes, infixes, or suffixes relevant to the group.
             - "items": An array of nested "VOCABULARY" modules, each defining a unique meaning of the word.
 
         2.  **VOCABULARY** (for single-meaning words, or individual meanings within a VOCABULARY_GROUP):
             - "MODULETYPE": "VOCABULARY"
-			- "TITLE": The word (or phrase)
-			- "CEFR": This must be "A1"			
+            - "TITLE": The word (or phrase)
+            - "CEFR": This must be "A1"
             - "DESCRIPTION": Must be 3 numbered sentences (e.g., "1. Sentence one. 2. Sentence two. 3. Sentence three.") that use the word in the context of its specific meaning
-      		- "THEME":This must be ${theme}
-			- "WORD_TYPE": This must be one of the following: "Noun", "Verb", "Adjective", "Adverb", "Pronoun", "Preposition", "Conjunction", "Interjection", "Article", "Determiner"			
+            - "THEME":This must be ${theme}
+            - "WORD_TYPE": This must be one of the following: "Noun", "Verb", "Adjective", "Adverb", "Pronoun", "Preposition", "Conjunction", "Interjection", "Article", "Determiner"
             - "MEANING_ORIGIN": This must contain the meaning of the specific instance of the word
-			- "imagePrompt": String. A concise, descriptive instruction for an AI image generator to create an image based on one of the sentences in the DESCRIPTION field. (Only for MODULETYPE "VOCABULARY")
+            - "imagePrompt": String. A concise, descriptive instruction for an AI image generator to create an image based on one of the sentences in the DESCRIPTION field. (Only for MODULETYPE "VOCABULARY")
 
         **Crucial Rules for Generation:**
-        - **CEFR Hierarchy:** fOR All VOCABULARY AND VOCABULARY_GROUP modules, their 'CEFR' level MUST be set to "A1").
-		- **Polysemy:** If a word has multiple *distinct* meanings or functions including as different parts of speech (e.g., "book" as a noun and "book" as a verb; "like" as a verb and as an adjective, and as a preposition, and as a conjunction ), you MUST create a "VOCABULARY_GROUP" for it. This "VOCABULARY_GROUP" must contain individual "VOCABULARY" entries for *each* distinct meaning and/or part of speech. If a word has only one primary meaning, create only a single "VOCABULARY" entry directly. // <--- Strengthened instruction        - **Output Format:** Provide ONLY the JSON array. Do not include any introductory or concluding text. (This is now strongly enforced by \`responseMimeType\` and \`responseSchema\` in \`getTextGenModel()\`).
+        - **CEFR Hierarchy:** For All VOCABULARY AND VOCABULARY_GROUP modules, their 'CEFR' level MUST be set to "A1").
+        - **Polysemy:** If a word has multiple *distinct* meanings or functions including as different parts of speech (e.g., "book" as a noun and "book" as a verb; "like" as a verb and as an adjective, and as a preposition, and as a conjunction ), you MUST create a "VOCABULARY_GROUP" for it. This "VOCABULARY_GROUP" must contain individual "VOCABULARY" entries for *each* distinct meaning and/or part of speech. If a word has only one primary meaning, create only a single "VOCABULARY" entry directly.
+        - **Output Format:** Provide ONLY the JSON array. Do not include any introductory or concluding text.
         - **No IDs/URLs:** Do NOT include "MODULEID" or "IMAGEURL" fields in your output. These will be generated by the Cloud Function.
         - **Number of Items:** Aim to generate exactly ${numWords} top-level vocabulary items (including VOCABULARY_GROUPs).
-		- **WORD_TYPE and MODULETYPE** Values for 'WORD_TYPE' may only exist for modules with a MODULETYPE of 'VOCABULARY'.That is because a word could have more than one 'WORD_TYPE'.
-		- **TITLE:** This field must contain the word exclusively.
+        - **WORD_TYPE and MODULETYPE** Values for 'WORD_TYPE' may only exist for modules with a MODULETYPE of 'VOCABULARY'.That is because a word could have more than one 'WORD_TYPE'.
+        - **TITLE:** This field must contain the word exclusively.
         Example structure for output (simplified, real output will have more fields per module as per rules):
         [
           {
@@ -255,315 +228,369 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').https.on
             "MODULETYPE": "VOCABULARY",
             "CEFR": "A1",
             "DESCRIPTION": "1. The cat sat. 2. The cat purred. 3. I like cats.",
-			"THEME": "General English"
-			"WORD_TYPE": "Noun", 
-			"MEANING_ORIGIN": "A carnivorous mammal of the Genus 'Felis'"
+                    "THEME": "General English",
+                    "WORD_TYPE": "Noun",
+                    "MEANING_ORIGIN": "A carnivorous mammal of the Genus 'Felis'",
             "imagePrompt": "A fluffy cat sitting."
           },
           {
             "TITLE": "set",
             "MODULETYPE": "VOCABULARY_GROUP",
             "CEFR": "A1",
-            "DESCRIPTION": ""
-			"THEME": "General English"
-			"MEANING_ORIGIN": "Origin from Old English; 'settan' meaning 'to cause to sit', 'to place', or 'to fix.'"
-	
-            "items": [
-              {
-                "TITLE": "set",
-                "MODULETYPE": "VOCABULARY",
-                "CEFR": "A1",
-                "DESCRIPTION": "1. He set the book on the table. 2. Set your glass here. 3. I set the alarm.",
-				"THEME": "General English" 
-				"WORD_TYPE": "Verb", 
-				"MEANING_ORIGIN": "to place"
-				"imagePrompt": "A hand placing a book on a table."
-              },
-              {
-                "TITLE": "set",
-                "MODULETYPE": "VOCABULARY",
-                "CEFR": "A1",
-                "DESCRIPTION": "1. I bought a set of tools. 2. A chess set. 3. This is a complete set.",
-				"THEME": "General English"
-				"WORD_TYPE": "Noun", 
-				"MEANING_ORIGIN": "a group"
-				"imagePrompt": "A collection of shiny tools."
-              }
-            ]
-          }
-        ]
-        `;
+            "DESCRIPTION": "",
+                    "
+        // --- 1. Construct the sophisticated prompt for Gemini ---
+        // ... (previous content of geminiPrompt, including the example JSON structure) ...
+        // END OF YOUR PREVIOUS TRUNCATED SECTION
 
-        const result = await textGenModel.generateContent(geminiPrompt); // Call Gemini API
+
+        `; // This closes the backtick for the geminiPrompt multiline string.
+
+        const result = await textGenModel.generateContent(geminiPrompt);
         const response = await result.response;
-        // With responseMimeType: "application/json" and responseSchema set, response.text()
-        // should now reliably return pure, valid JSON string.
         const text = response.text();
+
+		functions.logger.info(`Received text from Gemini. Length: ${text.length}`);
+        functions.logger.info(`Raw text (first 500 chars): ${text.substring(0, 500)}`);
+        functions.logger.info(`Raw text (last 500 chars): ${text.length > 500 ? text.substring(text.length - 500) : text}`);
+
 
         let generatedContent;
         try {
-            // Directly parse the text. No need for regex to strip markdown blocks anymore!
             generatedContent = JSON.parse(text);
-        } catch (parseError) {
-            // Log and throw an error if JSON parsing fails
+			geminiReturnedItemCount = generatedContent.length; // ✨ SET THE COUNT HERE (around Line 367) ✨
+            functions.logger.info(`Gemini returned ${geminiReturnedItemCount} top-level JSON items.`);
+	   } catch (parseError) {
             functions.logger.error("Failed to parse Gemini output as JSON:", { rawText: text, error: parseError });
             throw new functions.https.HttpsError('internal', 'AI generation failed: Invalid JSON output from Gemini.', { rawResponse: text, parseError: parseError.message });
         }
 
         // --- 2. Process Generated Content and Write to Firestore (with Deduplication) ---
         for (const item of generatedContent) {
-            // Determine the module type (default to VOCABULARY if not explicitly provided by Gemini, though schema should prevent this)
             const itemModuleType = item.MODULETYPE || 'VOCABULARY';
-            const itemNormalizedTitle = normalizeTitle(item.TITLE); // Normalize title for consistent lookups
+            const itemNormalizedTitle = normalizeTitle(item.TITLE);
 
-            // Deduplication: Check against both 'VOCABULARY' and 'VOCABULARY_GROUP' types
             const existingContentSnapshot = await firestore.collection('learningContent')
-                .where('MODULETYPE', 'in', ['VOCABULARY', 'VOCABULARY_GROUP']) // Check both top-level types
-                .where('normalizedTitle', '==', itemNormalizedTitle) // Match on the normalized title
-                .limit(1) // We only need to know if *any* document with this title exists
+                .where('MODULETYPE', 'in', ['VOCABULARY', 'VOCABULARY_GROUP'])
+                .where('normalizedTitle', '==', itemNormalizedTitle)
+                .limit(1)
                 .get();
 
             if (!existingContentSnapshot.empty) {
-                // If a document with this normalized title (as a VOCABULARY or VOCABULARY_GROUP type) already exists, skip adding it.
                 functions.logger.info(`Skipping "${item.TITLE}" (${itemModuleType}) as a record with this title already exists.`);
                 numSkipped++;
-                continue; // Move to the next item in Gemini's generated content
+                skippedWords.push(item.TITLE);
+				continue;
             }
-			
-//Part 3 starts here:
+
             // --- If the item is NOT skipped, process it and add to the Firestore batch ---
             if (itemModuleType === "VOCABULARY_GROUP") {
-                // Handle VOCABULARY_GROUP type
-                const groupId = generateUniqueFirestoreId(); // Generate a unique ID for the group
-                const groupRef = firestore.collection('learningContent').doc(groupId); // Document reference
+                vocabGroupCount++; 
+				functions.logger.info(`Processing VOCABULARY_GROUP: "${item.TITLE}".`);
+				const groupId = generateUniqueFirestoreId();
+                const groupRef = firestore.collection('learningContent').doc(groupId);
+                const meaningIds = [];
 
-                const meaningIds = []; // Array to hold IDs of nested VOCABULARY meanings
-
-                // Process individual meaning items within the VOCABULARY_GROUP
                 if (Array.isArray(item.items)) {
                     for (const meaning of item.items) {
-                        // Ensure the nested item is actually a VOCABULARY type (schema should enforce this)
                         if (meaning.MODULETYPE === "VOCABULARY") {
-                            const vocabId = generateUniqueFirestoreId(); // Generate ID for nested vocabulary
+                            nestedVocabCount++;
+							functions.logger.info(`  - Processing nested VOCABULARY item: "${meaning.TITLE}".`);
+							const vocabId = generateUniqueFirestoreId();
                             const vocabRef = firestore.collection('learningContent').doc(vocabId);
 
-                            // Add the nested VOCABULARY document to the batch
                             batch.set(vocabRef, {
                                 MODULEID: vocabId,
                                 MODULETYPE: "VOCABULARY",
                                 TITLE: meaning.TITLE,
-                                normalizedTitle: normalizeTitle(meaning.TITLE), // Add normalized title to nested vocab
+                                normalizedTitle: normalizeTitle(meaning.TITLE),
                                 CEFR: meaning.CEFR,
                                 DESCRIPTION: meaning.DESCRIPTION,
-                                imagePrompt: meaning.imagePrompt, // Needed for later image generation
+                                imagePrompt: meaning.imagePrompt,
                                 THEME: meaning.THEME,
-								WORD_TYPE: meaning.WORD_TYPE, 
-								MEANING_ORIGIN: meaning.MEANING_ORIGIN, 
+                                WORD_TYPE: meaning.WORD_TYPE,
+                                MEANING_ORIGIN: meaning.MEANING_ORIGIN,
                                 IMAGEURL: "", // Placeholder for image URL
                                 imageStatus: "pending", // Mark for batch image generation
                                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                                 updatedAt: admin.firestore.FieldValue.serverTimestamp()
                             });
-                            meaningIds.push(vocabId); // Add its ID to the group's list
+                            meaningIds.push(vocabId);
                         } else {
                             functions.logger.warn(`Unexpected module type found in VOCABULARY_GROUP items: ${meaning.MODULETYPE}. Skipping nested item.`);
                         }
                     }
                 }
 
-                // Add the VOCABULARY_GROUP document itself to the batch
                 batch.set(groupRef, {
                     MODULEID: groupId,
                     MODULETYPE: "VOCABULARY_GROUP",
                     TITLE: item.TITLE,
-                    normalizedTitle: itemNormalizedTitle, // Add normalized title to the group document
+                    normalizedTitle: itemNormalizedTitle,
                     CEFR: item.CEFR,
-                    DESCRIPTION: item.DESCRIPTION, // Origin description
+                    DESCRIPTION: item.DESCRIPTION,
                     THEME: item.THEME,
-					WORD_TYPE: item.WORD_TYPE, 
-					MEANING_ORIGIN: item.MEANING_ORIGIN,
-                    MODULEID_ARRAY: meaningIds, // Link to its nested meanings
-                    IMAGEURL: "", // Not typically used for groups, but keep consistent for now
+                    WORD_TYPE: item.WORD_TYPE,
+                    MEANING_ORIGIN: item.MEANING_ORIGIN,
+                    MODULEID_ARRAY: meaningIds,
+                    IMAGEURL: "",
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     updatedAt: admin.firestore.FieldValue.serverTimestamp()
                 });
-                createdModuleIds.push(groupId); // Add group ID to the list of created modules
+                createdModuleIds.push(groupId);
 
             } else if (itemModuleType === "VOCABULARY") {
-                // Handle single VOCABULARY items
-                const vocabId = generateUniqueFirestoreId();
+                 topLevelVocabCount++; // ✨ Increment counter (around Line 458) ✨
+                functions.logger.info(`Processing top-level VOCABULARY: "${item.TITLE}".`); // ✨ Add log (around Line 459) ✨
+				const vocabId = generateUniqueFirestoreId();
                 const vocabRef = firestore.collection('learningContent').doc(vocabId);
 
-                // Add the single VOCABULARY document to the batch
                 batch.set(vocabRef, {
                     MODULEID: vocabId,
                     MODULETYPE: "VOCABULARY",
                     TITLE: item.TITLE,
-                    normalizedTitle: itemNormalizedTitle, // Add normalized title to single vocab document
+                    normalizedTitle: itemNormalizedTitle,
                     CEFR: item.CEFR,
-                    DESCRIPTION: item.DESCRIPTION, // The 3 sentences
-                    imagePrompt: item.imagePrompt, // Essential for later image generation
+                    DESCRIPTION: item.DESCRIPTION,
+                    imagePrompt: item.imagePrompt,
                     THEME: item.THEME,
-					WORD_TYPE: item.WORD_TYPE, 
-					MEANING_ORIGIN: item.MEANING_ORIGIN,
-                    IMAGEURL: "", // Placeholder for batch image generation
-                    imageStatus: "pending", // Mark for batch image generation
-                    MODULEID_ARRAY: [], // Not used for single vocabulary, but keep consistent field
+                    WORD_TYPE: item.WORD_TYPE,
+                    MEANING_ORIGIN: item.MEANING_ORIGIN,
+                    IMAGEURL: "",
+                    imageStatus: "pending",
+                    MODULEID_ARRAY: [],
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     updatedAt: admin.firestore.FieldValue.serverTimestamp()
                 });
                 createdModuleIds.push(vocabId);
 
             } else {
-                // For any other unexpected top-level module types that Gemini might incorrectly generate, log a warning
                 functions.logger.warn(`Skipping unexpected top-level module type generated by Gemini: ${itemModuleType} for item with title "${item.TITLE}".`);
             }
         } // End of for (const item of generatedContent) loop
 
-        // Commit all batched writes to Firestore
         await batch.commit();
 
-        functions.logger.info(`Successfully created ${createdModuleIds.length} new vocabulary-related modules. Skipped ${numSkipped} duplicates.`);
+ functions.logger.info(`Content generation summary: Requested ${numWords}, Gemini returned ${geminiReturnedItemCount} top-level items. Processed ${topLevelVocabCount} top-level VOCABULARY, ${vocabGroupCount} VOCABULARY_GROUPs (containing ${nestedVocabCount} nested VOCABULARY items). Successfully created ${createdModuleIds.length} new modules. Skipped ${numSkipped} duplicates.`);//        // --- CHANGE: Trigger batchGenerateVocabularyImages (cleaned up and restored) ---
+//        try {
+//            // Get the functions client directly from the initialized admin object.
+//            const functionsClient = admin.functions('asia-southeast1');
+//            const callBatchImageGeneration = functionsClient.httpsCallable('batchGenerateVocabularyImages');
+//            await callBatchImageGeneration({});
+//            functions.logger.info('Successfully triggered batchGenerateVocabularyImages after content creation.');
+//        } catch (callError) {
+//            // Log the error but don't re-throw, as content creation was already successful.
+//            functions.logger.error('Failed to trigger batchGenerateVocabularyImages (callable function):', callError);
+//        }
+        // --- END CHANGE: Trigger batchGenerateVocabularyImages ---
+
         return {
             status: "success",
             message: `Successfully generated and saved ${createdModuleIds.length} new modules to Firestore. Skipped ${numSkipped} duplicates.`,
-            moduleIds: createdModuleIds // Return the IDs of what was actually created
-        };
+            moduleIds: createdModuleIds,
+			skippedWords: skippedWords, 
+			geminiReturnedItemCount: geminiReturnedItemCount,
+            topLevelVocabCount: topLevelVocabCount,
+            vocabGroupCount: vocabGroupCount,
+            nestedVocabCount: nestedVocabCount
+		};
 
     } catch (error) {
-        // Log and re-throw any errors as HTTPS errors to be sent back to the client
         functions.logger.error("Error generating or saving content:", error);
         if (error instanceof functions.https.HttpsError) {
-            throw error; // Re-throw our custom HttpsError
+            throw error;
         }
-        // Catch any other unexpected errors and convert them to a generic HTTPS error
         throw new functions.https.HttpsError('internal', 'An unexpected error occurred during content generation.', error.message);
     }
-});
+}) // This closes the exports.generateVocabularyContent function definition
+// This is the last line of section 2
+// This is the beginning of section 3
 
-//Part 4 starts here:
-//  This should be 4 of 4 now): batchGenerateVocabularyImages Scheduled Function and final export freezing
+// --- 3. Image Generation Logic and Cloud Function Triggers (Firestore and PubSub) ---
 
-// --- 7. batchGenerateVocabularyImages Scheduled Function ---
-// This function will be triggered periodically (e.g., every 30 minutes)
-// to generate images for pending vocabulary items.
-// You will need to implement the actual image generation logic here
-// (e.g., calling another AI API for text-to-image generation, as Gemini-Pro is text-to-text).
-exports.batchGenerateVocabularyImages = functions.region('asia-southeast1').pubsub.schedule('every 30 minutes').onRun(async (context) => {
+/**
+ * Helper function to process image generation and upload for a single vocabulary item.
+ * This function is designed to be reusable by both the Firestore onCreate trigger
+ * and the scheduled batch function.
+ * @param {admin.firestore.DocumentSnapshot} doc - The Firestore DocumentSnapshot of the vocabulary item.
+ */
+async function processVocabularyImageGeneration(doc) {
+    // --- CHANGE: Updated to use admin.firestore() and admin.storage() directly. ---
+    const firestore = admin.firestore();
+    const storage = admin.storage();
+    const bucket = storage.bucket(admin.app().options.storageBucket); // admin.app() here is okay as it gets the default app instance.
 
-    const firestore = admin.firestore(); // Get Firestore instance
-    const storage = admin.storage(); // Get Cloud Storage instance
-    // Get your default storage bucket. Ensure your project has one configured.
-    const bucket = storage.bucket(admin.app().options.storageBucket);
+    const vocabData = doc.data();
+    const vocabRef = doc.ref;
+    const imagePrompt = vocabData.imagePrompt;
+    const vocabId = vocabData.MODULEID;
 
-    functions.logger.info('Starting batch image generation for pending vocabulary items.');
+    // Skip if there's no image prompt or if it's not a VOCABULARY type (though this should be filtered by query/trigger)
+    if (!imagePrompt || vocabData.MODULETYPE !== "VOCABULARY") {
+        functions.logger.info(`Skipping image generation for ${vocabId}: No image prompt or wrong MODULETYPE.`);
+        return { id: vocabId, status: 'skipped', reason: 'No image prompt or wrong MODULETYPE' };
+    }
+
+    try { // <-- This 'try' block starts here
+        // Mark status as 'generating' immediately.
+        // This prevents other concurrent invocations from trying to process the same image.
+        await vocabRef.update({ imageStatus: 'generating' });
+        functions.logger.info(`Processing image for ${vocabId} with prompt: "${imagePrompt}"`);
+
+        const imageGenModel = getImageGenModel(); // Get the Gemini image generation model
+
+        // Generate content (image) using Gemini
+        const result = await imageGenModel.generateContent({
+            contents: [{ parts: [{ text: imagePrompt }] }],
+            generationConfig: {
+                responseModalities: ["TEXT", "IMAGE"] // Explicitly pass it here too, matching the error message order
+                // responseMimeType: "image/png" // Any other settings you might need
+            }
+        });
+
+        // The image data is usually found within the `candidates` array.
+        // It's typically base64 encoded and needs to be decoded.
+        // Refer to Gemini API documentation for exact response structure of image generation.
+        const response = result.response;
+
+        // 🟦 BEGIN CHANGE: Update log sanitization to dynamically find the image part
+        const loggableResponse = JSON.parse(JSON.stringify(response)); // Deep copy
+        if (loggableResponse.candidates && loggableResponse.candidates[0] &&
+            loggableResponse.candidates[0].content && loggableResponse.candidates[0].content.parts) {
+            // Find the image part and sanitize its data for logging
+            const imagePartForLogging = loggableResponse.candidates[0].content.parts.find(
+                p => p.inlineData && p.inlineData.data
+            );
+            if (imagePartForLogging) {
+                imagePartForLogging.inlineData.data = '[IMAGE_DATA_OMITTED_FOR_LOGGING_SIZE]';
+            }
+        }
+        // 🟦 END CHANGE: Update log sanitization to dynamically find the image part
+        functions.logger.info('Gemini Image Gen Raw Response (Sanitized):', JSON.stringify(loggableResponse, null, 2));
+        const candidates = response.candidates;
+
+        if (!candidates || candidates.length === 0 || !candidates[0].content || !candidates[0].content.parts || candidates[0].content.parts.length === 0) {
+            throw new Error("No candidates or content parts found in Gemini response.");
+        }
+
+        const imagePart = candidates[0].content.parts.find(part => part.inlineData && part.inlineData.data);
+
+        if (!imagePart) { // 🟦 Moved this check directly after finding the imagePart
+            throw new Error("No image data (inlineData) part found in Gemini response.");
+        }
+
+        const mimeType = imagePart.inlineData.mimeType;
+        const imageDataBase64 = imagePart.inlineData.data;
+        const imageDataBuffer = Buffer.from(imageDataBase64, 'base64'); // Decode base64 to buffer
+
+        const fileExtension = mimeType.split('/')[1] || 'png'; // e.g., 'image/png' -> 'png'
+        const filePath = `vocabulary_images/${vocabId}.${fileExtension}`; // Path in Cloud Storage bucket
+        const file = bucket.file(filePath);
+
+        // Upload the generated image data to Cloud Storage
+        await file.save(imageDataBuffer, {
+            metadata: {
+                contentType: mimeType, // Use the detected MIME type
+            },
+        });
+
+        // Make the file publicly accessible.
+        await file.makePublic();
+        const publicUrl = file.publicUrl();
+
+        // Update the Firestore document with the image URL and mark as completed
+        await vocabRef.update({
+            IMAGEURL: publicUrl,
+            imageStatus: 'completed',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        functions.logger.info(`Successfully generated and uploaded image for ${vocabId}. URL: ${publicUrl}`);
+        return { id: vocabId, status: 'completed', url: publicUrl };
+    } // <-- This is the missing closing brace for the 'try' block!
+    catch (imgError) {
+        // If image generation or upload fails for this item, mark its status as 'failed'
+        await vocabRef.update({
+            imageStatus: 'failed',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        functions.logger.error(`Failed to generate or upload image for ${vocabId}:`, imgError);
+        return { id: vocabId, status: 'failed', error: imgError.message };
+    }
+}
+//************************ THIS FUNCTION BELOW SWITCHED OFF FOR NOW. RESOURCE HEAVY. THE SAME RESULT***        ***
+//************************ CAN BE ACHIEVED WITH THE 'BATCH' FUNCTION INSTEAD, AND WITH LESS RESOURCE***
+// --- Firestore onCreate Trigger for Image Generation ---
+// This function triggers when a new document is created in 'learningContent'.
+// It immediately tries to generate an image if it's a VOCABULARY type.
+// --- CHANGE: Commented out to disable this trigger. ---
+
+exports.onNewVocabularyContentCreate = functions.region('asia-southeast1').firestore
+    .document('learningContent/{docId}')
+    .onCreate(async (snapshot, context) => {
+        const data = snapshot.data();
+        // Only process documents that are of type 'VOCABULARY' and are 'pending' image generation
+        if (data.MODULETYPE === 'VOCABULARY' && data.imageStatus === 'pending') {
+            functions.logger.info(`New VOCABULARY document created with pending image for ${context.params.docId}. Attempting image generation.`);
+            // Use the reusable helper function
+            await processVocabularyImageGeneration(snapshot);
+        } else {
+            functions.logger.info(`New document ${context.params.docId} created, but not a pending VOCABULARY item for image generation. Skipping.`);
+        }
+        return null;
+    });
+
+//************************ THIS FUNCTION ABOVE ^SWITCHED OFF FOR NOW. RESOURCE HEAVY. THE SAME RESULT***        ***
+//************************ CAN BE ACHIEVED WITH THE 'BATCH' FUNCTION INSTEAD, AND WITH LESS RESOURCE ***
+
+// --- batchGenerateVocabularyImages NOW a Callable Function ---
+// This function will be triggered upon successful completion of generateVocabularyContent
+// to catch any remaining pending vocabulary items for image generation.
+// --- CHANGE: Changed from pubsub.schedule to https.onCall, and added .runWith() for timeout. ---
+//exports.batchGenerateVocabularyImages = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).https.onCall(async (data, context) => {
+exports.batchGenerateVocabularyImages = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 })
+    .pubsub.schedule('every 24 hours') // This sets the schedule!
+    .onRun(async (context) => { // Note: 'context' is now for the schedule, not https.onCall
+    // --- CHANGE: Updated to use admin.firestore() directly. ---    const firestore = admin.firestore();
+
+    functions.logger.info('Starting batch image generation for pending vocabulary items via explicit call.'); // UPDATED LOG MESSAGE
 
     try {
         // Query for VOCABULARY items that are pending image generation
+        // --- CHANGE: Limit increased to 100 as per discussion. ---
         const pendingVocabSnapshot = await firestore.collection('learningContent')
             .where('MODULETYPE', '==', 'VOCABULARY')
             .where('imageStatus', '==', 'pending')
-            .limit(20) // Process a manageable batch at a time to avoid timeouts or excessive resource usage
+            .limit(100) // Process a manageable batch at a time
             .get();
 
         if (pendingVocabSnapshot.empty) {
-            functions.logger.info('No pending vocabulary items found for image generation.');
-            return null; // Exit early if nothing to process
+            functions.logger.info('No pending vocabulary items found for batch image generation.');
+            return null; 
         }
 
-        const imageGenerationPromises = []; // Array to hold promises for each image generation task
-        const updateBatch = firestore.batch(); // Create a new Firestore batch for updates from this function
+        const imageGenerationPromises = [];
 
         for (const doc of pendingVocabSnapshot.docs) {
-            const vocabData = doc.data();
-            const vocabRef = doc.ref; // Document reference to update later
-            const imagePrompt = vocabData.imagePrompt;
-            const vocabId = vocabData.MODULEID;
-
-            // Mark status as 'generating' immediately. This prevents other concurrent function invocations
-            // from trying to process the same image if you scale up.
-            await vocabRef.update({ imageStatus: 'generating' });
-            functions.logger.info(`Processing image for ${vocabId} with prompt: "${imagePrompt}"`);
-
-            // Add the image generation and upload process to a list of promises
-            imageGenerationPromises.push(async () => {
-                try {
-                    // --- PLACEHOLDER FOR ACTUAL IMAGE GENERATION LOGIC ---
-                    // This is the CRITICAL part you need to implement.
-                    // You will likely use a different AI API for text-to-image generation.
-                    // Examples include:
-                    // 1. Google Cloud's Vertex AI Image Generation (Imagen models)
-                    // 2. OpenAI's DALL-E API
-                    // 3. Stability AI's Stable Diffusion API
-                    // 4. Other services like Midjourney (though often not direct API)
-
-                    // You would make an API call to your chosen image generation service here.
-                    // const imageResult = await YOUR_IMAGE_GEN_SERVICE.generate({ prompt: imagePrompt });
-                    // const imageDataBuffer = imageResult.imageData; // Assuming this returns image data as a Buffer
-
-                    // --- SIMULATED IMAGE GENERATION AND UPLOAD ---
-                    // For demonstration, we'll simulate success/failure and dummy image data.
-                    // REPLACE THIS WITH REAL IMAGE DATA FROM YOUR AI SERVICE!
-                    const dummyImageDataBuffer = Buffer.from("simulated_image_data_for_" + vocabId + Date.now(), 'utf8'); // Just some dummy data
-                    const filePath = `vocabulary_images/${vocabId}.png`; // Path in Cloud Storage bucket
-                    const file = bucket.file(filePath);
-
-                    // Upload the generated image data to Cloud Storage
-                    await file.save(dummyImageDataBuffer, {
-                        metadata: {
-                            contentType: 'image/png', // IMPORTANT: Adjust content type based on actual image format
-                        },
-                    });
-
-                    // Make the file publicly accessible. This generates a public URL.
-                    // BE CAREFUL: Public files are accessible by anyone with the URL.
-                    // Consider signed URLs for more secure access if needed in your app.
-                    await file.makePublic();
-                    const publicUrl = file.publicUrl();
-
-                    // Update the Firestore document with the image URL and mark as completed
-                    updateBatch.update(vocabRef, {
-                        IMAGEURL: publicUrl,
-                        imageStatus: 'completed',
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-                    });
-                    functions.logger.info(`Successfully generated and uploaded image for ${vocabId}. URL: ${publicUrl}`);
-                    return { id: vocabId, status: 'completed', url: publicUrl }; // Return result for logging
-
-                } catch (imgError) {
-                    // If image generation or upload fails for this item, mark its status as 'failed'
-                    updateBatch.update(vocabRef, {
-                        imageStatus: 'failed',
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-                    });
-                    functions.logger.error(`Failed to generate or upload image for ${vocabId}:`, imgError);
-                    return { id: vocabId, status: 'failed', error: imgError.message }; // Return error for logging
-                }
-            });
+            // Add the image generation process to a list of promises, using the reusable helper
+            imageGenerationPromises.push(processVocabularyImageGeneration(doc));
         }
 
-        // Run all image generation and upload promises concurrently using Promise.all
-        // This will wait for all individual image tasks in the batch to complete.
-        const results = await Promise.all(imageGenerationPromises.map(p => p()));
-
-        // Commit all Firestore updates (successful or failed image generations)
-        await updateBatch.commit();
+        // Run all image generation and upload promises concurrently
+        const results = await Promise.all(imageGenerationPromises);
 
         functions.logger.info('Batch image generation completed. Results:', results);
-        return { status: "success", results: results };
+        return null;
 
     } catch (error) {
-        // Catch any errors that occur during the overall batch process (e.g., Firestore query failures)
         functions.logger.error("Error in batch image generation process:", error);
-        throw error; // Re-throw the error to indicate function failure in Cloud Functions logs
+        // --- CHANGE: For callable functions, throw an HttpsError on failure. ---
+        throw error;
     }
-});
-
-
+}) // This closes the exports.batchGenerateVocabularyImages function definition
 // --- 8. Freeze Exports ---
 // This prevents accidental modifications to the exports object during runtime,
 // ensuring a stable execution environment for all exported functions.
 // This line should be the very last line in your functions/index.js file.
 Object.freeze(exports);
 
-
+// This is the END
