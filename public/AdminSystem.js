@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Modified today 12/7/25 code deployed: v1.005
+    // Modified today 12/7/25 code deployed: v1.006
     // Firebase is initialized by /__/firebase/init.js via AdminSystem.html
     // So we can directly get references to the Firebase services here.
     const auth = firebase.auth(); // Get Auth instance
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
         responseDiv.style.color = 'initial'; // Reset text color
 		skippedWordsDisplay.textContent = '';
        
-	   try {
+	try {
             // Call the Cloud Function - this will now automatically include the user's ID token
             // The Cloud Function itself will verify the admin custom claim.
             const result = await generateVocabularyContent({
@@ -134,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Display the result
-            //responseDiv.textContent = 'Success! Check your Firestore database.\n' + JSON.stringify(result.data, null, 2);
 			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
 		
 		if (result.data.skippedWords && result.data.skippedWords.length > 0) {
@@ -143,8 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 skippedWordsDisplay.style.color = 'orange'; // Make it stand out
             } else {
                 skippedWordsDisplay.textContent = '';
+					} 
 		
-		} catch (error) {
+		) catch (error) {
             console.error("Error calling Cloud Function:", error);
             // Display error message from Cloud Function or generic error
             responseDiv.textContent = `Error: ${error.message}\n${JSON.stringify(error.details || {}, null, 2)}`;
