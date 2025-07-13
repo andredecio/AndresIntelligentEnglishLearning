@@ -549,8 +549,8 @@ exports.onNewVocabularyContentCreate = functions.region('asia-southeast1').fires
 //exports.batchGenerateVocabularyImages = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).https.onCall(async (data, context) => {
 exports.batchGenerateVocabularyImages = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 })
     .pubsub.schedule('every 24 hours') // This sets the schedule!
-    .onRun(async (context) => { // Note: 'context' is now for the schedule, not https.onCall
-    // --- CHANGE: Updated to use admin.firestore() directly. ---    const firestore = admin.firestore();
+    .onRun(async (context) => { 
+	const firestore = admin.firestore();
 
     functions.logger.info('Starting batch image generation for pending vocabulary items via explicit call.'); // UPDATED LOG MESSAGE
 
