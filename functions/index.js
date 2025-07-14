@@ -6,7 +6,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai'); // Core Google 
 //const { Schema } = require('@firebase/ai'); // Firebase AI SDK for Schema ONLY
 const { Schema, ResponseModality } = require('@firebase/ai'); // IMPORT ResponseModality HERE
 
-functions.logger.info('Firebase Functions code deployed: v1.006b');  //Version control
+functions.logger.info('Firebase Functions code deployed: v1.006d');  //Version control
 
 // --- CHANGE: Direct initialization of Firebase Admin SDK. This is the most robust way. ---
 admin.initializeApp();
@@ -547,7 +547,7 @@ exports.onNewVocabularyContentCreate = functions.region('asia-southeast1').fires
 // to catch any remaining pending vocabulary items for image generation.
 // --- CHANGE: Changed from pubsub.schedule to https.onCall, and added .runWith() for timeout. ---
 //exports.batchGenerateVocabularyImages = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).https.onCall(async (data, context) => {
-exports.batchGenerateVocabularyImages = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 })
+gitbatchGenerateVocabularyImages = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 })
     .pubsub.schedule('every 24 hours') // This sets the schedule!
     .onRun(async (context) => { 
 	const firestore = admin.firestore();
