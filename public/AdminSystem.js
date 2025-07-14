@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginEmailInput = document.getElementById('loginEmail');
     const loginPasswordInput = document.getElementById('loginPassword');
     const loginErrorDiv = document.getElementById('loginError');
-
+	const loadingSpinner = document.getElementById('loadingSpinner');
     // Generator Section elements
     const generatorSection = document.getElementById('generatorSection');
     const logoutButton = document.getElementById('logoutButton');
@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     authSection.style.display = 'none'; // Hide login form
                     generatorSection.style.display = 'block'; // Show generator form
                     loginErrorDiv.textContent = ''; // Clear any previous login errors
+					
                     console.log("Admin user logged in and authorized.");
                 } else {
                     // User is authenticated but does NOT have the 'admin' claim.
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
             skippedWordsDisplay.textContent = '';
 			authSection.style.display = 'block'; // Show login form
             generatorSection.style.display = 'none'; // Hide generator form
+			loadingSpinner.classList.add('hidden');
             console.log("User signed out or no user found.");
         }
     });
@@ -132,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 numWords: numWords,
                 theme: theme
             });
-
+			loadingSpinner.classList.remove('hidden');
             // Display the result
 			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
 		
@@ -152,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			skippedWordsDisplay.textContent = '';
 		} finally {
             loadingDiv.style.display = 'none'; // Hide loading message
+			loadingSpinner.classList.add('hidden');
         }
     });
 });
