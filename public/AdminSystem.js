@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Modified today 12/7/25 code deployed: v1.006
+    // Modified today 12/7/25 code deployed: v1.006d
     // Firebase is initialized by /__/firebase/init.js via AdminSystem.html
     // So we can directly get references to the Firebase services here.
     const auth = firebase.auth(); // Get Auth instance
@@ -125,6 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingDiv.style.display = 'block'; // Show loading message
         responseDiv.style.color = 'initial'; // Reset text color
 		skippedWordsDisplay.textContent = '';
+			loadingSpinner.classList.remove('hidden');
+            // Display the result
        
 	try {
             // Call the Cloud Function - this will now automatically include the user's ID token
@@ -134,8 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 numWords: numWords,
                 theme: theme
             });
-			loadingSpinner.classList.remove('hidden');
-            // Display the result
 			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
 		
 		if (result.data.skippedWords && result.data.skippedWords.length > 0) {
