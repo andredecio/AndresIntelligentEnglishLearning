@@ -252,3 +252,26 @@ background-color: #298f2c;}
   0% { opacity: 0; transform: translate(-50%, -10px); }
   100% { opacity: 1; transform: translate(-50%, 0); }
 }
+/* Spinner CSS */
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #333; /* Or your brand color */
+    border-radius: 50%;
+    width: 24px; /* Size of the spinner */
+    height: 24px;
+    animation: spin 1s linear infinite; /* Animation for rotation */
+    display: inline-block; /* To place it nicely next to text/button */
+    vertical-align: middle; /* Align with text */
+    margin-left: 10px; /* Space from button */
+}
+
+/* Initially hidden state */
+.spinner.hidden {
+    display: none;
+}
+
+/* Keyframe animation for the rotation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
