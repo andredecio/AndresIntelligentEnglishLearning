@@ -6,7 +6,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai'); // Core Google 
 const { Schema, ResponseModality } = require('@firebase/ai'); // IMPORT ResponseModality HERE
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); // ✨ NEW: Google Cloud Text-to-Speech Client for audio generation ✨
 
-functions.logger.info('Firebase Functions code deployed: v1.006f');  //Version control
+functions.logger.info('Firebase Functions code deployed: v1.006g');  //Version control
 
 // --- CHANGE: Direct initialization of Firebase Admin SDK. This is the most robust way. ---
 admin.initializeApp();
@@ -27,9 +27,12 @@ const vocabularySchema = Schema.array({
             DESCRIPTION: Schema.string(),
             THEME: Schema.enumString({ enum: ['General English'] }),
             MODULETYPE: Schema.string(), // Expected: "VOCABULARY" or "VOCABULARY_GROUP"
-            WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', "Conjunction", "Interjection", "Article", "Determiner"] }),
+            WORD_TYPE: Schema.enumString({ enum: ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition', "conjunction", "interjection", "article", "determiner"] }),
             MEANING_ORIGIN: Schema.string(),
-            imagePrompt: Schema.string(),
+            PRESENT_SIMPLE_3RD_PERSON_SINGULAR: Schema.string(),
+            SIMPLE_PAST: Schema.string(),
+            PAST_PARTICIPLE: Schema.string(),
+			imagePrompt: Schema.string(),
             items: Schema.array({
                 items: Schema.object({
                     properties: {
@@ -38,22 +41,28 @@ const vocabularySchema = Schema.array({
                         DESCRIPTION: Schema.string(),
                         THEME: Schema.enumString({ enum: ['General English'] }),
                         MODULETYPE: Schema.string(), // Expected: "VOCABULARY" for nested items
-                        WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', "Pronoun", "Preposition", "Conjunction", "Interjection", "Article", "Determiner"] }),
+                        WORD_TYPE: Schema.enumString({ enum: ['noun', 'verb', 'adjective', 'adverb', "pronoun", "preposition", "conjunction", "interjection", "article", "determiner"] }),
                         MEANING_ORIGIN: Schema.string(),
-                        imagePrompt: Schema.string(),
+                        PRESENT_SIMPLE_3RD_PERSON_SINGULAR: Schema.string(),
+						SIMPLE_PAST: Schema.string(),
+						PAST_PARTICIPLE: Schema.string(),
+						imagePrompt: Schema.string(),
                     },
                     required: ["TITLE", "CEFR", "DESCRIPTION", "THEME", "MODULETYPE", "WORD_TYPE", "MEANING_ORIGIN", "imagePrompt"],
                     propertyOrdering: [
-                        "MODULETYPE", "TITLE", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", "imagePrompt"
-                    ]
+                        "MODULETYPE", "TITLE", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", 
+						"PRESENT_SIMPLE_3RD_PERSON_SINGULAR", "SIMPLE_PAST", "PAST_PARTICIPLE", "imagePrompt"
+					]
                 }),
             }),
         },
         required: ["TITLE", "CEFR", "DESCRIPTION", "THEME", "MODULETYPE", "WORD_TYPE", "MEANING_ORIGIN"],
-        optionalProperties: ["imagePrompt", "items"],
+        optionalProperties: ["imagePrompt", "items", "PRESENT_SIMPLE_3RD_PERSON_SINGULAR", "SIMPLE_PAST", "PAST_PARTICIPLE"],
         propertyOrdering: [
-            "MODULETYPE", "TITLE", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", "imagePrompt", "items"
-        ]
+            "MODULETYPE", "TITLE", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", 
+								"PRESENT_SIMPLE_3RD_PERSON_SINGULAR", "SIMPLE_PAST", "PAST_PARTICIPLE", "imagePrompt", "items"
+
+		]
     }),
 });
 // Helper function to get or create the Gemini text generation model instance
@@ -201,7 +210,10 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
             - "THEME":This must be ${theme}
             - "WORD_TYPE": This must be empty
             - "MEANING_ORIGIN": This must contain details of the group's origin, etymology, common prefixes, infixes, or suffixes relevant to the group.
-            - "items": An array of nested "VOCABULARY" modules, each defining a unique meaning of the word.
+            - "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": This must be empty
+            - "SIMPLE_PAST": This must be empty
+            - "PAST_PARTICIPLE": This must be empty
+			- "items": An array of nested "VOCABULARY" modules, each defining a unique meaning of the word.
 
         2.  **VOCABULARY** (for single-meaning words, or individual meanings within a VOCABULARY_GROUP):
             - "MODULETYPE": "VOCABULARY"
@@ -209,40 +221,78 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
             - "CEFR": This must be "A1"
             - "DESCRIPTION": Must be 3 numbered sentences (e.g., "1. Sentence one. 2. Sentence two. 3. Sentence three.") that use the word in the context of its specific meaning
             - "THEME":This must be ${theme}
-            - "WORD_TYPE": This must be one of the following: "Noun", "Verb", "Adjective", "Adverb", "Pronoun", "Preposition", "Conjunction", "Interjection", "Article", "Determiner"
-            - "MEANING_ORIGIN": This must contain the meaning of the specific instance of the word
-            - "imagePrompt": String. A concise, descriptive instruction for an AI image generator to create an image based on one of the sentences in the DESCRIPTION field. (Only for MODULETYPE "VOCABULARY")
+            - "WORD_TYPE": This must be one of the following: "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "conjunction", "interjection", "article", "determiner"
+            - "MEANING_ORIGIN": This must contain the meaning of the specific instance of the word. This must be followed by details of the word's origin, etymology, common prefixes, infixes, or suffixes relevant to the group.
+            - "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": This has a value only when WORD_TYPE = "verb". Provide the 3rd person singular simple present tense form, e.g., "eats" for "eat"
+            - "SIMPLE_PAST": This has a value only when WORD_TYPE = "verb". Provide the simple past tense form, e.g., "ate" for "eat"
+            - "PAST_PARTICIPLE": This has a value only when WORD_TYPE = "verb". Provide the past participle form, e.g., "eaten" for "eat"
+			- "imagePrompt": String. A concise, descriptive instruction for an AI image generator to create an image based on one of the sentences in the DESCRIPTION field. (Only for MODULETYPE "VOCABULARY")
 
         **Crucial Rules for Generation:**
-        - **CEFR Hierarchy:** For All VOCABULARY AND VOCABULARY_GROUP modules, their 'CEFR' level MUST be set to "A1").
+        - You MUST create a document with VOCABULARY_GROUP MODULETYPE for a word when there is more than one possible meaning of that word. That VOCABULARY_GROUP document must have a null WORD_TYPE.
+		- **MODULETYPE:** You MUST create a unique VOCABULARY MODULETYPE document for EACH and EVERY POSSIBLE meaning of any given word. For example 'set' has more than 10 separarate meanings, so it MUST cause the creation of a VOCABULARY_GROUP MODULETYPE document, and at least 10 documents for that word with a MODULETYPE of VOCABULARY, each with their specific values for the other relevant fields described here.      
+		- **CEFR Hierarchy:** For All VOCABULARY AND VOCABULARY_GROUP modules, their 'CEFR' level MUST be set to "A1").
         - **Polysemy:** If a word has multiple *distinct* meanings or functions including as different parts of speech (e.g., "book" as a noun and "book" as a verb; "like" as a verb and as an adjective, and as a preposition, and as a conjunction ), you MUST create a "VOCABULARY_GROUP" for it. This "VOCABULARY_GROUP" must contain individual "VOCABULARY" entries for *each* distinct meaning and/or part of speech. If a word has only one primary meaning, create only a single "VOCABULARY" entry directly.
         - **Output Format:** Provide ONLY the JSON array. Do not include any introductory or concluding text.
         - **No IDs/URLs:** Do NOT include "MODULEID" or "IMAGEURL" fields in your output. These will be generated by the Cloud Function.
         - **Number of Items:** Aim to generate exactly ${numWords} top-level vocabulary items (including VOCABULARY_GROUPs).
         - **WORD_TYPE and MODULETYPE** Values for 'WORD_TYPE' may only exist for modules with a MODULETYPE of 'VOCABULARY'.That is because a word could have more than one 'WORD_TYPE'.
         - **TITLE:** This field must contain the word exclusively.
-        Example structure for output (simplified, real output will have more fields per module as per rules):
+        - **MEANING_ORIGIN:** You MUST include a description of the particular meaning of that instance of a VOCABULARY MODULETYPE document AND you must add to that a description of the etymology of that instance of the word also.
+		
+		Example structure for output (simplified, real output will have more fields per module as per rules):
         [
           {
             "TITLE": "cat",
             "MODULETYPE": "VOCABULARY",
             "CEFR": "A1",
             "DESCRIPTION": "1. The cat sat. 2. The cat purred. 3. I like cats.",
-                    "THEME": "General English",
-                    "WORD_TYPE": "Noun",
-                    "MEANING_ORIGIN": "A carnivorous mammal of the Genus 'Felis'",
-            "imagePrompt": "A fluffy cat sitting."
+            "THEME": "General English",
+            "WORD_TYPE": "noun",
+            "MEANING_ORIGIN": "A carnivorous mammal of the Genus 'Felis'.originates from the Old English word "catt" (masculine) and "catte" (feminine), which themselves are derived from the Proto-West Germanic *kattu. This Germanic form likely comes from the Late Latin *cattus, first appearing around the 6th century.  ",
+            "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": "",
+            "SIMPLE_PAST": "",
+            "PAST_PARTICIPLE": "",
+			"imagePrompt": "A fluffy cat sitting."
           },
           {
             "TITLE": "set",
             "MODULETYPE": "VOCABULARY_GROUP",
             "CEFR": "A1",
             "DESCRIPTION": "",
-                    "
-        // --- 1. Construct the sophisticated prompt for Gemini ---
-        // ... (previous content of geminiPrompt, including the example JSON structure) ...
-        // END OF YOUR PREVIOUS TRUNCATED SECTION
+            "THEME":"General English",
+            "WORD_TYPE": "",
+            "MEANING_ORIGIN": "Old English settan, of Germanic origin; related to Dutch zetten, German setzen, also to sit."
+            "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": "",
+            "SIMPLE_PAST": "",
+            "PAST_PARTICIPLE": "",
 
+		 },
+          {
+            "TITLE": "set",
+            "MODULETYPE": "VOCABULARY",
+            "CEFR": "A1",
+            "DESCRIPTION": "1. He set the scene. 2. Have you set the table? 3. Let me set the record straight.",
+            "THEME": "General English",
+            "WORD_TYPE": "verb",
+            "MEANING_ORIGIN": "1. put or bring into a specified state.2. put, lay, or stand (something) in a specified place or position. Old English 'settan', of Germanic origin; related to Dutch zetten, German 'setzen', also 'to sit'.",
+            "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": "sets",
+            "SIMPLE_PAST": "set",
+            "PAST_PARTICIPLE": "set",
+			"imagePrompt": "A person setting a table for a meal."
+			},
+          {
+            "TITLE": "set",
+            "MODULETYPE": "VOCABULARY",
+            "CEFR": "A1",
+            "DESCRIPTION": "1. Do you have a set of golf clubs? 2. I would like the whole album set. 3. Is this the complete set?",
+            "THEME": "General English",
+            "WORD_TYPE": "noun",
+            "MEANING_ORIGIN": "a group of similar things that belong together in some way. The most common meaning of "set" as a noun refers to a group of related items. This sense is related to the Old English word "set" meaning "seat" or "place," and also the Middle English "set" referring to a group or sequence. ",
+            "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": "",
+            "SIMPLE_PAST": "",
+            "PAST_PARTICIPLE": "",
+			"imagePrompt": "A golfer holding a set of clubs."
 
         `; // This closes the backtick for the geminiPrompt multiline string.
 
@@ -258,7 +308,7 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
         let generatedContent;
         try {
             generatedContent = JSON.parse(text);
-			geminiReturnedItemCount = generatedContent.length; // ✨ SET THE COUNT HERE (around Line 367) ✨
+			geminiReturnedItemCount = generatedContent.length; //  SET THE COUNT HERE 
             functions.logger.info(`Gemini returned ${geminiReturnedItemCount} top-level JSON items.`);
 	   } catch (parseError) {
             functions.logger.error("Failed to parse Gemini output as JSON:", { rawText: text, error: parseError });
@@ -298,8 +348,14 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
 							functions.logger.info(`  - Processing nested VOCABULARY item: "${meaning.TITLE}".`);
 							const vocabId = generateUniqueFirestoreId();
                             const vocabRef = firestore.collection('learningContent').doc(vocabId);
-
-                            batch.set(vocabRef, {
+                            //new bit below
+							const verbFields = (meaning.WORD_TYPE === 'verb') ? {
+							PRESENT_SIMPLE_3RD_PERSON_SINGULAR: meaning.PRESENT_SIMPLE_3RD_PERSON_SINGULAR || null,
+							SIMPLE_PAST: meaning.SIMPLE_PAST || null,
+							PAST_PARTICIPLE: meaning.PAST_PARTICIPLE || null,
+								} : {};
+							//
+						   batch.set(vocabRef, {
                                 MODULEID: vocabId,
                                 MODULETYPE: "VOCABULARY",
                                 TITLE: meaning.TITLE,
@@ -310,7 +366,10 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
                                 THEME: meaning.THEME,
                                 WORD_TYPE: meaning.WORD_TYPE,
                                 MEANING_ORIGIN: meaning.MEANING_ORIGIN,
-                                IMAGEURL: "", // Placeholder for image URL
+								PRESENT_SIMPLE_3RD_PERSON_SINGULAR: meaning.PRESENT_SIMPLE_3RD_PERSON_SINGULAR,
+								SIMPLE_PAST: meaning.SIMPLE_PAST,
+								PAST_PARTICIPLE: meaning.PAST_PARTICIPLE,
+								IMAGEURL: "", // Placeholder for image URL
                                 imageStatus: "pending", // Mark for batch image generation
                                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                                 updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -332,7 +391,15 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
                     THEME: item.THEME,
                     WORD_TYPE: item.WORD_TYPE,
                     MEANING_ORIGIN: item.MEANING_ORIGIN,
-                    MODULEID_ARRAY: meaningIds,
+                    PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR,
+					SIMPLE_PAST: item.SIMPLE_PAST,
+					PAST_PARTICIPLE: item
+					
+					
+					
+					
+					.PAST_PARTICIPLE,
+					MODULEID_ARRAY: meaningIds,
                     IMAGEURL: "",
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -340,10 +407,16 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
                 createdModuleIds.push(groupId);
 
             } else if (itemModuleType === "VOCABULARY") {
-                 topLevelVocabCount++; // ✨ Increment counter (around Line 458) ✨
-                functions.logger.info(`Processing top-level VOCABULARY: "${item.TITLE}".`); // ✨ Add log (around Line 459) ✨
+                 topLevelVocabCount++; 
+                functions.logger.info(`Processing top-level VOCABULARY: "${item.TITLE}".`); 
 				const vocabId = generateUniqueFirestoreId();
                 const vocabRef = firestore.collection('learningContent').doc(vocabId);
+				// --- NEW: Conditionally add verb conjugation fields ---
+							const verbFields = (item.WORD_TYPE === 'verb') ? {
+							PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR || null,
+							SIMPLE_PAST: item.SIMPLE_PAST || null,
+							PAST_PARTICIPLE: item.PAST_PARTICIPLE || null,
+						} : {};
 
                 batch.set(vocabRef, {
                     MODULEID: vocabId,
@@ -356,7 +429,10 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
                     THEME: item.THEME,
                     WORD_TYPE: item.WORD_TYPE,
                     MEANING_ORIGIN: item.MEANING_ORIGIN,
-                    IMAGEURL: "",
+                    PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR,
+					SIMPLE_PAST: item.SIMPLE_PAST,
+					PAST_PARTICIPLE: item.PAST_PARTICIPLE,
+					IMAGEURL: "",
                     imageStatus: "pending",
                     MODULEID_ARRAY: [],
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
