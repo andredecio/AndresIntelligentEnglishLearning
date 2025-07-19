@@ -3,10 +3,10 @@
 const functions = require("firebase-functions/v1"); // Main Firebase Functions module MUST BE V1.
 const admin = require('firebase-admin'); // Firebase Admin SDK
 const { GoogleGenerativeAI } = require('@google/generative-ai'); // Core Google Generative AI SDK (Gemini)
-//const { Schema } = require('@firebase/ai'); // Firebase AI SDK for Schema ONLY
 const { Schema, ResponseModality } = require('@firebase/ai'); // IMPORT ResponseModality HERE
+const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); // ✨ NEW: Google Cloud Text-to-Speech Client for audio generation ✨
 
-functions.logger.info('Firebase Functions code deployed: v1.006e');  //Version control
+functions.logger.info('Firebase Functions code deployed: v1.006f');  //Version control
 
 // --- CHANGE: Direct initialization of Firebase Admin SDK. This is the most robust way. ---
 admin.initializeApp();
@@ -27,7 +27,7 @@ const vocabularySchema = Schema.array({
             DESCRIPTION: Schema.string(),
             THEME: Schema.enumString({ enum: ['General English'] }),
             MODULETYPE: Schema.string(), // Expected: "VOCABULARY" or "VOCABULARY_GROUP"
-            WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', 'Conjunction', 'Interjection', 'Article', 'Determiner'] }),
+            WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', "Conjunction", "Interjection", "Article", "Determiner"] }),
             MEANING_ORIGIN: Schema.string(),
             imagePrompt: Schema.string(),
             items: Schema.array({
@@ -38,7 +38,7 @@ const vocabularySchema = Schema.array({
                         DESCRIPTION: Schema.string(),
                         THEME: Schema.enumString({ enum: ['General English'] }),
                         MODULETYPE: Schema.string(), // Expected: "VOCABULARY" for nested items
-                        WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', 'Conjunction', 'Interjection', 'Article', 'Determiner'] }),
+                        WORD_TYPE: Schema.enumString({ enum: ['Noun', 'Verb', 'Adjective', 'Adverb', "Pronoun", "Preposition", "Conjunction", "Interjection", "Article", "Determiner"] }),
                         MEANING_ORIGIN: Schema.string(),
                         imagePrompt: Schema.string(),
                     },
@@ -285,7 +285,7 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
 
             // --- If the item is NOT skipped, process it and add to the Firestore batch ---
             if (itemModuleType === "VOCABULARY_GROUP") {
-                vocabGroupCount++; 
+                vocabGroupCount++;
 				functions.logger.info(`Processing VOCABULARY_GROUP: "${item.TITLE}".`);
 				const groupId = generateUniqueFirestoreId();
                 const groupRef = firestore.collection('learningContent').doc(groupId);
@@ -388,7 +388,7 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
             status: "success",
             message: `Successfully generated and saved ${createdModuleIds.length} new modules to Firestore. Skipped ${numSkipped} duplicates.`,
             moduleIds: createdModuleIds,
-			skippedWords: skippedWords, 
+			skippedWords: skippedWords,
 			geminiReturnedItemCount: geminiReturnedItemCount,
             topLevelVocabCount: topLevelVocabCount,
             vocabGroupCount: vocabGroupCount,
@@ -403,6 +403,221 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
         throw new functions.https.HttpsError('internal', 'An unexpected error occurred during content generation.', error.message);
     }
 }) // This closes the exports.generateVocabularyContent function definition
+
+
+// --- NEW: Scheduled Function to populate the initial RP Phonemes Collection ---
+// This function can be triggered manually from the GCP Console (Functions -> 'populatePhonemesScheduled' -> Trigger Now)
+// It will also run automatically once a year, though that's a side result. We dont want to use that.
+exports.populatePhonemesScheduled = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).pubsub.schedule('0 0 1 1 *')
+    .onRun(async (context) => {
+    // --- IMPORTANT: Removed context.auth checks as scheduled functions do not have them. ---
+    // Security for scheduled functions is managed by IAM permissions for deploying/triggering.
+
+    const firestore = admin.firestore(); // Get Firestore instance
+    const bucket = admin.storage().bucket(); // Get the default storage bucket
+    const ttsClient = new TextToSpeechClient(); // Initialize Text-to-Speech Client
+    const collectionName = 'phonemes'; // Hardcoded as this is a specific, one-time setup
+    const batch = firestore.batch();
+    const now = admin.firestore.FieldValue.serverTimestamp();
+
+    // British English (Received Pronunciation) Phoneme Data
+    const rpPhonemes = [
+        // --- RP Monophthongs (Short Vowels) ---
+        { ipa: 'ɪ', titleSuffix: "Short 'i' sound (as in 'kit')", theme: 'Vowel' },
+        { ipa: 'e', titleSuffix: "Short 'e' sound (as in 'dress')", theme: 'Vowel' },
+        { ipa: 'æ', titleSuffix: "Short 'a' sound (as in 'trap')", theme: 'Vowel' },
+        { ipa: 'ɒ', titleSuffix: "Short 'o' sound (as in 'lot')", theme: 'Vowel' },
+        { ipa: 'ʌ', titleSuffix: "Short 'u' sound (as in 'strut')", theme: 'Vowel' },
+        { ipa: 'ʊ', titleSuffix: "Short 'oo' sound (as in 'foot')", theme: 'Vowel' },
+        { ipa: 'ə', titleSuffix: "Schwa sound (as in 'about', unstressed)", theme: 'Vowel' },
+
+        // --- RP Monophthongs (Long Vowels) ---
+        { ipa: 'iː', titleSuffix: "Long 'ee' sound (as in 'fleece')", theme: 'Vowel' },
+        { ipa: 'ɑː', titleSuffix: "Long 'ah' sound (as in 'start')", theme: 'Vowel' },
+        { ipa: 'ɔː', titleSuffix: "Long 'aw' sound (as in 'thought')", theme: 'Vowel' },
+        { ipa: 'uː', titleSuffix: "Long 'oo' sound (as in 'goose')", theme: 'Vowel' },
+        { ipa: 'ɜː', titleSuffix: "Long 'er' sound (as in 'nurse')", theme: 'Vowel' },
+
+        // --- RP Diphthongs (Vowel Glides) ---
+        { ipa: 'eɪ', titleSuffix: "Diphthong 'ay' sound (as in 'face')", theme: 'Diphthong' },
+        { ipa: 'aɪ', titleSuffix: "Diphthong 'eye' sound (as in 'my')", theme: 'Diphthong' },
+        { ipa: 'ɔɪ', titleSuffix: "Diphthong 'oy' sound (as in 'boy')", theme: 'Diphthong' },
+        { ipa: 'əʊ', titleSuffix: "Diphthong 'oh' sound (as in 'goat')", theme: 'Diphthong' },
+        { ipa: 'aʊ', titleSuffix: "Diphthong 'ow' sound (as in 'mouth')", theme: 'Diphthong' },
+        { ipa: 'ɪə', titleSuffix: "Diphthong 'ear' sound (as in 'near')", theme: 'Diphthong' },
+        { ipa: 'eə', titleSuffix: "Diphthong 'air' sound (as in 'square')", theme: 'Diphthong' },
+        { ipa: 'ʊə', titleSuffix: "Diphthong 'ure' sound (as in 'cure')", theme: 'Diphthong' },
+
+        // --- Consonants (Plosives) ---
+        { ipa: 'p', titleSuffix: "Voiceless 'p' sound", theme: 'Consonant' },
+        { ipa: 'b', titleSuffix: "Voiced 'b' sound", theme: 'Consonant' },
+        { ipa: 't', titleSuffix: "Voiceless 't' sound", theme: 'Consonant' },
+        { ipa: 'd', titleSuffix: "Voiced 'd' sound", theme: 'Consonant' },
+        { ipa: 'k', titleSuffix: "Voiceless 'k' sound", theme: 'Consonant' },
+        { ipa: 'g', titleSuffix: "Voiced 'g' sound", theme: 'Consonant' },
+        { ipa: 'ʔ', titleSuffix: "Glottal stop (as in 'uh-oh')", theme: 'Consonant' },
+
+        // --- Consonants (Fricatives) ---
+        { ipa: 'f', titleSuffix: "Voiceless 'f' sound", theme: 'Consonant' },
+        { ipa: 'v', titleSuffix: "Voiced 'v' sound", theme: 'Consonant' },
+        { ipa: 'θ', titleSuffix: "Voiceless 'th' sound (as in 'thin')", theme: 'Consonant' },
+        { ipa: 'ð', titleSuffix: "Voiced 'th' sound (as in 'this')", theme: 'Consonant' },
+        { ipa: 's', titleSuffix: "Voiceless 's' sound", theme: 'Consonant' },
+        { ipa: 'z', titleSuffix: "Voiced 'z' sound", theme: 'Consonant' },
+        { ipa: 'ʃ', titleSuffix: "Voiceless 'sh' sound (as in 'she')", theme: 'Consonant' },
+        { ipa: 'ʒ', titleSuffix: "Voiced 'zh' sound (as in 'measure')", theme: 'Consonant' },
+        { ipa: 'h', titleSuffix: "Voiceless 'h' sound", theme: 'Consonant' },
+
+        // --- Consonants (Affricates) ---
+        { ipa: 'tʃ', titleSuffix: "Voiceless 'ch' sound (as in 'church')", theme: 'Consonant' },
+        { ipa: 'dʒ', titleSuffix: "Voiced 'j' sound (as in 'judge')", theme: 'Consonant' },
+
+        // --- Consonants (Nasals) ---
+        { ipa: 'm', titleSuffix: "Voiced 'm' sound", theme: 'Consonant' },
+        { ipa: 'n', titleSuffix: "Voiced 'n' sound", theme: 'Consonant' },
+        { ipa: 'ŋ', titleSuffix: "Voiced 'ng' sound (as in 'sing')", theme: 'Consonant' },
+
+        // --- Consonants (Approximants) ---
+        { ipa: 'l', titleSuffix: "Voiced 'l' sound", theme: 'Consonant' },
+        { ipa: 'r', titleSuffix: "Voiced 'r' sound (as in 'rat')", theme: 'Consonant' },
+        { ipa: 'w', titleSuffix: "Voiced 'w' sound", theme: 'Consonant' },
+        { ipa: 'j', titleSuffix: "Voiced 'y' sound (as in 'yes')", theme: 'Consonant' }
+    ];
+
+    functions.logger.info(`[populatePhonemesScheduled] Starting to create ${rpPhonemes.length} British English (RP) phoneme documents in '${collectionName}' collection...`);
+
+    try {
+        for (const p of rpPhonemes) {
+		const moduleID = `phoneme_${encodeURIComponent(p.ipa).replace(/%/g, '_').toLowerCase()}`;
+            const phonemeDocRef = firestore.collection(collectionName).doc(moduleID);
+
+            const docSnapshot = await phonemeDocRef.get();
+// Inside your for (const p of rpPhonemes) loop, before constructing the 'request' object:
+
+let ssmlInputText = p.ipa; // Default to just the IPA symbol for the text inside the phoneme tag
+let ssmlPhAttribute = p.ipa; // Default to just the IPA symbol for the 'ph' attribute
+
+// Define the problematic phonemes (YOU NEED TO FILL THIS ARRAY WITH YOUR SPECIFIC ONES)
+// *** YOU WILL POPULATE THESE ARRAYS BASED ON YOUR COMPLETE LIST OF PROBLEMATIC PHONEMES ***
+// Consonants that are silent or say their letter name. These will get the 'p.ipa + ə' treatment.
+const consonantProblemPhonemes = ['z', 'w', 'v', 't', 's', 'r', 'p', 'n', 'm', 'l', 'k', 'l', 'h', 'g', 'f', 'e', 'd', 'b', 'j', 'ʒ','tʃ', 'ʔ', 'ʃ', 'ŋ', 'ð', 'dʒ', 'θ']; //  list, problematic consonants 
+// Vowels that are silent. These will rely on voice selection for vocalization.
+const vowelProblemPhonemes = ['ʊ', 'ʔ', 'ɪ', 'ʊə', 'i'];
+
+// Check if the current phoneme is in our problematic list
+if (consonantProblemPhonemes.includes(p.ipa)) {
+    // For problematic consonants: append a schwa to force vocalization.
+    // Example: 'ʒ' becomes 'ʒə', 'v' becomes 'və'
+    ssmlPhAttribute = p.ipa + 'ə';
+    ssmlInputText = p.ipa; // Keep the visible text as just the IPA symbol
+ functions.logger.info(`[populatePhonemesScheduled] Applying schwa for problematic consonant: ${p.ipa}`);
+} else if (vowelProblemPhonemes.includes(p.ipa)) {
+    // For problematic vowels: Do NOT add a schwa.
+    // We rely on switching voices for these.
+    ssmlPhAttribute = p.ipa;
+    ssmlInputText = p.ipa;
+    // You might also want to log a warning here to investigate voice changes for these specific vowels
+	functions.logger.info(`[populatePhonemesScheduled] Relying on Neural2 voice for problematic vowel: ${p.ipa}`);}
+            let newAudioUrl = null; // This will hold the URL of the newly generated audio
+
+            try {
+// Then construct the request using these variables:
+const request = {
+    input: { ssml: `<speak><phoneme alphabet="ipa" ph="${ssmlPhAttribute}">${ssmlInputText}</phoneme></speak>` },
+    // IMPORTANT: Let's explicitly try a top-tier voice like Neural2-A or Wavenet-A.
+    // This could solve the vowel issues and generally improve consonant rendering.
+    voice: { languageCode: 'en-GB', ssmlGender: 'FEMALE', name: 'en-GB-Neural2-A' }, // Or 'en-GB-Wavenet-A'
+    audioConfig: { audioEncoding: 'MP3' },
+};
+
+                // 2. Call the Text-to-Speech API
+                const [response] = await ttsClient.synthesizeSpeech(request);
+                const audioContent = response.audioContent; // This is a Buffer containing the MP3 data
+
+                // Log the audio content buffer length for debugging purposes
+                functions.logger.info(`Audio content buffer length for ${p.ipa}: ${audioContent.length} bytes`);
+
+                // Optional: A more aggressive check for "empty" or bad audio.
+                // An MP3 header is usually around 4-8 bytes. If content.length is < 100-200 bytes, it's likely still empty or bad.
+                // If the file is still 5KB, this check won't catch it, but it's good for truly empty responses.
+                if (audioContent.length < 500) { // A threshold, 5KB (5120 bytes) is still large for silence if nothing's there.
+                    functions.logger.warn(`Generated audio for ${p.ipa} is suspiciously small (${audioContent.length} bytes). May indicate an issue or silent output.`);
+                    // If you wanted to entirely abandon and NOT update the URL if it's too small:
+                    // throw new Error("Generated audio content is too small, likely inaudible.");
+                }
+
+                // 3. Upload the Audio to Cloud Storage
+                const audioFileName = `${moduleID}.mp3`; // e.g., phoneme_ɪ.mp3
+                const audioFilePath = `phoneme_audio/${audioFileName}`; // Path in Cloud Storage bucket
+                const file = bucket.file(audioFilePath);
+
+                await file.save(audioContent, {
+                    metadata: { contentType: 'audio/mpeg' },
+                    public: true // Make the file publicly accessible
+                });
+
+                newAudioUrl = file.publicUrl(); // Get the public URL for the uploaded audio
+                functions.logger.info(`Generated and uploaded audio for ${p.ipa} to: ${newAudioUrl}`);
+
+            } catch (audioGenError) {
+                functions.logger.error(`Failed to generate or upload audio for phoneme ${p.ipa}:`, audioGenError);
+                // If audio generation fails, keep the old URL if one existed, otherwise it remains null.
+                newAudioUrl = docSnapshot.exists && docSnapshot.data().audioUrl ? docSnapshot.data().audioUrl : null;
+                functions.logger.warn(`Retaining previous audioUrl for ${p.ipa} due to generation error: ${newAudioUrl}`);
+            }
+
+            // Prepare base data that will be used for both set and update operations
+            const baseDocData = {
+                MODULEID: moduleID,
+                MODULETYPE: 'PHONEME',
+                TITLE: `${p.ipa} - ${p.titleSuffix}`,
+                IPA_SYMBOL: p.ipa,
+                DESCRIPTION: `Learn how to produce the ${p.titleSuffix}. This phoneme is crucial for clear British English pronunciation.`,
+                CEFR: null,
+                MEANING_ORIGIN: null,
+                THEME: p.theme,
+                WORD_TYPE: null,
+                MODULEID_ARRAY: [],
+                ImagePrompt: null,
+                ImageStatus: null,
+                normalizedTitle: p.ipa.toLowerCase(),
+                updatedAt: now, // Always update timestamp on change
+                IMAGEURL: null,
+                VIDEOURL: null
+            };
+
+            if (docSnapshot.exists) {
+                // Document exists. Update it.
+                // We prioritize newAudioUrl if successful, otherwise retain the old one.
+                const updateData = {
+                    ...baseDocData,
+                    audioUrl: newAudioUrl !== null ? newAudioUrl : (docSnapshot.data().audioUrl || null), // Use new URL if successful, else old URL if exists, else null
+                    createdAt: docSnapshot.data().createdAt, // Preserve original createdAt
+                };
+                batch.update(phonemeDocRef, updateData); // Use update to merge changes
+                functions.logger.info(`[populatePhonemesScheduled] Updating existing document for phoneme ${p.ipa}.`);
+            } else {
+                // Document does not exist. Create it.
+                const createData = {
+                    ...baseDocData,
+                    audioUrl: newAudioUrl, // For new documents, this is either the generated URL or null
+                    createdAt: now, // Set createdAt for new documents
+                };
+                batch.set(phonemeDocRef, createData); // Use set for new documents
+                functions.logger.info(`[populatePhonemesScheduled] Creating new document for phoneme ${p.ipa}.`);
+            }
+        }
+
+        await batch.commit();
+        functions.logger.info(`[populatePhonemesScheduled] Batch commit completed for British English (RP) phoneme documents.`);
+        return { status: "success", message: `Successfully processed RP phoneme documents in '${collectionName}' collection.` };
+    } catch (error) {
+        functions.logger.error('[populatePhonemesScheduled] Error processing phoneme documents:', error);
+        return { status: "error", message: `Failed to process phoneme documents: ${error.message}` };
+    }
+});
+
+
 // This is the last line of section 2
 // This is the beginning of section 3
 
@@ -548,7 +763,7 @@ exports.onNewVocabularyContentCreate = functions.region('asia-southeast1').fires
 // --- CHANGE: Changed from pubsub.schedule to https.onCall, and added .runWith() for timeout. ---
 exports.batchGenerateVocabularyImages = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 })
     .pubsub.schedule('every 24 hours') // This sets the schedule!
-    .onRun(async (context) => { 
+    .onRun(async (context) => {
 	const firestore = admin.firestore();
 
     functions.logger.info('Starting batch image generation for pending vocabulary items via explicit call.'); // UPDATED LOG MESSAGE
@@ -564,7 +779,7 @@ exports.batchGenerateVocabularyImages = functions.region('asia-southeast1').runW
 
         if (pendingVocabSnapshot.empty) {
             functions.logger.info('No pending vocabulary items found for batch image generation.');
-            return null; 
+            return null;
         }
 
         const imageGenerationPromises = [];
