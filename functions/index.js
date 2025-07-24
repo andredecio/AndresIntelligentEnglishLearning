@@ -4,13 +4,12 @@ const functions = require("firebase-functions/v1"); // Main Firebase Functions m
 const admin = require('firebase-admin'); // Firebase Admin SDK
 const { GoogleGenerativeAI } = require('@google/generative-ai'); // Core Google Generative AI SDK (Gemini)
 const { Schema, ResponseModality } = require('@firebase/ai'); // IMPORT ResponseModality HERE
-const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); // ✨ NEW: Google Cloud Text-to-Speech Client for audio generation ✨
+const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); 
+const textToSpeechClient = new TextToSpeechClient();
+functions.logger.info('Firebase Functions code deployed: v1.006K');  //Version audio for vocab, syllables
 
-functions.logger.info('Firebase Functions code deployed: v1.006g');  //Version control
-
-// --- CHANGE: Direct initialization of Firebase Admin SDK. This is the most robust way. ---
+// Direct initialization of Firebase Admin SDK. This is the most robust way. ---
 admin.initializeApp();
-
 // --- CHANGE: Removed previous commented-out 'let _adminAppInstance;' and 'getAdminApp()' helper and their comments.
 // These are no longer needed as admin.initializeApp() is called directly.
 
@@ -23,6 +22,7 @@ const vocabularySchema = Schema.array({
     items: Schema.object({
         properties: {
             TITLE: Schema.string(),
+			IPA:  Schema.string(),
             CEFR: Schema.string(),
             DESCRIPTION: Schema.string(),
             THEME: Schema.enumString({ enum: ['General English'] }),
@@ -37,6 +37,7 @@ const vocabularySchema = Schema.array({
                 items: Schema.object({
                     properties: {
                         TITLE: Schema.string(),
+						IPA:  Schema.string(),
                         CEFR: Schema.string(),
                         DESCRIPTION: Schema.string(),
                         THEME: Schema.enumString({ enum: ['General English'] }),
@@ -50,7 +51,7 @@ const vocabularySchema = Schema.array({
                     },
                     required: ["TITLE", "CEFR", "DESCRIPTION", "THEME", "MODULETYPE", "WORD_TYPE", "MEANING_ORIGIN", "imagePrompt"],
                     propertyOrdering: [
-                        "MODULETYPE", "TITLE", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", 
+                        "MODULETYPE", "TITLE", "IPA", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", 
 						"PRESENT_SIMPLE_3RD_PERSON_SINGULAR", "SIMPLE_PAST", "PAST_PARTICIPLE", "imagePrompt"
 					]
                 }),
@@ -59,12 +60,322 @@ const vocabularySchema = Schema.array({
         required: ["TITLE", "CEFR", "DESCRIPTION", "THEME", "MODULETYPE", "WORD_TYPE", "MEANING_ORIGIN"],
         optionalProperties: ["imagePrompt", "items", "PRESENT_SIMPLE_3RD_PERSON_SINGULAR", "SIMPLE_PAST", "PAST_PARTICIPLE"],
         propertyOrdering: [
-            "MODULETYPE", "TITLE", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", 
+            "MODULETYPE", "TITLE", "IPA", "DESCRIPTION", "WORD_TYPE", "CEFR", "THEME", "MEANING_ORIGIN", 
 								"PRESENT_SIMPLE_3RD_PERSON_SINGULAR", "SIMPLE_PAST", "PAST_PARTICIPLE", "imagePrompt", "items"
 
 		]
     }),
 });
+
+// --- BEGIN: Helper data for phoneme parsing ---
+// These lists are crucial for getPhonemeIDsFromSyllableIPA to accurately parse IPA strings.
+// Ensure this list is comprehensive and matches the phonemes you expect to encounter.
+const allRpPhonemes = [
+	
+
+        // --- RP Monophthongs (Long Vowels) ---
+	{ ipa: 'iː', titleSuffix: "Long 'ee' sound (as in 'fleece')", theme: 'Vowel' },
+	{ ipa: 'ɑː', titleSuffix: "Long 'ah' sound (as in 'start')", theme: 'Vowel' },
+	{ ipa: 'ɔː', titleSuffix: "Long 'aw' sound (as in 'thought')", theme: 'Vowel' },
+	{ ipa: 'uː', titleSuffix: "Long 'oo' sound (as in 'goose')", theme: 'Vowel' },
+	{ ipa: 'ɜː', titleSuffix: "Long 'er' sound (as in 'nurse')", theme: 'Vowel' },
+    { ipa: 'ɜːʳ', titleSuffix: "Long 'er' sound (as in 'nurse')rhotic! ", theme: 'Vowel'},
+    // --- RP Diphthongs (Vowel Glides) ---
+    { ipa: 'eɪ', titleSuffix: "Diphthong 'ay' sound (as in 'face')", theme: 'Diphthong' },
+    { ipa: 'aɪ', titleSuffix: "Diphthong 'eye' sound (as in 'my')", theme: 'Diphthong' },
+    { ipa: 'ɔɪ', titleSuffix: "Diphthong 'oy' sound (as in 'boy')", theme: 'Diphthong' },
+    { ipa: 'əʊ', titleSuffix: "Diphthong 'oh' sound (as in 'goat')", theme: 'Diphthong' },
+	{ ipa: 'oʊ', titleSuffix: "Diphthong 'oh' sound (as in 'goat')", theme: 'Diphthong' },
+    { ipa: 'aʊ', titleSuffix: "Diphthong 'ow' sound (as in 'mouth')", theme: 'Diphthong' },
+	{ ipa: 'ɪəʳ', titleSuffix: "Diphthong 'ear' sound (as in 'near')rhotic!", theme: 'Diphthong' },
+	{ ipa: 'eəʳ', titleSuffix: "Diphthong 'air' sound (as in 'square')rhotic!", theme: 'Diphthong' },
+	{ ipa: 'ʊəʳ', titleSuffix: "Diphthong 'ure' sound (as in 'cure')rhotic!", theme: 'Diphthong' },
+	{ ipa: 'ɪə', titleSuffix: "Diphthong 'ear' sound (as in 'near')", theme: 'Diphthong' },
+	{ ipa: 'eə', titleSuffix: "Diphthong 'air' sound (as in 'square')", theme: 'Diphthong' },
+	{ ipa: 'ʊə', titleSuffix: "Diphthong 'ure' sound (as in 'cure')", theme: 'Diphthong' },
+        // --- Consonants (Affricates) ---
+    { ipa: 'tʃ', titleSuffix: "Voiceless 'ch' sound (as in 'church')", theme: 'Consonant' },
+	{ ipa: 'dʒ', titleSuffix: "Voiced 'j' sound (as in 'judge')", theme: 'Consonant' },
+
+    
+	
+	//THE FULL MONTY PHONEMES. ADDED TO FROM PHONEMES > 1 CHARACTER LONG (ABOVE)
+
+  { "ipa": "p", "titleSuffix": "Voiceless bilabial plosive", "theme": "Consonant" },
+  { "ipa": "t", "titleSuffix": "Voiceless alveolar plosive", "theme": "Consonant" },
+  { "ipa": "b", "titleSuffix": "Voiced bilabial plosive", "theme": "Consonant" },
+  { "ipa": "d", "titleSuffix": "Voiced alveolar plosive", "theme": "Consonant" },
+  { "ipa": "ʈ", "titleSuffix": "Voiceless retroflex plosive", "theme": "Consonant" },
+  { "ipa": "ɖ", "titleSuffix": "Voiced retroflex plosive", "theme": "Consonant" },
+  { "ipa": "c", "titleSuffix": "Voiceless palatal plosive", "theme": "Consonant" },
+  { "ipa": "ɟ", "titleSuffix": "Voiced palatal plosive", "theme": "Consonant" },
+  { "ipa": "k", "titleSuffix": "Voiceless velar plosive", "theme": "Consonant" },
+  { "ipa": "ɡ", "titleSuffix": "Voiced velar plosive", "theme": "Consonant" },
+  { "ipa": "q", "titleSuffix": "Voiceless uvular plosive", "theme": "Consonant" },
+  { "ipa": "ɢ", "titleSuffix": "Voiced uvular plosive", "theme": "Consonant" },
+  { "ipa": "ʔ", "titleSuffix": "Glottal stop", "theme": "Consonant" },
+  { "ipa": "m", "titleSuffix": "Bilabial nasal", "theme": "Consonant" },
+  { "ipa": "ɱ", "titleSuffix": "Labiodental nasal", "theme": "Consonant" },
+  { "ipa": "n", "titleSuffix": "Alveolar nasal", "theme": "Consonant" },
+  { "ipa": "ɳ", "titleSuffix": "Retroflex nasal", "theme": "Consonant" },
+  { "ipa": "ɲ", "titleSuffix": "Palatal nasal", "theme": "Consonant" },
+  { "ipa": "ŋ", "titleSuffix": "Velar nasal", "theme": "Consonant" },
+  { "ipa": "ɴ", "titleSuffix": "Uvular nasal", "theme": "Consonant" },
+  { "ipa": "ʙ", "titleSuffix": "Bilabial trill", "theme": "Consonant" },
+  { "ipa": "r", "titleSuffix": "Alveolar trill", "theme": "Consonant" },
+  { "ipa": "ʀ", "titleSuffix": "Uvular trill", "theme": "Consonant" },
+  { "ipa": "ⱱ", "titleSuffix": "Labiodental flap", "theme": "Consonant" },
+  { "ipa": "ɾ", "titleSuffix": "Alveolar tap", "theme": "Consonant" },
+  { "ipa": "ɽ", "titleSuffix": "Retroflex flap", "theme": "Consonant" },
+  { "ipa": "ɸ", "titleSuffix": "Voiceless bilabial fricative", "theme": "Consonant" },
+  { "ipa": "β", "titleSuffix": "Voiced bilabial fricative", "theme": "Consonant" },
+  { "ipa": "f", "titleSuffix": "Voiceless labiodental fricative", "theme": "Consonant" },
+  { "ipa": "v", "titleSuffix": "Voiced labiodental fricative", "theme": "Consonant" },
+  { "ipa": "θ", "titleSuffix": "Voiceless dental fricative", "theme": "Consonant" },
+  { "ipa": "ð", "titleSuffix": "Voiced dental fricative", "theme": "Consonant" },
+  { "ipa": "s", "titleSuffix": "Voiceless alveolar sibilant", "theme": "Consonant" },
+  { "ipa": "z", "titleSuffix": "Voiced alveolar sibilant", "theme": "Consonant" },
+  { "ipa": "ʃ", "titleSuffix": "Voiceless postalveolar sibilant", "theme": "Consonant" },
+  { "ipa": "ʒ", "titleSuffix": "Voiced postalveolar sibilant", "theme": "Consonant" },
+  { "ipa": "ʂ", "titleSuffix": "Voiceless retroflex sibilant", "theme": "Consonant" },
+  { "ipa": "ʐ", "titleSuffix": "Voiced retroflex sibilant", "theme": "Consonant" },
+  { "ipa": "ç", "titleSuffix": "Voiceless palatal fricative", "theme": "Consonant" },
+  { "ipa": "ʝ", "titleSuffix": "Voiced palatal fricative", "theme": "Consonant" },
+  { "ipa": "x", "titleSuffix": "Voiceless velar fricative", "theme": "Consonant" },
+  { "ipa": "ɣ", "titleSuffix": "Voiced velar fricative", "theme": "Consonant" },
+  { "ipa": "χ", "titleSuffix": "Voiceless uvular fricative", "theme": "Consonant" },
+  { "ipa": "ʁ", "titleSuffix": "Voiced uvular fricative", "theme": "Consonant" },
+  { "ipa": "ħ", "titleSuffix": "Voiceless pharyngeal fricative", "theme": "Consonant" },
+  { "ipa": "ʕ", "titleSuffix": "Voiced pharyngeal fricative", "theme": "Consonant" },
+  { "ipa": "h", "titleSuffix": "Voiceless glottal fricative", "theme": "Consonant" },
+  { "ipa": "ɦ", "titleSuffix": "Voiced glottal fricative", "theme": "Consonant" },
+  { "ipa": "ɬ", "titleSuffix": "Voiceless lateral alveolar fricative", "theme": "Consonant" },
+  { "ipa": "ɮ", "titleSuffix": "Voiced lateral alveolar fricative", "theme": "Consonant" },
+  { "ipa": "ʋ", "titleSuffix": "Labiodental approximant", "theme": "Consonant" },
+  { "ipa": "ɹ", "titleSuffix": "Alveolar approximant", "theme": "Consonant" },
+  { "ipa": "ɻ", "titleSuffix": "Retroflex approximant", "theme": "Consonant" },
+  { "ipa": "j", "titleSuffix": "Palatal approximant", "theme": "Consonant" },
+  { "ipa": "ɰ", "titleSuffix": "Velar approximant", "theme": "Consonant" },
+  { "ipa": "l", "titleSuffix": "Alveolar lateral approximant", "theme": "Consonant" },
+  { "ipa": "ɭ", "titleSuffix": "Retroflex lateral approximant", "theme": "Consonant" },
+  { "ipa": "ʎ", "titleSuffix": "Palatal lateral approximant", "theme": "Consonant" },
+  { "ipa": "ʟ", "titleSuffix": "Velar lateral approximant", "theme": "Consonant" },
+  { "ipa": "ʘ", "titleSuffix": "Bilabial click", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "ǀ", "titleSuffix": "Dental click", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "ǃ", "titleSuffix": "Alveolar click", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "ǂ", "titleSuffix": "Palatal click", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "ǁ", "titleSuffix": "Alveolar lateral click", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "ɓ", "titleSuffix": "Voiced bilabial implosive", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "ɗ", "titleSuffix": "Voiced dental/alveolar implosive", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "ʄ", "titleSuffix": "Voiced palatal implosive", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "ɠ", "titleSuffix": "Voiced velar implosive", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "ʛ", "titleSuffix": "Voiced uvular implosive", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "pʼ", "titleSuffix": "Bilabial ejective", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "tʼ", "titleSuffix": "Alveolar ejective", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "kʼ", "titleSuffix": "Velar ejective", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "sʼ", "titleSuffix": "Alveolar ejective fricative", "theme": "Non-Pulmonic Consonant" },
+  { "ipa": "i", "titleSuffix": "Close front unrounded vowel", "theme": "Vowel" },
+  { "ipa": "y", "titleSuffix": "Close front rounded vowel", "theme": "Vowel" },
+  { "ipa": "ɨ", "titleSuffix": "Close central unrounded vowel", "theme": "Vowel" },
+  { "ipa": "ʉ", "titleSuffix": "Close central rounded vowel", "theme": "Vowel" },
+  { "ipa": "ɯ", "titleSuffix": "Close back unrounded vowel", "theme": "Vowel" },
+  { "ipa": "u", "titleSuffix": "Close back rounded vowel", "theme": "Vowel" },
+  { "ipa": "ɪ", "titleSuffix": "Near-close near-front unrounded vowel", "theme": "Vowel" },
+  { "ipa": "ʏ", "titleSuffix": "Near-close near-front rounded vowel", "theme": "Vowel" },
+  { "ipa": "ʊ", "titleSuffix": "Near-close near-back rounded vowel", "theme": "Vowel" },
+  { "ipa": "e", "titleSuffix": "Close-mid front unrounded vowel", "theme": "Vowel" },
+  { "ipa": "ø", "titleSuffix": "Close-mid front rounded vowel", "theme": "Vowel" },
+  { "ipa": "ɘ", "titleSuffix": "Close-mid central unrounded vowel", "theme": "Vowel" },
+  { "ipa": "ɵ", "titleSuffix": "Close-mid central rounded vowel", "theme": "Vowel" },
+  { "ipa": "ɤ", "titleSuffix": "Close-mid back unrounded vowel", "theme": "Vowel" },
+  { "ipa": "o", "titleSuffix": "Close-mid back rounded vowel", "theme": "Vowel" },
+  { "ipa": "ɛ", "titleSuffix": "Open-mid front unrounded vowel", "theme": "Vowel" },
+  { "ipa": "œ", "titleSuffix": "Open-mid front rounded vowel", "theme": "Vowel" },
+  { "ipa": "ɜ", "titleSuffix": "Open-mid central unrounded vowel", "theme": "Vowel" },
+  { "ipa": "ɞ", "titleSuffix": "Open-mid central rounded vowel", "theme": "Vowel" },
+  { "ipa": "ʌ", "titleSuffix": "Open-mid back unrounded vowel", "theme": "Vowel" },
+  { "ipa": "ɔ", "titleSuffix": "Open-mid back rounded vowel", "theme": "Vowel" },
+  { "ipa": "æ", "titleSuffix": "Near-open front unrounded vowel", "theme": "Vowel" },
+  { "ipa": "ɐ", "titleSuffix": "Near-open central vowel", "theme": "Vowel" },
+  { "ipa": "a", "titleSuffix": "Open front unrounded vowel", "theme": "Vowel" },
+  { "ipa": "ɶ", "titleSuffix": "Open front rounded vowel", "theme": "Vowel" },
+  { "ipa": "ɑ", "titleSuffix": "Open back unrounded vowel", "theme": "Vowel" },
+  { "ipa": "ɒ", "titleSuffix": "Open back rounded vowel", "theme": "Vowel" },
+  { "ipa": "ʍ", "titleSuffix": "Voiceless labial-velar fricative", "theme": "Consonant" },
+  { "ipa": "w", "titleSuffix": "Voiced labial-velar approximant", "theme": "Consonant" },
+  { "ipa": "ɥ", "titleSuffix": "Voiced labial-palatal approximant", "theme": "Consonant" },
+  { "ipa": "ʜ", "titleSuffix": "Voiceless epiglottal fricative", "theme": "Consonant" },
+  { "ipa": "ʢ", "titleSuffix": "Voiced epiglottal fricative", "theme": "Consonant" },
+  { "ipa": "ʡ", "titleSuffix": "Epiglottal stop", "theme": "Consonant" },
+  { "ipa": "ɕ", "titleSuffix": "Voiceless alveolo-palatal sibilant", "theme": "Consonant" },
+  { "ipa": "ʑ", "titleSuffix": "Voiced alveolo-palatal sibilant", "theme": "Consonant" },
+  { "ipa": "ɺ", "titleSuffix": "Alveolar lateral flap", "theme": "Consonant" },
+  { "ipa": "ɧ", "titleSuffix": "Velar-palatal fricative", "theme": "Consonant" },
+  { "ipa": "ə", "titleSuffix": "Schwa sound (as in 'about', unstressed)", "theme": 'Vowel' }
+
+]
+
+// Pre-sort for efficient parsing: try longest phonemes first.
+// Filter and map all phonemes based on their length.
+const knownThreeCharPhonemes = allRpPhonemes.filter(p => p.ipa.length === 3).map(p => p.ipa).sort((a, b) => b.length - a.length);
+const knownTwoCharPhonemes = allRpPhonemes.filter(p => p.ipa.length === 2).map(p => p.ipa).sort((a, b) => b.length - a.length);
+const knownSingleCharPhonemes = allRpPhonemes.filter(p => p.ipa.length === 1).map(p => p.ipa);
+
+/**
+ * Parses an IPA syllable string into an array of its constituent phoneme IPA symbols.
+ * This function handles 1, 2, and 3-character IPA phonemes.
+ * It relies on globally defined 'knownThreeCharPhonemes', 'knownTwoCharPhonemes', and 'knownSingleCharPhonemes'.
+ * It will log and skip unrecognized characters, rather than stopping parsing.
+ * @param {string} ipaSyllable - The IPA string of the syllable (e.g., 'dʒɪt', 'ɜːʳ').
+ * @returns {string[]} An array of phoneme IPA symbols (e.g., ['dʒ', 'ɪ', 't'], ['ɜːʳ']).
+ */
+function getPhonemeIDsFromSyllableIPA(ipaSyllable) {
+    const phonemeIDs = [];
+    let currentIndex = 0;
+    const syllableLength = ipaSyllable.length;
+
+    functions.logger.debug(`[DEBUG-IPA-PARSE] Starting parse for syllable: '${ipaSyllable}'`);
+
+    while (currentIndex < syllableLength) {
+        let matchedPhoneme = null;
+        let foundMatch = false;
+
+        // 1. Try to match a known three-character phoneme
+        for (const threeCharPhoneme of knownThreeCharPhonemes) {
+            if (currentIndex + threeCharPhoneme.length <= syllableLength &&
+                ipaSyllable.substring(currentIndex, currentIndex + threeCharPhoneme.length) === threeCharPhoneme) {
+                matchedPhoneme = threeCharPhoneme;
+                currentIndex += threeCharPhoneme.length;
+                foundMatch = true;
+                break;
+            }
+        }
+
+        // 2. If no three-character phoneme matched, try a two-character phoneme
+        if (!foundMatch) {
+            for (const twoCharPhoneme of knownTwoCharPhonemes) {
+                if (currentIndex + twoCharPhoneme.length <= syllableLength &&
+                    ipaSyllable.substring(currentIndex, currentIndex + twoCharPhoneme.length) === twoCharPhoneme) {
+                    matchedPhoneme = twoCharPhoneme;
+                    currentIndex += twoCharPhoneme.length;
+                    foundMatch = true;
+                    break;
+                }
+            }
+        }
+
+        // 3. If no two- or three-character phoneme matched, try a single-character phoneme
+        if (!foundMatch) {
+            const potentialSingleChar = ipaSyllable.substring(currentIndex, currentIndex + 1);
+            if (knownSingleCharPhonemes.includes(potentialSingleChar)) {
+                matchedPhoneme = potentialSingleChar;
+                currentIndex += 1;
+                foundMatch = true;
+            } else {
+                // If still not recognized after checking all lengths, it's an issue. Log and skip.
+                functions.logger.warn(
+                    `[getPhonemeIDsFromSyllableIPA] Unrecognized IPA character/sequence: '${potentialSingleChar}' ` +
+                    `at index ${currentIndex} in syllable '${ipaSyllable}'. Skipping character.`
+                );
+                currentIndex += 1; // Skip the unrecognized character
+                continue; // Move to the next iteration of the loop
+            }
+        }
+
+        if (matchedPhoneme) {
+            phonemeIDs.push(matchedPhoneme);
+        }
+    }
+    return phonemeIDs;
+}
+
+/**
+ * Splits an IPA string into an array of syllables based on '.' delimiters.
+ * Removes stress marks (ˈ, ˌ) and ensures consistency.
+ * @param {string} ipaWord - The IPA string of the word (e.g., 'ˈɛk.skə.veɪt').
+ * @returns {string[]} An array of IPA syllables (e.g., ['ɛk', 'skə', 'veɪt']).
+ */
+function splitIpaIntoSyllables(ipaWord) {
+    if (!ipaWord) {
+        return [];
+    }
+    // Remove primary and secondary stress marks before splitting
+    const cleanedIpa = ipaWord.replace(/[ˈˌ]/g, '');
+    return cleanedIpa.split('.').filter(s => s.length > 0);
+}
+
+// 
+
+/** --- New Helper Function ---
+ * Purpose: To interact with an external dictionary API to get the IPA and syllable breakdown for a given English word.
+ * Implementation Note: This is a placeholder. You'll need to replace this with actual API integration.
+ * Consider installing 'node-fetch' or 'axios' if you haven't already: npm install node-fetch
+ * @param {string} word - The English word to fetch phonetics for.
+ * @returns {Promise<{fullIpa: string, syllables: Array<{ipa: string, text: string}>}|null>} Phonetics data or null if not found.
+ */
+
+/**--- 2md New Helper Function ---
+ * Purpose: A reusable function to synthesize speech using Google Cloud Text-to-Speech and upload the resulting MP3 to Cloud Storage.
+ * @param {string} text - The actual word/syllable string for audio synthesis.
+ * @param {string} ipaForSsml - The IPA string to be used in the SSML <phoneme> tag's ph attribute for precise pronunciation.
+ * @param {string} fileNamePrefix - The base for the MP3 filename (e.g., 'word_title', 'syllable_ipa').
+ * @param {string} storagePathPrefix - The folder in Cloud Storage (e.g., 'word_audio/', 'syllable_audio/').
+ * @returns {Promise<string|null>} The publicly accessible URL of the uploaded audio, or null if an error occurred.
+ */
+async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storagePathPrefix) {
+    try {
+        const input = {
+            ssml: `<speak><phoneme alphabet="ipa" ph="${ipaForSsml}">${text}</phoneme></speak>`,
+            // You can also use just 'text: text' if IPA SSML is not desired for some cases
+        };
+
+        const voice = {
+            languageCode: 'en-GB', // Consistent language code
+            name: 'en-GB-Neural2-A', // Consistent voice configuration
+            ssmlGender: 'FEMALE', // Or 'NEUTRAL', 'MALE'
+        };
+
+        const audioConfig = {
+            audioEncoding: 'MP3',
+            pitch: 0,
+            speakingRate: 1,
+        };
+
+        functions.logger.info(`Synthesizing audio for text: "${text}" with IPA: "${ipaForSsml}"`);
+        // The 'textToSpeechClient' is already initialized globally in your file, so it's directly available here.
+        const [response] = await textToSpeechClient.synthesizeSpeech({
+            input: input,
+            voice: voice,
+            audioConfig: audioConfig,
+        });
+
+        if (!response.audioContent) {
+            functions.logger.warn(`No audio content received for "${text}".`);
+            return null;
+        }
+
+        const bucket = admin.storage().bucket();
+        const filename = `${storagePathPrefix}${fileNamePrefix}_${Date.now()}.mp3`;
+        const file = bucket.file(filename);
+
+        functions.logger.info(`Uploading audio to Cloud Storage: ${filename}`);
+        await file.save(response.audioContent, {
+            contentType: 'audio/mpeg',
+            public: true, // Make the file publicly accessible
+        });
+
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+        functions.logger.info(`Audio uploaded successfully: ${publicUrl}`);
+        return publicUrl;
+
+    } catch (error) {
+        functions.logger.error(`Failed to generate or upload audio for "${text}":`, error);
+        return null;
+    }
+}
+
+
+
 // Helper function to get or create the Gemini text generation model instance
 function getTextGenModel() {
     if (!_textGenModel) {
@@ -156,7 +467,7 @@ exports.markUserAsDeletedInFirestore = functions.region('asia-southeast1').auth.
 
 // --- generateVocabularyContent Callable Function ---
 // This function is called from your AdminSystem webpage to generate new vocabulary content using Gemini.
-// --- CHANGE: Added .runWith() for timeout configuration. ---
+
 exports.generateVocabularyContent = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).https.onCall(async (data, context) => {
     // --- Security Check (Crucial for Admin Functions) ---
     if (!context.auth) {
@@ -179,7 +490,7 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
     functions.logger.info(`AdminSystem: Starting content generation for CEFR: ${cefrLevel}, Words: ${numWords}, Theme: ${theme}`);
 
     const textGenModel = getTextGenModel(); // Get the Gemini text generation model instance
-    const firestore = admin.firestore(); // --- CHANGE: Using admin.firestore() directly. ---
+    const firestore = admin.firestore(); 
     const batch = firestore.batch();
     const createdModuleIds = [];
     let numSkipped = 0;
@@ -209,7 +520,7 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
             - "DESCRIPTION": This must be empty
             - "THEME":This must be ${theme}
             - "WORD_TYPE": This must be empty
-            - "MEANING_ORIGIN": This must contain details of the group's origin, etymology, common prefixes, infixes, or suffixes relevant to the group.
+            - "MEANING_ORIGIN": This must contain ONLY details of the group's origin, etymology, common prefixes, infixes, or suffixes relevant to the group, NOT it's meaning.
             - "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": This must be empty
             - "SIMPLE_PAST": This must be empty
             - "PAST_PARTICIPLE": This must be empty
@@ -218,7 +529,16 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
         2.  **VOCABULARY** (for single-meaning words, or individual meanings within a VOCABULARY_GROUP):
             - "MODULETYPE": "VOCABULARY"
             - "TITLE": The word (or phrase)
-            - "CEFR": This must be "A1"
+			- "IPA": String. The British English (RP) IPA transcription of the word. This MUST include:
+                - Primary stress marks (ˈ)
+                - Secondary stress marks (ˌ)
+                - **Syllable delimiters (.), accurately placed between syllables.**
+                For example:
+                - "music" should be "ˈmjuː.zɪk" 
+                - "apple" should be "ˈæp.əl"
+                - "elephant" should be "ˈel.ɪ.fənt"
+                - "important" should be "ɪmˈpɔː.tənt"
+			- "CEFR": This must be "A1"
             - "DESCRIPTION": Must be 3 numbered sentences (e.g., "1. Sentence one. 2. Sentence two. 3. Sentence three.") that use the word in the context of its specific meaning
             - "THEME":This must be ${theme}
             - "WORD_TYPE": This must be one of the following: "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "conjunction", "interjection", "article", "determiner"
@@ -229,21 +549,23 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
 			- "imagePrompt": String. A concise, descriptive instruction for an AI image generator to create an image based on one of the sentences in the DESCRIPTION field. (Only for MODULETYPE "VOCABULARY")
 
         **Crucial Rules for Generation:**
-        - You MUST create a document with VOCABULARY_GROUP MODULETYPE for a word when there is more than one possible meaning of that word. That VOCABULARY_GROUP document must have a null WORD_TYPE.
+        - ALWAYS check first if a word has more than one meaning. You MUST create a document with VOCABULARY_GROUP MODULETYPE for a word when there is more than one possible meaning of that word. That VOCABULARY_GROUP document must have a null WORD_TYPE.Create a VOCABULARY_GROUP record if there is more than 1 meaning of the word eg. 'present' can be a verb or a noun each with different pronunciation.
 		- **MODULETYPE:** You MUST create a unique VOCABULARY MODULETYPE document for EACH and EVERY POSSIBLE meaning of any given word. For example 'set' has more than 10 separarate meanings, so it MUST cause the creation of a VOCABULARY_GROUP MODULETYPE document, and at least 10 documents for that word with a MODULETYPE of VOCABULARY, each with their specific values for the other relevant fields described here.      
 		- **CEFR Hierarchy:** For All VOCABULARY AND VOCABULARY_GROUP modules, their 'CEFR' level MUST be set to "A1").
         - **Polysemy:** If a word has multiple *distinct* meanings or functions including as different parts of speech (e.g., "book" as a noun and "book" as a verb; "like" as a verb and as an adjective, and as a preposition, and as a conjunction ), you MUST create a "VOCABULARY_GROUP" for it. This "VOCABULARY_GROUP" must contain individual "VOCABULARY" entries for *each* distinct meaning and/or part of speech. If a word has only one primary meaning, create only a single "VOCABULARY" entry directly.
         - **Output Format:** Provide ONLY the JSON array. Do not include any introductory or concluding text.
         - **No IDs/URLs:** Do NOT include "MODULEID" or "IMAGEURL" fields in your output. These will be generated by the Cloud Function.
         - **Number of Items:** Aim to generate exactly ${numWords} top-level vocabulary items (including VOCABULARY_GROUPs).
-        - **WORD_TYPE and MODULETYPE** Values for 'WORD_TYPE' may only exist for modules with a MODULETYPE of 'VOCABULARY'.That is because a word could have more than one 'WORD_TYPE'.
+        - **WORD_TYPE:** Values for 'WORD_TYPE' may only exist for modules with a MODULETYPE of 'VOCABULARY'.That is because a word could have more than one 'WORD_TYPE'.**This field MUST ONLY be provided for modules with "MODULETYPE": "VOCABULARY".
         - **TITLE:** This field must contain the word exclusively.
         - **MEANING_ORIGIN:** You MUST include a description of the particular meaning of that instance of a VOCABULARY MODULETYPE document AND you must add to that a description of the etymology of that instance of the word also.
+		- **IPA**: This field MUST contain the British English (RP) IPA transcription, including primary (ˈ) and secondary (ˌ) stress marks, and syllable delimiters (.). Ensure accurate syllable breakdown.**This field MUST ONLY be provided for modules with "MODULETYPE": "VOCABULARY". For "VOCABULARY_GROUP" modules, this field MUST be omitted or be an empty string.**
 		
 		Example structure for output (simplified, real output will have more fields per module as per rules):
         [
           {
             "TITLE": "cat",
+			"IPA": "kæt",
             "MODULETYPE": "VOCABULARY",
             "CEFR": "A1",
             "DESCRIPTION": "1. The cat sat. 2. The cat purred. 3. I like cats.",
@@ -269,8 +591,9 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
 
 		 },
           {
-            "TITLE": "set",
-            "MODULETYPE": "VOCABULARY",
+            "TITLE": "set", 
+            "IPA": "sɛt",
+			"MODULETYPE": "VOCABULARY",
             "CEFR": "A1",
             "DESCRIPTION": "1. He set the scene. 2. Have you set the table? 3. Let me set the record straight.",
             "THEME": "General English",
@@ -283,6 +606,7 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
 			},
           {
             "TITLE": "set",
+			"IPA": "sɛt",
             "MODULETYPE": "VOCABULARY",
             "CEFR": "A1",
             "DESCRIPTION": "1. Do you have a set of golf clubs? 2. I would like the whole album set. 3. Is this the complete set?",
@@ -293,7 +617,23 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
             "SIMPLE_PAST": "",
             "PAST_PARTICIPLE": "",
 			"imagePrompt": "A golfer holding a set of clubs."
-
+		  },
+		  {
+            "TITLE": "music", 
+			"IPA": "ˈmjuː.zɪk", 
+            "MODULETYPE": "VOCABULARY",
+            "CEFR": "A1",
+            "DESCRIPTION": "1. I love to listen to music. 2. The music filled the room. 3. She studies music theory.",
+            "THEME": "General English",
+            "WORD_TYPE": "noun",
+            "MEANING_ORIGIN": "The art of combining vocal or instrumental sounds in a harmonious or expressive way. From Old French musique, from Latin musica, from Greek mousikē (tekhnē) 'art of the Muses'.",
+            "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": "",
+            "SIMPLE_PAST": "",
+            "PAST_PARTICIPLE": "",
+            "imagePrompt": "People enjoying live music at a concert.",
+        }
+			
+			]
         `; // This closes the backtick for the geminiPrompt multiline string.
 
         const result = await textGenModel.generateContent(geminiPrompt);
@@ -360,6 +700,7 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
                                 MODULETYPE: "VOCABULARY",
                                 TITLE: meaning.TITLE,
                                 normalizedTitle: normalizeTitle(meaning.TITLE),
+								IPA: meaning.IPA,
                                 CEFR: meaning.CEFR,
                                 DESCRIPTION: meaning.DESCRIPTION,
                                 imagePrompt: meaning.imagePrompt,
@@ -393,12 +734,7 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
                     MEANING_ORIGIN: item.MEANING_ORIGIN,
                     PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR,
 					SIMPLE_PAST: item.SIMPLE_PAST,
-					PAST_PARTICIPLE: item
-					
-					
-					
-					
-					.PAST_PARTICIPLE,
+					PAST_PARTICIPLE: item.PAST_PARTICIPLE,
 					MODULEID_ARRAY: meaningIds,
                     IMAGEURL: "",
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -423,6 +759,7 @@ exports.generateVocabularyContent = functions.region('asia-southeast1').runWith(
                     MODULETYPE: "VOCABULARY",
                     TITLE: item.TITLE,
                     normalizedTitle: itemNormalizedTitle,
+					IPA: item.IPA,
                     CEFR: item.CEFR,
                     DESCRIPTION: item.DESCRIPTION,
                     imagePrompt: item.imagePrompt,
@@ -496,79 +833,16 @@ exports.populatePhonemesScheduled = functions.region('asia-southeast1').runWith(
     const batch = firestore.batch();
     const now = admin.firestore.FieldValue.serverTimestamp();
 
-    // British English (Received Pronunciation) Phoneme Data
-    const rpPhonemes = [
-        // --- RP Monophthongs (Short Vowels) ---
-        { ipa: 'ɪ', titleSuffix: "Short 'i' sound (as in 'kit')", theme: 'Vowel' },
-        { ipa: 'e', titleSuffix: "Short 'e' sound (as in 'dress')", theme: 'Vowel' },
-        { ipa: 'æ', titleSuffix: "Short 'a' sound (as in 'trap')", theme: 'Vowel' },
-        { ipa: 'ɒ', titleSuffix: "Short 'o' sound (as in 'lot')", theme: 'Vowel' },
-        { ipa: 'ʌ', titleSuffix: "Short 'u' sound (as in 'strut')", theme: 'Vowel' },
-        { ipa: 'ʊ', titleSuffix: "Short 'oo' sound (as in 'foot')", theme: 'Vowel' },
-        { ipa: 'ə', titleSuffix: "Schwa sound (as in 'about', unstressed)", theme: 'Vowel' },
-
-        // --- RP Monophthongs (Long Vowels) ---
-        { ipa: 'iː', titleSuffix: "Long 'ee' sound (as in 'fleece')", theme: 'Vowel' },
-        { ipa: 'ɑː', titleSuffix: "Long 'ah' sound (as in 'start')", theme: 'Vowel' },
-        { ipa: 'ɔː', titleSuffix: "Long 'aw' sound (as in 'thought')", theme: 'Vowel' },
-        { ipa: 'uː', titleSuffix: "Long 'oo' sound (as in 'goose')", theme: 'Vowel' },
-        { ipa: 'ɜː', titleSuffix: "Long 'er' sound (as in 'nurse')", theme: 'Vowel' },
-
-        // --- RP Diphthongs (Vowel Glides) ---
-        { ipa: 'eɪ', titleSuffix: "Diphthong 'ay' sound (as in 'face')", theme: 'Diphthong' },
-        { ipa: 'aɪ', titleSuffix: "Diphthong 'eye' sound (as in 'my')", theme: 'Diphthong' },
-        { ipa: 'ɔɪ', titleSuffix: "Diphthong 'oy' sound (as in 'boy')", theme: 'Diphthong' },
-        { ipa: 'əʊ', titleSuffix: "Diphthong 'oh' sound (as in 'goat')", theme: 'Diphthong' },
-        { ipa: 'aʊ', titleSuffix: "Diphthong 'ow' sound (as in 'mouth')", theme: 'Diphthong' },
-        { ipa: 'ɪə', titleSuffix: "Diphthong 'ear' sound (as in 'near')", theme: 'Diphthong' },
-        { ipa: 'eə', titleSuffix: "Diphthong 'air' sound (as in 'square')", theme: 'Diphthong' },
-        { ipa: 'ʊə', titleSuffix: "Diphthong 'ure' sound (as in 'cure')", theme: 'Diphthong' },
-
-        // --- Consonants (Plosives) ---
-        { ipa: 'p', titleSuffix: "Voiceless 'p' sound", theme: 'Consonant' },
-        { ipa: 'b', titleSuffix: "Voiced 'b' sound", theme: 'Consonant' },
-        { ipa: 't', titleSuffix: "Voiceless 't' sound", theme: 'Consonant' },
-        { ipa: 'd', titleSuffix: "Voiced 'd' sound", theme: 'Consonant' },
-        { ipa: 'k', titleSuffix: "Voiceless 'k' sound", theme: 'Consonant' },
-        { ipa: 'g', titleSuffix: "Voiced 'g' sound", theme: 'Consonant' },
-        { ipa: 'ʔ', titleSuffix: "Glottal stop (as in 'uh-oh')", theme: 'Consonant' },
-
-        // --- Consonants (Fricatives) ---
-        { ipa: 'f', titleSuffix: "Voiceless 'f' sound", theme: 'Consonant' },
-        { ipa: 'v', titleSuffix: "Voiced 'v' sound", theme: 'Consonant' },
-        { ipa: 'θ', titleSuffix: "Voiceless 'th' sound (as in 'thin')", theme: 'Consonant' },
-        { ipa: 'ð', titleSuffix: "Voiced 'th' sound (as in 'this')", theme: 'Consonant' },
-        { ipa: 's', titleSuffix: "Voiceless 's' sound", theme: 'Consonant' },
-        { ipa: 'z', titleSuffix: "Voiced 'z' sound", theme: 'Consonant' },
-        { ipa: 'ʃ', titleSuffix: "Voiceless 'sh' sound (as in 'she')", theme: 'Consonant' },
-        { ipa: 'ʒ', titleSuffix: "Voiced 'zh' sound (as in 'measure')", theme: 'Consonant' },
-        { ipa: 'h', titleSuffix: "Voiceless 'h' sound", theme: 'Consonant' },
-
-        // --- Consonants (Affricates) ---
-        { ipa: 'tʃ', titleSuffix: "Voiceless 'ch' sound (as in 'church')", theme: 'Consonant' },
-        { ipa: 'dʒ', titleSuffix: "Voiced 'j' sound (as in 'judge')", theme: 'Consonant' },
-
-        // --- Consonants (Nasals) ---
-        { ipa: 'm', titleSuffix: "Voiced 'm' sound", theme: 'Consonant' },
-        { ipa: 'n', titleSuffix: "Voiced 'n' sound", theme: 'Consonant' },
-        { ipa: 'ŋ', titleSuffix: "Voiced 'ng' sound (as in 'sing')", theme: 'Consonant' },
-
-        // --- Consonants (Approximants) ---
-        { ipa: 'l', titleSuffix: "Voiced 'l' sound", theme: 'Consonant' },
-        { ipa: 'r', titleSuffix: "Voiced 'r' sound (as in 'rat')", theme: 'Consonant' },
-        { ipa: 'w', titleSuffix: "Voiced 'w' sound", theme: 'Consonant' },
-        { ipa: 'j', titleSuffix: "Voiced 'y' sound (as in 'yes')", theme: 'Consonant' }
-    ];
-
-    functions.logger.info(`[populatePhonemesScheduled] Starting to create ${rpPhonemes.length} British English (RP) phoneme documents in '${collectionName}' collection...`);
+    functions.logger.info(`[populatePhonemesScheduled] Starting to create ${allRpPhonemes.length} British English (RP) phoneme documents in '${collectionName}' collection...`);
 
     try {
-        for (const p of rpPhonemes) {
-		const moduleID = `phoneme_${encodeURIComponent(p.ipa).replace(/%/g, '_').toLowerCase()}`;
-            const phonemeDocRef = firestore.collection(collectionName).doc(moduleID);
+        for (const p of allRpPhonemes) {
+		//const moduleID = `phoneme_${encodeURIComponent(p.ipa).replace(/%/g, '_').toLowerCase()}`;
+          const moduleID = p.ipa; // Direct use of IPA as the Document ID   
+			const phonemeDocRef = firestore.collection(collectionName).doc(moduleID);
 
             const docSnapshot = await phonemeDocRef.get();
-// Inside your for (const p of rpPhonemes) loop, before constructing the 'request' object:
+// Inside your for (const p of allRpPhonemes) loop, before constructing the 'request' object:
 
 let ssmlInputText = p.ipa; // Default to just the IPA symbol for the text inside the phoneme tag
 let ssmlPhAttribute = p.ipa; // Default to just the IPA symbol for the 'ph' attribute
@@ -576,9 +850,9 @@ let ssmlPhAttribute = p.ipa; // Default to just the IPA symbol for the 'ph' attr
 // Define the problematic phonemes (YOU NEED TO FILL THIS ARRAY WITH YOUR SPECIFIC ONES)
 // *** YOU WILL POPULATE THESE ARRAYS BASED ON YOUR COMPLETE LIST OF PROBLEMATIC PHONEMES ***
 // Consonants that are silent or say their letter name. These will get the 'p.ipa + ə' treatment.
-const consonantProblemPhonemes = ['z', 'w', 'v', 't', 's', 'r', 'p', 'n', 'm', 'l', 'k', 'l', 'h', 'g', 'f', 'e', 'd', 'b', 'j', 'ʒ','tʃ', 'ʔ', 'ʃ', 'ŋ', 'ð', 'dʒ', 'θ']; //  list, problematic consonants 
+const consonantProblemPhonemes = ['z', 'w', 'v', 't', 's', 'r', 'p', 'n', 'm', 'l', 'k', 'l', 'h', 'g', 'f', 'e', 'd', 'b', 'j', 'ʒ','tʃ', 'ʔ', 'ʃ', 'ŋ', 'ð', 'dʒ', 'θ', 'c', 'kʼ', 'pʼ', 'q', 'sʼ', 'tʼ', 'x', 'y', 'ç', 'ħ', 'ǀ', 'ǁ', 'ǂ', 'ǃ', 'ɓ', 'ɕ', 'ɖ', 'ɗ', 'ɟ', 'ɠ', 'ɡ', 'ɢ', 'ɣ', 'ɥ', 'ɦ', 'ɧ', 'ɬ', 'ɭ', 'ɮ', 'ɯ', 'ɰ', 'ɱ', 'ɲ', 'ɳ', 'ɴ', 'ɸ', 'ɹ', 'ɺ', 'ɻ', 'ɽ', 'ɾ', 'ʀ', 'ʁ', 'ʂ', 'ʄ', 'ʈ', 'ʋ', 'ʍ', 'ʎ', 'ʐ', 'ʑ', 'ʕ', 'ʘ', 'ʙ', 'ʛ', 'ʜ', 'ʝ', 'ʟ', 'ʡ', 'ʢ', 'β', 'χ', 'ⱱ']; //  list, problematic consonants 
 // Vowels that are silent. These will rely on voice selection for vocalization.
-const vowelProblemPhonemes = ['ʊ', 'ʔ', 'ɪ', 'ʊə', 'i'];
+const vowelProblemPhonemes = ['ʊ', 'ʔ', 'ɪ', 'ʊə', 'i', 'eəʳ', 'o', 'uː', 'ø', 'ɐ', 'ɑ', 'ɑː', 'ɒ', 'ɔ', 'ɘ', 'ɜ', 'ɜː', 'ɜːʳ', 'ɞ', 'ɤ', 'ɨ', 'ɪəʳ', 'ɵ', 'ɶ', 'ʉ', 'ʊəʳ', 'ʌ', 'ʏ'];
 
 // Check if the current phoneme is in our problematic list
 if (consonantProblemPhonemes.includes(p.ipa)) {
@@ -623,8 +897,9 @@ const request = {
                 }
 
                 // 3. Upload the Audio to Cloud Storage
-                const audioFileName = `${moduleID}.mp3`; // e.g., phoneme_ɪ.mp3
-                const audioFilePath = `phoneme_audio/${audioFileName}`; // Path in Cloud Storage bucket
+                //const audioFileName = `${moduleID}.mp3`; // e.g., phoneme_ɪ.mp3
+                  const audioFileName = `${p.ipa}.mp3`; // e.g., ɪ.mp3
+				const audioFilePath = `phoneme_audio/${audioFileName}`; // Path in Cloud Storage bucket
                 const file = bucket.file(audioFilePath);
 
                 await file.save(audioContent, {
@@ -647,7 +922,7 @@ const request = {
                 MODULEID: moduleID,
                 MODULETYPE: 'PHONEME',
                 TITLE: `${p.ipa} - ${p.titleSuffix}`,
-                IPA_SYMBOL: p.ipa,
+                IPA: p.ipa,
                 DESCRIPTION: `Learn how to produce the ${p.titleSuffix}. This phoneme is crucial for clear British English pronunciation.`,
                 CEFR: null,
                 MEANING_ORIGIN: null,
@@ -694,7 +969,107 @@ const request = {
 });
 
 
-// This is the last line of section 2
+// --- NEW: Scheduled Function to populate the Syllables Collection ---
+// This function can be triggered manually from the Firebase Console (Functions -> 'populateSyllablesScheduled' -> Trigger Now)
+// It will run automatically once a year (Jan 1st), but you'll primarily trigger it manually for one-time setup.
+exports.populateSyllablesScheduled = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).pubsub.schedule('0 0 1 1 *') // Runs Jan 1st (manual trigger is primary use)
+    .onRun(async (context) => {
+        const firestore = admin.firestore();
+        const bucket = admin.storage().bucket();
+        const ttsClient = new TextToSpeechClient();
+        const collectionName = 'syllables';
+        const batch = firestore.batch();
+        const now = admin.firestore.FieldValue.serverTimestamp();
+
+        // --- IMPORTANT: PASTE YOUR GENERATED 3000 SYLLABLES ARRAY HERE! ---
+        // This array will be generated by the separate Node.js script described below.
+        // It should look like: [{ ipa: 'li', title: "Syllable: li" }, { ipa: 'ʌ', title: "Syllable: ʌ" }, ...]
+        const commonEnglishSyllables = 
+
+    functions.logger.info(`[populateSyllablesScheduled] Starting to create ${commonEnglishSyllables.length} English syllable documents...`);
+
+        try {
+            for (const s of commonEnglishSyllables) {
+                // *** MODIFICATION: Use raw IPA as the Document ID ***
+                const moduleID = s.ipa; // Direct use of IPA as the Document ID
+                const syllableDocRef = firestore.collection(collectionName).doc(moduleID);
+
+                const docSnapshot = await syllableDocRef.get();
+
+                let newAudioUrl = null;
+
+                try {
+                    const request = {
+                        input: { ssml: `<speak><phoneme alphabet="ipa" ph="${s.ipa}">${s.ipa}</phoneme></speak>` },
+                        voice: { languageCode: 'en-GB', ssmlGender: 'FEMALE', name: 'en-GB-Neural2-A' },
+                        audioConfig: { audioEncoding: 'MP3' },
+                    };
+
+                    const [response] = await ttsClient.synthesizeSpeech(request);
+                    const audioContent = response.audioContent;
+
+                    if (audioContent.length < 500) {
+                        functions.logger.warn(`Generated audio for syllable ${s.ipa} is suspiciously small (${audioContent.length} bytes).`);
+                    }
+
+                    // *** MODIFICATION: Audio file name uses raw IPA ***
+                    const audioFileName = `${s.ipa}.mp3`;
+                    const audioFilePath = `syllable_audio/${audioFileName}`;
+                    const file = bucket.file(audioFilePath);
+
+                    await file.save(audioContent, {
+                        metadata: { contentType: 'audio/mpeg' },
+                        public: true
+                    });
+
+                    newAudioUrl = file.publicUrl();
+                    functions.logger.info(`Generated and uploaded audio for syllable ${s.ipa} to: ${newAudioUrl}`);
+
+                } catch (audioGenError) {
+                    functions.logger.error(`Failed to generate or upload audio for syllable ${s.ipa}:`, audioGenError);
+                    newAudioUrl = docSnapshot.exists && docSnapshot.data().audioUrl ? docSnapshot.data().audioUrl : null;
+                    functions.logger.warn(`Retaining previous audioUrl for ${s.ipa} due to generation error: ${newAudioUrl}`);
+                }
+
+                // --- NEW ADDITION: CALL THE NEW HELPER FUNCTION HERE TO POPULATE MODULEID_ARRAY ---
+                const phonemeModuleIDsForSyllable = getPhonemeIDsFromSyllableIPA(s.ipa);
+                functions.logger.info(`Syllable '${s.ipa}' decomposed into phonemes: ${JSON.stringify(phonemeModuleIDsForSyllable)}`);
+
+                const baseDocData = {
+                    MODULEID: moduleID, // This field now matches the Document ID directly (the raw IPA)
+                    MODULETYPE: 'SYLLABLE',
+                    TITLE: `Syllable: ${s.ipa}`, // *** MODIFICATION: Updated title format to use raw IPA ***
+                    IPA: s.ipa,
+                    DESCRIPTION: `Audio and details for the English syllable "${s.ipa}".`,
+                    normalizedTitle: s.ipa.toLowerCase(),
+                    audioUrl: newAudioUrl,
+                    MODULEID_ARRAY: phonemeModuleIDsForSyllable, // *** MODIFICATION: Populate with the parsed phoneme IDs ***
+                    createdAt: now,
+                    updatedAt: now,
+                };
+
+                if (docSnapshot.exists) {
+                    batch.update(syllableDocRef, {
+                        ...baseDocData,
+                        createdAt: docSnapshot.data().createdAt,
+                        // Ensure MODULEID_ARRAY is updated with the new parsing logic
+                        MODULEID_ARRAY: phonemeModuleIDsForSyllable, // *** MODIFICATION: Ensure update applies the new array ***
+                    });
+                    functions.logger.info(`[populateSyllablesScheduled] Updating existing document for syllable ${s.ipa}.`);
+                } else {
+                    batch.set(syllableDocRef, baseDocData);
+                    functions.logger.info(`[populateSyllablesScheduled] Creating new document for syllable ${s.ipa}.`);
+                }
+            }
+
+            await batch.commit();
+            functions.logger.info(`[populateSyllablesScheduled] Batch commit completed for English syllable documents.`);
+            return { status: "success", message: `Successfully processed syllable documents in '${collectionName}' collection.` };
+        } catch (error) {
+            functions.logger.error('[populateSyllablesScheduled] Error processing syllable documents:', error);
+            return { status: "error", message: `Failed to process syllable documents: ${error.message}` };
+        }
+    });
 // This is the beginning of section 3
 
 // --- 3. Image Generation Logic and Cloud Function Triggers (Firestore and PubSub) ---
@@ -808,31 +1183,173 @@ async function processVocabularyImageGeneration(doc) {
         return { id: vocabId, status: 'failed', error: imgError.message };
     }
 }
-//************************ THIS FUNCTION BELOW SWITCHED OFF FOR NOW. RESOURCE HEAVY. THE SAME RESULT***        ***
-//************************ CAN BE ACHIEVED WITH THE 'BATCH' FUNCTION INSTEAD, AND WITH LESS RESOURCE***
-// --- Firestore onCreate Trigger for Image Generation ---
-// This function triggers when a new document is created in 'learningContent'.
-// It immediately tries to generate an image if it's a VOCABULARY type.
-// --- CHANGE: Commented out to disable this trigger. ---
+// --- Cloud Firestore onCreate Trigger for New Vocabulary Content ---
+// This function is triggered when a new document is created in the 'learningContent' collection.
+// It is responsible for enriching vocabulary content with phonetics, audio, and syllable breakdowns,
+// and then triggering image generation.
 
-exports.onNewVocabularyContentCreate = functions.region('asia-southeast1').firestore
+exports.onNewVocabularyContentCreate = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).firestore
     .document('learningContent/{docId}')
     .onCreate(async (snapshot, context) => {
         const data = snapshot.data();
-        // Only process documents that are of type 'VOCABULARY' and are 'pending' image generation
+        const docId = context.params.docId;
+        const db = admin.firestore();
+
+        functions.logger.info(`onNewVocabularyContentCreate triggered for document: ${docId}`);
+
+        if (data.MODULETYPE === 'VOCABULARY') {
+            let fullWordIpaWithDelimiters = null; // Stores IPA like 'ˈɛk.skə.veɪt'
+            let fullWordIpaClean = null;        // Stores IPA like 'ɛk.skə.veɪt' (no stress/delimiters, for storage)
+            let syllablesParsedFromIpa = [];    // Stores ['ɛk', 'skə', 'veɪt']
+
+            try {
+                // Step 1: Fetch Word Phonetics from Dictionary API
+                //if (data.TITLE) {
+                //    const wordToFetch = data.TITLE.toLowerCase();
+                //    functions.logger.info(`Attempting to fetch phonetics for word: "${wordToFetch}" from dictionary API.`);
+           
+                // Step 1: Use IPA provided directly by Gemini
+                if (data.IPA) {
+                    functions.logger.info(`Using IPA from Gemini for "${data.TITLE}": "${data.IPA}"`);
+
+                    // Gemini is now expected to provide the IPA in the desired format
+                    // (with stress marks and syllable delimiters)
+                    fullWordIpaWithDelimiters = data.IPA;
+
+                    // For storage in Firestore's 'IPA' field, if you want a clean version
+                    // without stress or syllable delimiters (as your old code suggested for storage),
+                    // then apply the cleaning here. Otherwise, you can just use fullWordIpaWithDelimiters.
+                    // Assuming you still want a "clean" stored version:
+                    fullWordIpaClean = data.IPA.replace(/[ˈˌ.]/g, '');
+
+                    // Syllabify using your existing helper based on the IPA from Gemini
+                    syllablesParsedFromIpa = splitIpaIntoSyllables(fullWordIpaWithDelimiters);
+                    functions.logger.info(`Syllables parsed from Gemini's IPA for "${data.TITLE}": ${JSON.stringify(syllablesParsedFromIpa)}`);
+
+                } else {
+                    functions.logger.warn(`Document ${docId} (Title: ${data.TITLE}) has no IPA provided by Gemini. Skipping phonetic enrichment for this item.`);
+                    // If Gemini didn't provide IPA, the 'fullWordIpaWithDelimiters' will remain null,
+                    // preventing subsequent audio generation and syllable processing for this item.
+                }
+
+                    functions.logger.warn(`Document ${docId} has no TITLE. Cannot fetch phonetics.`);
+                
+
+                const updatePayload = {};
+
+                // --- Set IPA field ---
+                //if (fullWordIpaClean) {
+                    functions.logger.info(`Current Value to load IPA = "${fullWordIpaWithDelimiters}": "${data.TITLE}": "${data.IPA}"`);
+					updatePayload.IPA = fullWordIpaWithDelimiters;
+                //}
+
+                // --- Generate Word Audio and Syllable Processing ---
+                // We proceed if we have a full word IPA to work with
+                if (fullWordIpaWithDelimiters) {
+                    // Generate audio for the full word
+                    const wordAudioUrl = await generateAudioAndUpload(
+                        data.TITLE,
+                        fullWordIpaWithDelimiters, // Use IPA with stress and delimiters for accurate TTS
+                        `word_${docId}`,
+                        'word_audio/'
+                    );
+
+                    if (wordAudioUrl) {
+                        updatePayload.audioUrl = wordAudioUrl;
+                        functions.logger.info(`Word audio URL generated for ${docId}.`);
+                    } else {
+                        functions.logger.warn(`Could not generate or upload audio for word: "${data.TITLE}".`);
+                    }
+
+                    // Process Syllables and Update VOCABULARY MODULEID_ARRAY
+                    const syllableIDsForVocabulary = [];
+                    const syllablesCollection = db.collection('syllables');
+                    const batch = db.batch();
+
+                    if (syllablesParsedFromIpa.length > 0) {
+                        functions.logger.info(`Processing ${syllablesParsedFromIpa.length} actual syllables for word: "${data.TITLE}".`);
+
+                        for (const syllableIpa of syllablesParsedFromIpa) {
+                            const syllableId = syllableIpa.replace(/[.#$/[\]]/g, '_').toLowerCase();
+                            functions.logger.debug(`Checking syllable: "${syllableIpa}" (ID: ${syllableId})`);
+
+                            const existingSyllableDoc = await syllablesCollection.doc(syllableId).get();
+                            let currentSyllableAudioUrl = null;
+                            let currentSyllablePhonemeIDs = []; // This will hold the extracted phoneme symbols
+
+                            if (!existingSyllableDoc.exists) {
+                                functions.logger.info(`Syllable "${syllableIpa}" does not exist (ID: ${syllableId}). Creating new document.`);
+
+                                // Generate Audio for this specific syllable
+                                currentSyllableAudioUrl = await generateAudioAndUpload(
+                                    syllableIpa, // Use the syllable's IPA as text for TTS
+                                    syllableIpa, // Use the syllable's IPA for SSML
+                                    `syllable_${syllableId}`,
+                                    'syllable_audio/' // Audio for individual syllables
+                                );
+
+                                // Link syllable to phonemes using the helper function
+                                currentSyllablePhonemeIDs = getPhonemeIDsFromSyllableIPA(syllableIpa);
+                                functions.logger.info(`Syllable "${syllableIpa}" decomposed into phonemes: ${JSON.stringify(currentSyllablePhonemeIDs)}`);
+
+                                // Create Syllable Document
+                                const newSyllableData = {
+                                    MODULEID: syllableId,
+                                    MODULETYPE: 'SYLLABLE',
+                                    TITLE: syllableIpa,
+                                    IPA: syllableIpa,
+                                    audioUrl: currentSyllableAudioUrl || null,
+                                    MODULEID_ARRAY: currentSyllablePhonemeIDs, // Link to phonemes (literal IPA symbols)
+                                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                                    normalizedTitle: syllableIpa.toLowerCase(),
+                                };
+                                batch.set(syllablesCollection.doc(syllableId), newSyllableData);
+                                functions.logger.info(`Added syllable "${syllableId}" to batch.`);
+                            } else {
+                                functions.logger.info(`Syllable "${syllableIpa}" (ID: ${syllableId}) already exists. Skipping creation/update.`);
+                                if (existingSyllableDoc.data().MODULEID_ARRAY) {
+                                    currentSyllablePhonemeIDs = existingSyllableDoc.data().MODULEID_ARRAY;
+                                }
+                            }
+                            syllableIDsForVocabulary.push(syllableId);
+                        }
+                    }
+
+                    if (syllableIDsForVocabulary.length > 0) {
+                        await batch.commit();
+                        functions.logger.info(`Firestore batch committed for ${syllableIDsForVocabulary.length} syllables.`);
+
+                        updatePayload.MODULEID_ARRAY = admin.firestore.FieldValue.arrayUnion(...syllableIDsForVocabulary);
+                        functions.logger.info(`Prepared MODULEID_ARRAY for vocabulary document ${docId} with syllable IDs.`);
+                    } else {
+                        functions.logger.info(`No actual syllables processed for ${docId}. No batch commit needed.`);
+                    }
+                } else {
+                    functions.logger.warn(`No valid IPA (with or without delimiters) found to process syllables for "${data.TITLE}".`);
+                }
+
+                if (Object.keys(updatePayload).length > 0) {
+                    await snapshot.ref.update(updatePayload);
+                    functions.logger.info(`Updated learningContent document ${docId} with payload: ${JSON.stringify(updatePayload)}`);
+                }
+
+            } catch (error) {
+                functions.logger.error(`Error during phonetic and syllable processing for ${docId}:`, error);
+            }
+        } else {
+            functions.logger.info(`Document ${docId} is not a VOCABULARY type. Skipping phonetic enrichment.`);
+        }
+
         if (data.MODULETYPE === 'VOCABULARY' && data.imageStatus === 'pending') {
-            functions.logger.info(`New VOCABULARY document created with pending image for ${context.params.docId}. Attempting image generation.`);
-            // Use the reusable helper function
+            functions.logger.info(`New VOCABULARY document created with pending image for ${docId}. Attempting image generation.`);
             await processVocabularyImageGeneration(snapshot);
         } else {
-            functions.logger.info(`New document ${context.params.docId} created, but not a pending VOCABULARY item for image generation. Skipping.`);
+            functions.logger.info(`New document ${docId} created, but not a pending VOCABULARY item for image generation. Skipping.`);
         }
+
         return null;
     });
-
-//************************ THIS FUNCTION ABOVE ^SWITCHED OFF FOR NOW. RESOURCE HEAVY. THE SAME RESULT***        ***
-//************************ CAN BE ACHIEVED WITH THE 'BATCH' FUNCTION INSTEAD, AND WITH LESS RESOURCE ***
-
 // --- batchGenerateVocabularyImages NOW a Callable Function ---
 // This function will be triggered upon successful completion of generateVocabularyContent
 // to catch any remaining pending vocabulary items for image generation.

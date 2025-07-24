@@ -3,3 +3,6 @@ v1.006c  The version to start: a. basic sign in/on, b. set up vocabulary databas
 v1.006d  Added a 'loading' graphic to AdminSystem.html 
 v1.006e  Set up function in index.js to backend generate Phoneme collection
 v1.006f  Set up function in index.js to backend generate Phoneme collection as a one off. Code is left in for now and wont run unless forced from the google schedule functions page.
+v1.006g  added extra fields to learningContent in index.js to show verb forms if it's a verb.
+v1.006h  syllables collection, and switched to use raw IPA as the MODULEID for phonemes and syllables
+v1.006K  Derive and stor syllables, and store ipa value of the word along with it's syllables and phonemes
