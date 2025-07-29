@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Firebase Callable Cloud Function Reference ---
     const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
+    const generateGrammarContent = functions.httpsCallable('generateGrammarContent');
 
 
     // --- Firebase Authentication State Listener ---
@@ -131,8 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Display the result
        
 	try {
-            // Call the Cloud Function - this will now automatically include the user's ID token
-            // The Cloud Function itself will verify the admin custom claim.
+            // Call the Cloud Function - 
+            // Choose a moduletype to be generated on AdminSystem page
             if ( ModuleType == 'VOCABULARY') {
 			
 					const result = await generateVocabularyContent({
