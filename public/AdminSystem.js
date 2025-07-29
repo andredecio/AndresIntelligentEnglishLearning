@@ -22,8 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logoutButton');
     const contentGeneratorForm = document.getElementById('contentGeneratorForm');
     const cefrLevelSelect = document.getElementById('cefrLevel');
-    const numWordsInput = document.getElementById('numWords');
+    const numItemsInput = document.getElementById('numItems');
     const themeInput = document.getElementById('theme');
+    const ModuleTypeSelect = document.getElementById('ModuleType');	
     const responseDiv = document.getElementById('response');
     const loadingDiv = document.getElementById('loading');
 	const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
@@ -111,11 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Content Generator Form Submission Handler (Your original logic, now secured) ---
     contentGeneratorForm.addEventListener('submit', async (e) => {
         e.preventDefault(); // Prevent default form submission
-
+		
+        const ModuleType = ModuleTypeSelect.value; 
         const cefrLevel = cefrLevelSelect.value; // Corrected variable name
-        const numWords = parseInt(numWordsInput.value, 10); // Corrected variable name
-		if (isNaN(numWords) || numWords < 1 || numWords > 100) {
-                responseDiv.textContent = 'Please enter a number of words between 1 and 100.';
+        const numItems = parseInt(numItemsInput.value, 10); // Corrected variable name
+		if (isNaN(numItems) || numItems < 1 || numItems > 100) {
+                responseDiv.textContent = 'Please enter a number of items between 1 and 100.';
                 skippedWordsDisplay.textContent = '';
 				return; // Stop execution if validation fails
             }
@@ -131,16 +133,26 @@ document.addEventListener('DOMContentLoaded', () => {
 	try {
             // Call the Cloud Function - this will now automatically include the user's ID token
             // The Cloud Function itself will verify the admin custom claim.
-            const result = await generateVocabularyContent({
-                cefrLevel: cefrLevel,
-                numWords: numWords,
-                theme: theme
-            });
+            if ( ModuleType == 'VOCABULARY') {
+			
+					const result = await generateVocabularyContent({
+					cefrLevel: cefrLevel,
+					numItems: numItems,
+					theme: theme
+			})};
+			else if ( ModuleType == 'GRAMMAR') {
+					const result = await generateGrammarContent({
+					cefrLevel: cefrLevel,
+					numItems: numItems,
+					theme: theme
+			})};
+
+				
 			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
 		
 		if (result.data.skippedWords && result.data.skippedWords.length > 0) {
                 const skippedWordsList = result.data.skippedWords.join(', ');
-                skippedWordsDisplay.textContent = `The following words were skipped as duplicates: ${skippedWordsList}.`;
+                skippedWordsDisplay.textContent = `The following items were skipped as duplicates: ${skippedWordsList}.`;
                 skippedWordsDisplay.style.color = 'orange'; // Make it stand out
             } else {
                 skippedWordsDisplay.textContent = '';
