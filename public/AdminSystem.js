@@ -137,13 +137,13 @@ document.addEventListener('DOMContentLoaded', () => {
            let result;
 		   if ( ModuleType == 'VOCABULARY') {
 			
-					const result = await generateVocabularyContent({
+					 result = await generateVocabularyContent({
 					cefrLevel: cefrLevel,
 					numItems: numItems,
 					theme: theme
 				});
 			} else if ( ModuleType == 'GRAMMAR') {
-					const result = await generateGrammarContent({
+					 result = await generateGrammarContent({
 					cefrLevel: cefrLevel,
 					numItems: numItems,
 					theme: theme
