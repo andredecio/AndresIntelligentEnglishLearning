@@ -139,14 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
 					cefrLevel: cefrLevel,
 					numItems: numItems,
 					theme: theme
-			})};
-			else if ( ModuleType == 'GRAMMAR') {
+				});
+			} else if ( ModuleType == 'GRAMMAR') {
 					const result = await generateGrammarContent({
 					cefrLevel: cefrLevel,
 					numItems: numItems,
 					theme: theme
-			})};
-
+				});
+			}
 				
 			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
 		
