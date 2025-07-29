@@ -134,7 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	try {
             // Call the Cloud Function - 
             // Choose a moduletype to be generated on AdminSystem page
-            if ( ModuleType == 'VOCABULARY') {
+           let result;
+		   if ( ModuleType == 'VOCABULARY') {
 			
 					const result = await generateVocabularyContent({
 					cefrLevel: cefrLevel,
