@@ -153,7 +153,7 @@ console.log("ModuleType:", ModuleType);
 			
 					 result = await generateVocabularyContent({
 					cefrLevel: cefrLevel,
-					numItems: numVItems,
+					numWords: numVItems,
 					theme: theme
 				});
 			} else if ( ModuleType == 'GRAMMAR') {
