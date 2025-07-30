@@ -8,11 +8,13 @@ const admin = require('firebase-admin'); // Firebase Admin SDK
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); 
 const textToSpeechClient = new TextToSpeechClient();
 
-functions.logger.info('Firebase Functions code deployed: v1.006l');  //Version modularise index.js
+functions.logger.info('Firebase Functions code deployed: v1.006n');  //Version modularise index.js
 
 
 // Direct initialization of Firebase Admin SDK. This is the most robust way. ---
 admin.initializeApp();
+
+//********************************************************************************************
 
 //ONE OFF PHONEME AND SYLLABLE BUILD
 // One off load of phonemes to collection
@@ -22,16 +24,21 @@ exports.populatePhonemesScheduled = populatePhonemesScheduled;
 // One off load of syllables from external file to collection
 const { populateSyllablesScheduled } = require('./finite use/populateSyllablesScheduled');
 exports.populateSyllablesScheduled = populateSyllablesScheduled;
-
+//********************************************************************************************
 
 //MAIN LOGIC AND BUILD OF VOCABULARY/VOCABULARY_GROUP
 //Main builder of vocabulary document using Gemini to provide the values (from AdminSystem page)
 const {generateVocabularyContent}= require('./logic/generateVocabularyContent');
 exports.generateVocabularyContent = generateVocabularyContent;
 
-//Trigger: Create the Actual Vocabulary document anew (originally from AdminSystem page)
-const { onNewVocabularyContentCreate } = require('./triggers/onNewVocabularyContentCreate');
-exports.onNewVocabularyContentCreate = onNewVocabularyContentCreate;
+//Main builder of Grammar document using Gemini to provide the values (from AdminSystem page)
+const {generateGrammarContent}= require('./logic/generateGrammarContent');
+exports.generateGrammarContent = generateGrammarContent;
+
+
+//Trigger: enriching module content with phonetics , audio, and syllable breakdowns(for vocab), and image for vocab and others
+const { onNewModuleContentCreate } = require('./triggers/onNewModuleContentCreate');
+exports.onNewModuleContentCreate = onNewModuleContentCreate;
 
 
 //HELPERS

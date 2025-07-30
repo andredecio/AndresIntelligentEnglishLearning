@@ -1,13 +1,13 @@
-// --- Cloud Firestore onCreate Trigger for New Vocabulary Content ---
+// --- Cloud Firestore onCreate Trigger for New Module Content ---
 // This function is triggered when a new document is created in the 'learningContent' collection.
-// It is responsible for enriching vocabulary content with phonetics, audio, and syllable breakdowns,
+// It is responsible for enriching Module content with phonetics, audio, and syllable breakdowns,
 // and then triggering image generation.
 
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const { generateAudioAndUpload } = require('../helpers/generateAudioAndUpload');
 const { getPhonemeIDsFromSyllableIPA } = require('../helpers/ipaUtils');
-const { processVocabularyImageGeneration } = require('../helpers/processVocabularyImageGeneration');
+const { processModuleImageGeneration } = require('../helpers/processModuleImageGeneration');
 
 
 function splitIpaIntoSyllables(ipaWord) {
@@ -20,14 +20,14 @@ function splitIpaIntoSyllables(ipaWord) {
 }
 
 
-const onNewVocabularyContentCreate = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).firestore
+const onNewModuleContentCreate = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).firestore
     .document('learningContent/{docId}')
     .onCreate(async (snapshot, context) => {
         const data = snapshot.data();
         const docId = context.params.docId;
         const db = admin.firestore();
 
-        functions.logger.info(`onNewVocabularyContentCreate triggered for document: ${docId}`);
+        functions.logger.info(`onNewModuleContentCreate triggered for document: ${docId}`);
 
         if (data.MODULETYPE === 'VOCABULARY') {
             let fullWordIpaWithDelimiters = null; // Stores IPA like 'ˈɛk.skə.veɪt'
@@ -168,9 +168,9 @@ const onNewVocabularyContentCreate = functions.region('asia-southeast1').runWith
             functions.logger.info(`Document ${docId} is not a VOCABULARY type. Skipping phonetic enrichment.`);
         }
 
-        if (data.MODULETYPE === 'VOCABULARY' && data.imageStatus === 'pending') {
-            functions.logger.info(`New VOCABULARY document created with pending image for ${docId}. Attempting image generation.`);
-            await processVocabularyImageGeneration(snapshot);
+        if (data.imageStatus === 'pending') {
+            functions.logger.info(`New MODULE document of type ${data.MODULETYPE } created with pending image for ${docId} about: ${data.TITLE}. Attempting image generation.`);
+            await processModuleImageGeneration(snapshot);
         } else {
             functions.logger.info(`New document ${docId} created, but not a pending VOCABULARY item for image generation. Skipping.`);
         }
@@ -178,4 +178,4 @@ const onNewVocabularyContentCreate = functions.region('asia-southeast1').runWith
         return null;
     });
 
-module.exports = { onNewVocabularyContentCreate };
+module.exports = { onNewModuleContentCreate };

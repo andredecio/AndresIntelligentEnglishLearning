@@ -7,3 +7,5 @@ v1.006g  added extra fields to learningContent in index.js to show verb forms if
 v1.006h  syllables collection, and switched to use raw IPA as the MODULEID for phonemes and syllables
 v1.006K  Derive and store syllables, and store ipa value of the word along with it's syllables and phonemes
 v1.006l  Reorganize index.js into modules. Tested major functions except 'sheduled ones'keep checking
+v1.006m  Created GRAMMAR type modules via same framework as VOCABULARY 
+v1.006n  Created Module level type content enrichment (images) for any Module Type in addition to vocab.

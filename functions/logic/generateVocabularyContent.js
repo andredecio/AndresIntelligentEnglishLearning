@@ -44,6 +44,7 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
         Each item in the array MUST represent a module and adhere to the following strict JSON schema and rules:
 
         **Primary Module Fields (all modules will have these):**
+		- "MODULETYPE": String (e.g. VOCABULARY_GROUP, VOCABULARY).
         - "TITLE": String.
         - "CEFR": String (e.g., "A1", "B2").
         - "DESCRIPTION": String.
@@ -88,6 +89,7 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
 
         **Crucial Rules for Generation:**
         - ALWAYS check first if a word has more than one meaning. You MUST create a document with VOCABULARY_GROUP MODULETYPE for a word when there is more than one possible meaning of that word. That VOCABULARY_GROUP document must have a null WORD_TYPE.Create a VOCABULARY_GROUP record if there is more than 1 meaning of the word eg. 'present' can be a verb or a noun each with different pronunciation.
+		- Once you have generated a VOCABULARY_GROUP record, you MUST then create one new VOCABULARY record for each meaning of that word that you created the VOCABULARY_GROUP for.
 		- **MODULETYPE:** You MUST create a unique VOCABULARY MODULETYPE document for EACH and EVERY POSSIBLE meaning of any given word. For example 'set' has more than 10 separarate meanings, so it MUST cause the creation of a VOCABULARY_GROUP MODULETYPE document, and at least 10 documents for that word with a MODULETYPE of VOCABULARY, each with their specific values for the other relevant fields described here.      
 		- **CEFR Hierarchy:** For All VOCABULARY AND VOCABULARY_GROUP modules, their 'CEFR' level MUST be set to "A1").
         - **Polysemy:** If a word has multiple *distinct* meanings or functions including as different parts of speech (e.g., "book" as a noun and "book" as a verb; "like" as a verb and as an adjective, and as a preposition, and as a conjunction ), you MUST create a "VOCABULARY_GROUP" for it. This "VOCABULARY_GROUP" must contain individual "VOCABULARY" entries for *each* distinct meaning and/or part of speech. If a word has only one primary meaning, create only a single "VOCABULARY" entry directly.
@@ -266,13 +268,13 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
                     TITLE: item.TITLE,
                     normalizedTitle: itemNormalizedTitle,
                     CEFR: item.CEFR,
-                    DESCRIPTION: item.DESCRIPTION,
+                    DESCRIPTION: "",
                     THEME: item.THEME,
-                    WORD_TYPE: item.WORD_TYPE,
+                    WORD_TYPE: "",
                     MEANING_ORIGIN: item.MEANING_ORIGIN,
-                    PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR,
-					SIMPLE_PAST: item.SIMPLE_PAST,
-					PAST_PARTICIPLE: item.PAST_PARTICIPLE,
+                    PRESENT_SIMPLE_3RD_PERSON_SINGULAR: "",
+					SIMPLE_PAST: "",
+					PAST_PARTICIPLE: "",
 					MODULEID_ARRAY: meaningIds,
                     IMAGEURL: "",
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
