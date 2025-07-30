@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Modified today 12/7/25 code deployed: v1.006d
+    // Modified today 29/7/25 code deployed: v1.006m
     // Firebase is initialized by /__/firebase/init.js via AdminSystem.html
     // So we can directly get references to the Firebase services here.
     const auth = firebase.auth(); // Get Auth instance
@@ -22,7 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logoutButton');
     const contentGeneratorForm = document.getElementById('contentGeneratorForm');
     const cefrLevelSelect = document.getElementById('cefrLevel');
-    const numItemsInput = document.getElementById('numItems');
+    const numVItemsInput = document.getElementById('numVItems');
+	const numGItemsInput = document.getElementById('numGItems');
     const themeInput = document.getElementById('theme');
     const ModuleTypeSelect = document.getElementById('ModuleType');	
     const responseDiv = document.getElementById('response');
@@ -113,15 +114,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Content Generator Form Submission Handler (Your original logic, now secured) ---
     contentGeneratorForm.addEventListener('submit', async (e) => {
         e.preventDefault(); // Prevent default form submission
-		
+		let numVItems, 
+		let numGItems,
         const ModuleType = ModuleTypeSelect.value; 
         const cefrLevel = cefrLevelSelect.value; // Corrected variable name
-        const numItems = parseInt(numItemsInput.value, 10); // Corrected variable name
-		if (isNaN(numItems) || numItems < 1 || numItems > 100) {
-                responseDiv.textContent = 'Please enter a number of items between 1 and 100.';
+				numVItems = parseInt(numVItemsInput.value, 10); // Corrected variable name
+		if (isNaN(numVItems) || numVItems < 1 || numVItems > 100) {
+                responseDiv.textContent = 'Please enter a number of Vocab items between 1 and 100.';
                 skippedWordsDisplay.textContent = '';
 				return; // Stop execution if validation fails
             }
+				numGItems = parseInt(numGItemsInput.value, 10); // Corrected variable name
+		if (isNaN(numGItems) || numGItems < 1 || numGItems > 100) {
+                responseDiv.textContent = 'Please enter a number of Grammar items between 1 and 100.';
+                skippedWordsDisplay.textContent = '';
+				return; // Stop execution if validation fails
+            }
+		
         const theme = themeInput.value; // Corrected variable name
 
         responseDiv.textContent = ''; // Clear previous response
@@ -139,13 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			
 					 result = await generateVocabularyContent({
 					cefrLevel: cefrLevel,
-					numItems: numItems,
+					numItems: numVItems,
 					theme: theme
 				});
 			} else if ( ModuleType == 'GRAMMAR') {
 					 result = await generateGrammarContent({
 					cefrLevel: cefrLevel,
-					numItems: numItems,
+					numItems: numGItems,
 					theme: theme
 				});
 			}

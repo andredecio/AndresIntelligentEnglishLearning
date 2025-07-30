@@ -53,3 +53,18 @@ body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; 
             padding: 8px 15px;
             font-size: 16px;
         }
+		  .input-pair {
+			display: flex;
+			gap: 1rem; /* spacing between items */
+			align-items: center;
+			margin-bottom: 1rem;
+		}
+
+		.input-pair label {
+			margin-right: 0.5rem;
+		}
+
+		.input-pair div {
+			display: flex;
+			flex-direction: column;
+		}
