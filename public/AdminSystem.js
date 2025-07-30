@@ -140,6 +140,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Display the result
        
 	try {
+		console.log("cefrLevel:", cefrLevel);
+console.log("theme:", theme);
+console.log("numVItems:", numVItems);
+console.log("numGItems:", numGItems);
+console.log("ModuleType:", ModuleType);
+
             // Call the Cloud Function - 
             // Choose a moduletype to be generated on AdminSystem page
            let result;
