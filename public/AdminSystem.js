@@ -114,8 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Content Generator Form Submission Handler (Your original logic, now secured) ---
     contentGeneratorForm.addEventListener('submit', async (e) => {
         e.preventDefault(); // Prevent default form submission
-		let numVItems, 
-		let numGItems,
+		let numVItems, numGItems;
         const ModuleType = ModuleTypeSelect.value; 
         const cefrLevel = cefrLevelSelect.value; // Corrected variable name
 				numVItems = parseInt(numVItemsInput.value, 10); // Corrected variable name
