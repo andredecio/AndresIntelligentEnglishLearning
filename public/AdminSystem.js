@@ -197,7 +197,7 @@ console.log("cefrLevel:", cefrLevel);
 		throw new Error(`Unsupported ModuleType: ${ModuleType}`);
 	}
 
-			}
+			
 				
 			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
 		
