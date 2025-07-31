@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					theme: theme
 				});
 			} else if ( ModuleType == 'READING-WRITING') {
-					 result = await generateReading-WritingContent({
+					 result = await generateReadingWritingContent({
 					cefrLevel: cefrLevel,
 					numItems: numRWItems,
 					theme: theme
