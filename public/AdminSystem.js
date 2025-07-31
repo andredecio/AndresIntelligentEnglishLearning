@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cefrLevelSelect = document.getElementById('cefrLevel');
     const numVItemsInput = document.getElementById('numVItems');
 	const numGItemsInput = document.getElementById('numGItems');
-    const themeInput = document.getElementById('theme');
+ 	const numCItemsInput = document.getElementById('numCItems');
+	const themeInput = document.getElementById('theme');
     const ModuleTypeSelect = document.getElementById('ModuleType');	
     const responseDiv = document.getElementById('response');
     const loadingDiv = document.getElementById('loading');
@@ -129,6 +130,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 skippedWordsDisplay.textContent = '';
 				return; // Stop execution if validation fails
             }
+				numGItems = parseInt(numCItemsInput.value, 10); // Corrected variable name
+		if (isNaN(numCItems) || numCItems < 1 || numCItems > 100) {
+                responseDiv.textContent = 'Please enter a number of Conversation items between 1 and 100.';
+                skippedWordsDisplay.textContent = '';
+				return; // Stop execution if validation fails
+            }
 		
         const theme = themeInput.value; // Corrected variable name
 
@@ -141,10 +148,10 @@ document.addEventListener('DOMContentLoaded', () => {
        
 	try {
 		console.log("cefrLevel:", cefrLevel);
-console.log("theme:", theme);
-console.log("numVItems:", numVItems);
-console.log("numGItems:", numGItems);
-console.log("ModuleType:", ModuleType);
+//console.log("theme:", theme);
+//console.log("numVItems:", numVItems);
+//console.log("numGItems:", numGItems);
+//console.log("ModuleType:", ModuleType);
 
             // Call the Cloud Function - 
             // Choose a moduletype to be generated on AdminSystem page
@@ -162,6 +169,13 @@ console.log("ModuleType:", ModuleType);
 					numItems: numGItems,
 					theme: theme
 				});
+			} else if ( ModuleType == 'CONVERSATION') {
+					 result = await generateGrammarContent({
+					cefrLevel: cefrLevel,
+					numItems: numCItems,
+					theme: theme
+				});
+
 			}
 				
 			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
