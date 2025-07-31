@@ -196,10 +196,18 @@ console.log("cefrLevel:", cefrLevel);
 	} else {
 		throw new Error(`Unsupported ModuleType: ${ModuleType}`);
 	}
+if (ModuleType === 'LESSON') {
+	const messages = Object.entries(result).map(
+		([type, res]) => `${type}: ${res?.data?.message || 'OK'}`
+	);
+	responseDiv.textContent = 'Success! Modules created:\n' + messages.join('\n');
+} else {
+	responseDiv.textContent = 'Success!\n' + (result?.data?.message || 'Modules created.');
+}
 
 			
 				
-			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
+//			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
 		
 		if (result.data.skippedWords && result.data.skippedWords.length > 0) {
                 const skippedWordsList = result.data.skippedWords.join(', ');
