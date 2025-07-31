@@ -189,7 +189,7 @@ console.log("cefrLevel:", cefrLevel);
 		for (const [type, generator] of Object.entries(moduleGenerators)) {
 			console.log(`Generating ${type} module...`);
 			result[type] = await generator();  // Sequentially await each module's result
-			console.log(`${type} module complete.`);
+			console.log(`${type} modules complete.`);
 		}
 	} else if (moduleGenerators[ModuleType]) {
 		result = await moduleGenerators[ModuleType]();
@@ -207,15 +207,29 @@ if (ModuleType === 'LESSON') {
 
 			
 				
-//			responseDiv.textContent = 'Success! Check your Firestore database.\n' + result.data.message;
-		
-		if (result.data.skippedWords && result.data.skippedWords.length > 0) {
-                const skippedWordsList = result.data.skippedWords.join(', ');
-                skippedWordsDisplay.textContent = `The following items were skipped as duplicates: ${skippedWordsList}.`;
-                skippedWordsDisplay.style.color = 'orange'; // Make it stand out
-            } else {
-                skippedWordsDisplay.textContent = '';
-					} 
+let allSkippedWords = [];
+
+if (ModuleType === 'LESSON') {
+    for (const res of Object.values(result)) {
+        const skipped = res?.data?.skippedWords || [];
+        if (skipped.length > 0) {
+            allSkippedWords.push(...skipped);
+        }
+    }
+} else {
+    const skipped = result?.data?.skippedWords || [];
+    if (skipped.length > 0) {
+        allSkippedWords.push(...skipped);
+    }
+}
+
+if (allSkippedWords.length > 0) {
+    const skippedWordsList = allSkippedWords.join(', ');
+    skippedWordsDisplay.textContent = `The following items were skipped as duplicates: ${skippedWordsList}.`;
+    skippedWordsDisplay.style.color = 'orange'; // Make it stand out
+} else {
+    skippedWordsDisplay.textContent = '';
+}
 		
 		} catch (error) {
             console.error("Error calling Cloud Function:", error);
