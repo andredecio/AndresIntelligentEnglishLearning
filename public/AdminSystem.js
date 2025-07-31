@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					theme: theme
 				});
 			} else if ( ModuleType == 'CONVERSATION') {
-					 result = await generateGrammarContent({
+					 result = await generateConversationContent({
 					cefrLevel: cefrLevel,
 					numItems: numCItems,
 					theme: theme
