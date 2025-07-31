@@ -157,41 +157,45 @@ document.addEventListener('DOMContentLoaded', () => {
             // Display the result
        
 	try {
-		console.log("cefrLevel:", cefrLevel);
-//console.log("theme:", theme);
-//console.log("numVItems:", numVItems);
-//console.log("numGItems:", numGItems);
-//console.log("ModuleType:", ModuleType);
+console.log("cefrLevel:", cefrLevel);
 
-            // Call the Cloud Function - 
-            // Choose a moduletype to be generated on AdminSystem page
-           let result;
-		   if ( ModuleType == 'VOCABULARY') {
-			
-					 result = await generateVocabularyContent({
-					cefrLevel: cefrLevel,
-					numWords: numVItems,
-					theme: theme
-				});
-			} else if ( ModuleType == 'GRAMMAR') {
-					 result = await generateGrammarContent({
-					cefrLevel: cefrLevel,
-					numItems: numGItems,
-					theme: theme
-				});
-			} else if ( ModuleType == 'CONVERSATION') {
-					 result = await generateConversationContent({
-					cefrLevel: cefrLevel,
-					numItems: numCItems,
-					theme: theme
-				});
-			} else if ( ModuleType == 'READING-WRITING') {
-					 result = await generateReadingWritingContent({
-					cefrLevel: cefrLevel,
-					numItems: numRWItems,
-					theme: theme
-				});
+	const moduleGenerators = {
+		'VOCABULARY': () => generateVocabularyContent({
+			cefrLevel,
+			numWords: numVItems,
+			theme
+		}),
+		'GRAMMAR': () => generateGrammarContent({
+			cefrLevel,
+			numItems: numGItems,
+			theme
+		}),
+		'CONVERSATION': () => generateConversationContent({
+			cefrLevel,
+			numItems: numCItems,
+			theme
+		}),
+		'READING-WRITING': () => generateReadingWritingContent({
+			cefrLevel,
+			numItems: numRWItems,
+			theme
+		})
+	};
 
+	let result;
+
+	if (ModuleType === 'LESSON') {
+		result = {};
+		for (const [type, generator] of Object.entries(moduleGenerators)) {
+			console.log(`Generating ${type} module...`);
+			result[type] = await generator();  // Sequentially await each module's result
+			console.log(`${type} module complete.`);
+		}
+	} else if (moduleGenerators[ModuleType]) {
+		result = await moduleGenerators[ModuleType]();
+	} else {
+		throw new Error(`Unsupported ModuleType: ${ModuleType}`);
+	}
 
 			}
 				
