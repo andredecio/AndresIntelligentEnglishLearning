@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const numVItemsInput = document.getElementById('numVItems');
 	const numGItemsInput = document.getElementById('numGItems');
  	const numCItemsInput = document.getElementById('numCItems');
+ 	const numRWtemsInput = document.getElementById('numRWItems');
 	const themeInput = document.getElementById('theme');
     const ModuleTypeSelect = document.getElementById('ModuleType');	
     const responseDiv = document.getElementById('response');
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
     const generateGrammarContent = functions.httpsCallable('generateGrammarContent');
     const generateConversationContent = functions.httpsCallable('generateConversationContent');
+    const generateReading-WritingContent = functions.httpsCallable('generateReading-WritingContent');
 
 
     // --- Firebase Authentication State Listener ---
@@ -137,6 +139,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 skippedWordsDisplay.textContent = '';
 				return; // Stop execution if validation fails
             }
+				numRWItems = parseInt(numRWItemsInput.value, 10); // Corrected variable name
+		if (isNaN(numRWItems) || numRWItems < 1 || numRWItems > 100) {
+                responseDiv.textContent = 'Please enter a number of Reading-Writing items between 1 and 100.';
+                skippedWordsDisplay.textContent = '';
+				return; // Stop execution if validation fails
+            }
+		
 		
         const theme = themeInput.value; // Corrected variable name
 
@@ -176,6 +185,13 @@ document.addEventListener('DOMContentLoaded', () => {
 					numItems: numCItems,
 					theme: theme
 				});
+			} else if ( ModuleType == 'READING-WRITING') {
+					 result = await generateReading-WritingContent({
+					cefrLevel: cefrLevel,
+					numItems: numRWItems,
+					theme: theme
+				});
+
 
 			}
 				
