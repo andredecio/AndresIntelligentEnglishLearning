@@ -8,7 +8,7 @@ const admin = require('firebase-admin'); // Firebase Admin SDK
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); 
 const textToSpeechClient = new TextToSpeechClient();
 
-functions.logger.info('Firebase Functions code deployed: v1.006n');  //Version modularise index.js
+functions.logger.info('Firebase Functions code deployed: v1.006o');  //Version add manual function 
 
 
 // Direct initialization of Firebase Admin SDK. This is the most robust way. ---
@@ -39,6 +39,10 @@ exports.generateGrammarContent = generateGrammarContent;
 //Trigger: enriching module content with phonetics , audio, and syllable breakdowns(for vocab), and image for vocab and others
 const { onNewModuleContentCreate } = require('./triggers/onNewModuleContentCreate');
 exports.onNewModuleContentCreate = onNewModuleContentCreate;
+
+//Manual: enriching module content with image for relevant moduletypes
+const { batchGenerateModuleImages } = require('./finite use/batchGenerateModuleImages');
+exports.batchGenerateModuleImages = batchGenerateModuleImages;
 
 
 //HELPERS

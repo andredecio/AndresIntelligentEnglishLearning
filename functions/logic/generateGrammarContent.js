@@ -42,6 +42,7 @@ const generateGrammarContent = functions.region('asia-southeast1').runWith({ tim
         Each item in the array MUST represent a module and adhere to the following strict JSON schema and rules:
 
         **Primary Module Fields (all modules will have these):**
+		- "MODULETYPE": String (e.g. GRAMMAR ).
         - "TITLE": String.
         - "CEFR": String (e.g., "A1", "B2").
         - "DESCRIPTION": String.
