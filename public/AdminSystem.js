@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
     const generateGrammarContent = functions.httpsCallable('generateGrammarContent');
     const generateConversationContent = functions.httpsCallable('generateConversationContent');
-    const generateReading-WritingContent = functions.httpsCallable('generateReading-WritingContent');
+    const generateReadingWritingContent = functions.httpsCallable('generateReadingWritingContent');
 
 
     // --- Firebase Authentication State Listener ---
