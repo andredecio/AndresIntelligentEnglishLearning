@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 skippedWordsDisplay.textContent = '';
 				return; // Stop execution if validation fails
             }
-				numCItems = parseInt(numCIcd temsInput.value, 10); // Corrected variable name
+				numCItems = parseInt(numCItemsInput.value, 10); // Corrected variable name
 		if (isNaN(numCItems) || numCItems < 1 || numCItems > 100) {
                 responseDiv.textContent = 'Please enter a number of Conversation items between 1 and 100.';
                 skippedWordsDisplay.textContent = '';
