@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Firebase Callable Cloud Function Reference ---
     const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
     const generateGrammarContent = functions.httpsCallable('generateGrammarContent');
+    const generateConversationContent = functions.httpsCallable('generateConversationContent');
 
 
     // --- Firebase Authentication State Listener ---
