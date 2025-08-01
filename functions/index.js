@@ -8,7 +8,7 @@ const admin = require('firebase-admin'); // Firebase Admin SDK
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); 
 const textToSpeechClient = new TextToSpeechClient();
 
-functions.logger.info('Firebase Functions code deployed: v1.006o');  //Version add manual function 
+functions.logger.info('Firebase Functions code deployed: v1.006r');  //Version add ListeningSpeaking function 
 
 
 // Direct initialization of Firebase Admin SDK. This is the most robust way. ---
@@ -34,6 +34,18 @@ exports.generateVocabularyContent = generateVocabularyContent;
 //Main builder of Grammar document using Gemini to provide the values (from AdminSystem page)
 const {generateGrammarContent}= require('./logic/generateGrammarContent');
 exports.generateGrammarContent = generateGrammarContent;
+
+//Main builder of Conversation document using Gemini to provide the values (from AdminSystem page)
+const {generateConversationContent}= require('./logic/generateConversationContent');
+exports.generateConversationContent = generateConversationContent;
+
+//Main builder of Reading-Writing document using Gemini to provide the values (from AdminSystem page)
+const {generateReadingWritingContent}= require('./logic/generateReadingWritingContent');
+exports.generateReadingWritingContent = generateReadingWritingContent;
+
+//Main builder of ListeninSpeaking document using Gemini to provide the values (from AdminSystem page)
+const {generateListeningSpeakingContent}= require('./logic/generateListeningSpeakingContent');
+exports.generateListeningSpeakingContent = generateListeningSpeakingContent;
 
 
 //Trigger: enriching module content with phonetics , audio, and syllable breakdowns(for vocab), and image for vocab and others

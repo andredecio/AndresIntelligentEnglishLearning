@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Modified today 29/7/25 code deployed: v1.006m
+    // Modified today 29/7/25 code deployed: v1.006q
     // Firebase is initialized by /__/firebase/init.js via AdminSystem.html
     // So we can directly get references to the Firebase services here.
     const auth = firebase.auth(); // Get Auth instance

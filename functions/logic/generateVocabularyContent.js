@@ -52,20 +52,20 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
 
         **Module Types and Their Specific Fields:**
 
-        1.  **VOCABULARY_GROUP** (for words with multiple distinct meanings ):
+        1.  **VOCABULARY_GROUP** (each single VOCABULARY_GROUP is made when there is a word with multiple distinct meanings. For single meaning words there no VOCABULARY_GROUP will be created ):
             - "MODULETYPE": "VOCABULARY_GROUP"
             - "TITLE": The word (or phrase)
             - "CEFR": This must be "A1"
             - "DESCRIPTION": This must be empty
             - "THEME":This must be ${theme}
             - "WORD_TYPE": This must be empty
-            - "MEANING_ORIGIN": This must contain ONLY details of the group's origin, etymology, common prefixes, infixes, or suffixes relevant to the group, NOT it's meaning.
+            - "MEANING_ORIGIN": This must contain ONLY details of the multi-meaning word's origin, etymology, common prefixes, infixes, or suffixes relevant to the multi-meaning word, NOT one of the meanings of the mulit-meaning word.
             - "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": This must be empty
             - "SIMPLE_PAST": This must be empty
             - "PAST_PARTICIPLE": This must be empty
-			- "items": An array of nested "VOCABULARY" modules, each defining a unique meaning of the word.
+			- "items": An array of nested "VOCABULARY" modules, each defining a unique meaning of the multi-meaning word (eg. 'set' can be a verb or a noun, 'like' has at least 8 separate meanings so that would result in one VOCABULARY_GROUP record, and at least 8 separate VOCABULARY records for 'like').
 
-        2.  **VOCABULARY** (for single-meaning words, or individual meanings within a VOCABULARY_GROUP):
+        2.  **VOCABULARY** (for single-meaning words, or for individual meanings within a VOCABULARY_GROUP):
             - "MODULETYPE": "VOCABULARY"
             - "TITLE": The word (or phrase)
 			- "IPA": String. The British English (RP) IPA transcription of the word. This MUST include:
@@ -178,21 +178,29 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
 
         const result = await textGenModel.generateContent(geminiPrompt);
         const response = await result.response;
-        const text = response.text();
+        const rawText = await response.text();
 
-		functions.logger.info(`Received text from Gemini. Length: ${text.length}`);
-        functions.logger.info(`Raw text (first 500 chars): ${text.substring(0, 500)}`);
-        functions.logger.info(`Raw text (last 500 chars): ${text.length > 500 ? text.substring(text.length - 500) : text}`);
+
+// Clean & parse
+const cleanedText = rawText
+  .trim()
+  .replace(/^```json/, '')
+  .replace(/```$/, '')
+  .replace(/\s*}+\s*$/, ']');  // Fix Gemini's trailing brace issue
+		
+		functions.logger.info(`Cleaned text from Gemini. Length: ${cleanedText.length}`);
+        functions.logger.info(`Cleaned text (first 500 chars): ${cleanedText.substring(0, 500)}`);
+        functions.logger.info(`Cleaned text (last 500 chars): ${cleanedText.length > 500 ? cleanedText.substring(cleanedText.length - 500) : cleanedText}`);
 
 
         let generatedContent;
         try {
-            generatedContent = JSON.parse(text);
+            generatedContent = JSON.parse(cleanedText);
 			geminiReturnedItemCount = generatedContent.length; //  SET THE COUNT HERE 
             functions.logger.info(`Gemini returned ${geminiReturnedItemCount} top-level JSON items.`);
-	   } catch (parseError) {
-            functions.logger.error("Failed to parse Gemini output as JSON:", { rawText: text, error: parseError });
-            throw new functions.https.HttpsError('internal', 'AI generation failed: Invalid JSON output from Gemini.', { rawResponse: text, parseError: parseError.message });
+	   } catch (e) {
+  functions.logger.error("Failed to parse Gemini JSON:", cleanedText);
+  throw new Error("Failed to parse Gemini output as JSON: " + e.message);
         }
 
         // --- 2. Process Generated Content and Write to Firestore (with Deduplication) ---
@@ -289,9 +297,9 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
                 const vocabRef = firestore.collection('learningContent').doc(vocabId);
 				// --- NEW: Conditionally add verb conjugation fields ---
 							const verbFields = (item.WORD_TYPE === 'verb') ? {
-							PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR || null,
-							SIMPLE_PAST: item.SIMPLE_PAST || null,
-							PAST_PARTICIPLE: item.PAST_PARTICIPLE || null,
+							PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR || '',
+							SIMPLE_PAST: item.SIMPLE_PAST || '',
+							PAST_PARTICIPLE: item.PAST_PARTICIPLE || '',
 						} : {};
 
                 batch.set(vocabRef, {
@@ -325,17 +333,6 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
         await batch.commit();
 
  functions.logger.info(`Content generation summary: Requested ${numWords}, Gemini returned ${geminiReturnedItemCount} top-level items. Processed ${topLevelVocabCount} top-level VOCABULARY, ${vocabGroupCount} VOCABULARY_GROUPs (containing ${nestedVocabCount} nested VOCABULARY items). Successfully created ${createdModuleIds.length} new modules. Skipped ${numSkipped} duplicates.`);//        // --- CHANGE: Trigger batchGenerateVocabularyImages (cleaned up and restored) ---
-//        try {
-//            // Get the functions client directly from the initialized admin object.
-//            const functionsClient = admin.functions('asia-southeast1');
-//            const callBatchImageGeneration = functionsClient.httpsCallable('batchGenerateVocabularyImages');
-//            await callBatchImageGeneration({});
-//            functions.logger.info('Successfully triggered batchGenerateVocabularyImages after content creation.');
-//        } catch (callError) {
-//            // Log the error but don't re-throw, as content creation was already successful.
-//            functions.logger.error('Failed to trigger batchGenerateVocabularyImages (callable function):', callError);
-//        }
-        // --- END CHANGE: Trigger batchGenerateVocabularyImages ---
 
         return {
             status: "success",

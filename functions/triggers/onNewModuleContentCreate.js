@@ -44,9 +44,6 @@ const onNewModuleContentCreate = functions.region('asia-southeast1').runWith({ t
                     // (with stress marks and syllable delimiters)
                     fullWordIpaWithDelimiters = data.IPA;
 
-                    // For storage in Firestore's 'IPA' field, if you want a clean version
-                    // without stress or syllable delimiters (as your old code suggested for storage),
-                    // then apply the cleaning here. Otherwise, you can just use fullWordIpaWithDelimiters.
                     // Assuming you still want a "clean" stored version:
                     fullWordIpaClean = data.IPA.replace(/[ˈˌ.]/g, '');
 
@@ -167,7 +164,34 @@ const onNewModuleContentCreate = functions.region('asia-southeast1').runWith({ t
         } else {
             functions.logger.info(`Document ${docId} is not a VOCABULARY type. Skipping phonetic enrichment.`);
         }
+		
+		//If it's a ListeningSpeaking type, we need to create an mp3 for the speaking exercise
+		if (data.MODULETYPE === 'LISTENINGSPEAKING') {
+			            functions.logger.info(`Document ${docId} ListeningSpeaking module being processed to generate audio. `);
 
+			    const updateLSPayload = {};				
+
+                // --- Generate Text Audio  ---
+                    const LSAudioUrl = await generateAudioAndUpload(
+                        data.DESCRIPTION,
+                        '', //Blank to cause function to handle the large text string for TTS
+                        `word_${docId}`,
+                        'ListeningSpeaking_audio/'
+                    );
+
+                    if (LSAudioUrl) {
+                        updateLSPayload.audioUrl = LSAudioUrl;
+                        functions.logger.info(`ListeningSpeaking audio URL generated for ${docId}.`);
+                    } else {
+                        functions.logger.warn(`Could not generate or upload audio for passage: "${data.DESCRIPTION.substring(0, 50)}...".`);
+                    }		
+			   
+					if (Object.keys(updateLSPayload).length > 0) {
+						await snapshot.ref.update(updateLSPayload);
+						functions.logger.info(`Updated learningContent document ${docId} with payload: ${JSON.stringify(updateLSPayload)}`);
+					}
+			
+		}
         if (data.imageStatus === 'pending') {
             functions.logger.info(`New MODULE document of type ${data.MODULETYPE } created with pending image for ${docId} about: ${data.TITLE}. Attempting image generation.`);
             await processModuleImageGeneration(snapshot);

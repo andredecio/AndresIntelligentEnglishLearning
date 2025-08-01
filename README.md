@@ -9,3 +9,6 @@ v1.006K  Derive and store syllables, and store ipa value of the word along with 
 v1.006l  Reorganize index.js into modules. Tested major functions except 'sheduled ones'keep checking
 v1.006m  Created GRAMMAR type modules via same framework as VOCABULARY 
 v1.006n  Created Module level type content enrichment (images) for any Module Type in addition to vocab.
+v1.006p  Created CONVERSATION and READINGWRITING module types, and adjusted return messaging .
+v1.006q  LISTENINGSPEAKING module type, and modified functiont to create audio from text passage and upload .
+v1.006r  LISTENINGSPEAKING module fixed to update learningContent with the audio url. Also  prompt Gemini to produce the SSML string to introduce pauses.

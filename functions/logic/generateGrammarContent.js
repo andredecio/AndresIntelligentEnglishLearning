@@ -98,21 +98,29 @@ const generateGrammarContent = functions.region('asia-southeast1').runWith({ tim
 
         const result = await textGenModel.generateContent(geminiPrompt);
         const response = await result.response;
-        const text = response.text();
+        const rawText = await response.text();
 
-		functions.logger.info(`Received text from Gemini. Length: ${text.length}`);
-        functions.logger.info(`Raw text (first 500 chars): ${text.substring(0, 500)}`);
-        functions.logger.info(`Raw text (last 500 chars): ${text.length > 500 ? text.substring(text.length - 500) : text}`);
+
+// Clean & parse
+const cleanedText = rawText
+  .trim()
+  .replace(/^```json/, '')
+  .replace(/```$/, '')
+  .replace(/\s*}+\s*$/, ']');  // Fix Gemini's trailing brace issue
+		
+		functions.logger.info(`Cleaned text from Gemini. Length: ${cleanedText.length}`);
+        functions.logger.info(`Cleaned text (first 500 chars): ${cleanedText.substring(0, 500)}`);
+        functions.logger.info(`Cleaned text (last 500 chars): ${cleanedText.length > 500 ? cleanedText.substring(cleanedText.length - 500) : cleanedText}`);
 
 
         let generatedContent;
         try {
-            generatedContent = JSON.parse(text);
+            generatedContent = JSON.parse(cleanedText);
 			geminiReturnedItemCount = generatedContent.length; //  SET THE COUNT HERE 
             functions.logger.info(`Gemini returned ${geminiReturnedItemCount} top-level JSON items.`);
-	   } catch (parseError) {
-            functions.logger.error("Failed to parse Gemini output as JSON:", { rawText: text, error: parseError });
-            throw new functions.https.HttpsError('internal', 'AI generation failed: Invalid JSON output from Gemini.', { rawResponse: text, parseError: parseError.message });
+	   } catch (e) {
+  functions.logger.error("Failed to parse Gemini JSON:", cleanedText);
+  throw new Error("Failed to parse Gemini output as JSON: " + e.message);
         }
 
         // --- 2. Process Generated Content and Write to Firestore (with Deduplication) ---
