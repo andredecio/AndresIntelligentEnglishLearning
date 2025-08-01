@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const numVItemsInput = document.getElementById('numVItems');
 	const numGItemsInput = document.getElementById('numGItems');
  	const numCItemsInput = document.getElementById('numCItems');
+	const numLSItemsInput = document.getElementById('numLSItems');
  	const numRWItemsInput = document.getElementById('numRWItems');
 	const themeInput = document.getElementById('theme');
     const ModuleTypeSelect = document.getElementById('ModuleType');	
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateGrammarContent = functions.httpsCallable('generateGrammarContent');
     const generateConversationContent = functions.httpsCallable('generateConversationContent');
     const generateReadingWritingContent = functions.httpsCallable('generateReadingWritingContent');
+    const generateListeningSpeakingContent = functions.httpsCallable('generateListeningSpeakingContent');
 
 
     // --- Firebase Authentication State Listener ---
@@ -145,6 +147,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 skippedWordsDisplay.textContent = '';
 				return; // Stop execution if validation fails
             }
+				
+				numLSItems = parseInt(numLSItemsInput.value, 10); // Corrected variable name
+		if (isNaN(numLSItems) || numLSItems < 1 || numLSItems > 100) {
+                responseDiv.textContent = 'Please enter a number of ListeningSpeaking items between 1 and 100.';
+                skippedWordsDisplay.textContent = '';
+				return; // Stop execution if validation fails
+            }
 		
 		
         const theme = themeInput.value; // Corrected variable name
@@ -175,6 +184,12 @@ console.log("cefrLevel:", cefrLevel);
 			numItems: numCItems,
 			theme
 		}),
+		'LISTENINGSPEAKING': () => generateListeningSpeakingContent({
+			cefrLevel,
+			numItems: numLSItems,
+			theme
+		}),
+
 		'READING-WRITING': () => generateReadingWritingContent({
 			cefrLevel,
 			numItems: numRWItems,
@@ -187,7 +202,7 @@ console.log("cefrLevel:", cefrLevel);
 	if (ModuleType === 'LESSON') {
 		result = {};
 		for (const [type, generator] of Object.entries(moduleGenerators)) {
-			console.log(`Generating ${type} module...`);
+			console.log(`Generating ${type} modules...`);
 			result[type] = await generator();  // Sequentially await each module's result
 			console.log(`${type} modules complete.`);
 		}
