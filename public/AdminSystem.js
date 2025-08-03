@@ -115,27 +115,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const cefrLevel = cefrLevelSelect.value; 
 		
         numVItems = parseInt(numVItemsInput.value, 10);
-        if (isNaN(numVItems) || numVItems < 1 || numVItems > 100) {
+        if (isNaN(numVItems) || numVItems < 0 || numVItems > 100) {
             responseDiv.textContent = 'Please enter a number of Vocab items between 1 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
         numGItems = parseInt(numGItemsInput.value, 10);
-        if (isNaN(numGItems) || numGItems < 1 || numGItems > 100) {
+        if (isNaN(numGItems) || numGItems < 0 || numGItems > 100) {
             responseDiv.textContent = 'Please enter a number of Grammar items between 1 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
         numCItems = parseInt(numCItemsInput.value, 10);
-        if (isNaN(numCItems) || numCItems < 1 || numCItems > 100) {
+        if (isNaN(numCItems) || numCItems < 0 || numCItems > 100) {
             responseDiv.textContent = 'Please enter a number of Conversation items between 1 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
         numRWItems = parseInt(numRWItemsInput.value, 10);
-        if (isNaN(numRWItems) || numRWItems < 1 || numRWItems > 100) {
+        if (isNaN(numRWItems) || numRWItems < 0 || numRWItems > 100) {
             responseDiv.textContent = 'Please enter a number of Reading-Writing items between 1 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
         numLSItems = parseInt(numLSItemsInput.value, 10);
-        if (isNaN(numLSItems) || numLSItems < 1 || numLSItems > 100) {
+        if (isNaN(numLSItems) || numLSItems < 0 || numLSItems > 100) {
             responseDiv.textContent = 'Please enter a number of ListeningSpeaking items between 1 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
