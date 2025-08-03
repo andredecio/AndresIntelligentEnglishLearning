@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Modified today 29/7/25 code deployed: v1.006r - Create and attach modules to lesson
+    // Modified today 29/7/25 code deployed: v1.006q
     // Firebase is initialized by /__/firebase/init.js via AdminSystem.html
     // So we can directly get references to the Firebase services here.
     const auth = firebase.auth(); // Get Auth instance
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const numGItemsInput = document.getElementById('numGItems');
  	const numCItemsInput = document.getElementById('numCItems');
 	const numLSItemsInput = document.getElementById('numLSItems');
- 	const numRWItemsInput = document.getElementById('numRWItems');
+ 	const numRWItemsInput = document = document.getElementById('numRWItems'); // Corrected typo here
 	const themeInput = document.getElementById('theme');
     const ModuleTypeSelect = document.getElementById('ModuleType');	
     const responseDiv = document.getElementById('response');
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Firebase Callable Cloud Function References ---
     // Make sure createLesson is also referenced here!
-    const createLesson = functions.httpsCallable('createLesson'); // <--- ADD THIS LINE!
+    const createLesson = functions.httpsCallable('createLesson');
     const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
     const generateGrammarContent = functions.httpsCallable('generateGrammarContent');
     const generateConversationContent = functions.httpsCallable('generateConversationContent');
@@ -110,35 +110,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Content Generator Form Submission Handler (Your original logic, now secured) ---
     contentGeneratorForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-		let numVItems, numGItems, numCItems, numRWItems, numLSItems; // Declare all variables
+		// Declare all number variables with `let`
+		let numVItems, numGItems, numCItems, numRWItems, numLSItems; 
+
         const ModuleType = ModuleTypeSelect.value; 
         const cefrLevel = cefrLevelSelect.value; 
 		
+        // --- MODIFIED VALIDATION: Allow 0 for all counts ---
         numVItems = parseInt(numVItemsInput.value, 10);
         if (isNaN(numVItems) || numVItems < 0 || numVItems > 100) {
-            responseDiv.textContent = 'Please enter a number of Vocab items between 1 and 100.';
+            responseDiv.textContent = 'Please enter a number of Vocab items between 0 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
         numGItems = parseInt(numGItemsInput.value, 10);
         if (isNaN(numGItems) || numGItems < 0 || numGItems > 100) {
-            responseDiv.textContent = 'Please enter a number of Grammar items between 1 and 100.';
+            responseDiv.textContent = 'Please enter a number of Grammar items between 0 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
         numCItems = parseInt(numCItemsInput.value, 10);
         if (isNaN(numCItems) || numCItems < 0 || numCItems > 100) {
-            responseDiv.textContent = 'Please enter a number of Conversation items between 1 and 100.';
+            responseDiv.textContent = 'Please enter a number of Conversation items between 0 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
         numRWItems = parseInt(numRWItemsInput.value, 10);
         if (isNaN(numRWItems) || numRWItems < 0 || numRWItems > 100) {
-            responseDiv.textContent = 'Please enter a number of Reading-Writing items between 1 and 100.';
+            responseDiv.textContent = 'Please enter a number of Reading-Writing items between 0 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
         numLSItems = parseInt(numLSItemsInput.value, 10);
         if (isNaN(numLSItems) || numLSItems < 0 || numLSItems > 100) {
-            responseDiv.textContent = 'Please enter a number of ListeningSpeaking items between 1 and 100.';
+            responseDiv.textContent = 'Please enter a number of Listening-Speaking items between 0 and 100.';
             skippedWordsDisplay.textContent = ''; return;
         }
+        // --- END MODIFIED VALIDATION ---
 		
         const theme = themeInput.value;
 
@@ -155,8 +159,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (ModuleType === 'LESSON') {
                 const excount = numVItems + numGItems + numCItems + numLSItems + numRWItems;
-                const lessonCreationData = { // Renamed to avoid conflict with 'lessonData' inside catch
-                    title: `Lesson - ${theme} - ${cefrLevel}`, // You might want a more specific title
+                
+                // Only create the LESSON document if there's at least one module expected
+                if (excount === 0) {
+                    alert("Cannot create a LESSON with 0 expected modules. Please specify at least one module count greater than 0.");
+                    loadingDiv.style.display = 'none';
+                    loadingSpinner.classList.add('hidden');
+                    return;
+                }
+
+                const lessonCreationData = { 
+                    title: `Lesson - ${theme} - ${cefrLevel}`, 
                     theme: theme,
                     cefr: cefrLevel,
                     expectedModuleCount: excount
@@ -171,17 +184,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (success) {
                         console.log("Lesson created successfully! MODULEID:", MODULEID);
-                        lessonModuleId = MODULEID; // Store the MODULEID here!
+                        lessonModuleId = MODULEID; 
                     } else {
                         console.error("Failed to create LESSON document:", error);
                         alert(`Error creating LESSON document: ${error}`);
-                        loadingDiv.style.display = 'none'; // Hide loading on error
+                        loadingDiv.style.display = 'none'; 
                         loadingSpinner.classList.add('hidden');
-                        return; // Stop execution if LESSON creation fails
+                        return; 
                     }
                 } catch (error) {
                     console.error("Error calling createLesson Cloud Function:", error);
-                    // Differentiate between function execution error and Firebase callable error
                     alert(`An unexpected error occurred during LESSON creation: ${error.message}`);
                     loadingDiv.style.display = 'none';
                     loadingSpinner.classList.add('hidden');
@@ -192,52 +204,79 @@ document.addEventListener('DOMContentLoaded', () => {
             // Define the module generators.
             // They will now conditionally include lessonModuleId in their payload.
             const moduleGenerators = {
-                'VOCABULARY': () => generateVocabularyContent({
-                    cefrLevel,
-                    numWords: numVItems,
-                    theme,
-                    lessonModuleId: lessonModuleId // <--- Pass the MODULEID here!
-                }),
-                'GRAMMAR': () => generateGrammarContent({
-                    cefrLevel,
-                    numItems: numGItems,
-                    theme,
-                    lessonModuleId: lessonModuleId // <--- Pass the MODULEID here!
-                }),
-                'CONVERSATION': () => generateConversationContent({
-                    cefrLevel,
-                    numItems: numCItems,
-                    theme,
-                    lessonModuleId: lessonModuleId // <--- Pass the MODULEID here!
-                }),
-                'LISTENINGSPEAKING': () => generateListeningSpeakingContent({
-                    cefrLevel,
-                    numItems: numLSItems,
-                    theme,
-                    lessonModuleId: lessonModuleId // <--- Pass the MODULEID here!
-                }),
-                'READING-WRITING': () => generateReadingWritingContent({
-                    cefrLevel,
-                    numItems: numRWItems,
-                    theme,
-                    lessonModuleId: lessonModuleId // <--- Pass the MODULEID here!
-                })
+                'VOCABULARY': {
+                    count: numVItems,
+                    generator: () => generateVocabularyContent({
+                        cefrLevel,
+                        numWords: numVItems,
+                        theme,
+                        lessonModuleId: lessonModuleId
+                    })
+                },
+                'GRAMMAR': {
+                    count: numGItems,
+                    generator: () => generateGrammarContent({
+                        cefrLevel,
+                        numItems: numGItems,
+                        theme,
+                        lessonModuleId: lessonModuleId
+                    })
+                },
+                'CONVERSATION': {
+                    count: numCItems,
+                    generator: () => generateConversationContent({
+                        cefrLevel,
+                        numItems: numCItems,
+                        theme,
+                        lessonModuleId: lessonModuleId
+                    })
+                },
+                'LISTENINGSPEAKING': {
+                    count: numLSItems,
+                    generator: () => generateListeningSpeakingContent({
+                        cefrLevel,
+                        numItems: numLSItems,
+                        theme,
+                        lessonModuleId: lessonModuleId
+                    })
+                },
+                'READING-WRITING': {
+                    count: numRWItems,
+                    generator: () => generateReadingWritingContent({
+                        cefrLevel,
+                        numItems: numRWItems,
+                        theme,
+                        lessonModuleId: lessonModuleId
+                    })
+                }
             };
 
-            let result; // This will hold the aggregated results of module generation
+            let result = {}; // This will hold the aggregated results of module generation
 
             if (ModuleType === 'LESSON') {
                 // If we are creating a LESSON, iterate through all module types
-                result = {}; // Initialize result object to store responses from each module type
-                for (const [type, generator] of Object.entries(moduleGenerators)) {
-                    console.log(`Generating ${type} modules...`);
-                    // Call the generator, which now includes lessonModuleId in its payload
-                    result[type] = await generator();
-                    console.log(`${type} modules complete.`);
+                for (const [type, moduleData] of Object.entries(moduleGenerators)) {
+                    if (moduleData.count > 0) { // <--- CONDITIONAL CALLING BASED ON COUNT
+                        console.log(`Generating ${type} modules...`);
+                        result[type] = await moduleData.generator();  // Call the actual generator function
+                        console.log(`${type} modules complete.`);
+                    } else {
+                        console.log(`Skipping ${type} modules as count is zero.`);
+                        // Provide a consistent placeholder result for skipped modules
+                        result[type] = { data: { message: `Skipped: count was 0` } }; 
+                    }
                 }
             } else if (moduleGenerators[ModuleType]) {
-                // If a specific module type is selected, call only that generator
-                result = await moduleGenerators[ModuleType]();
+                // If a specific module type is selected (not LESSON)
+                const selectedModuleData = moduleGenerators[ModuleType];
+                if (selectedModuleData.count > 0) { // Also check count for single module type generation
+                    result = await selectedModuleData.generator();
+                } else {
+                    alert(`Cannot generate ${ModuleType} modules if count is 0. Please specify a count greater than 0.`);
+                    loadingDiv.style.display = 'none';
+                    loadingSpinner.classList.add('hidden');
+                    return;
+                }
             } else {
                 throw new Error(`Unsupported ModuleType: ${ModuleType}`);
             }
@@ -245,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- Display Results and Skipped Words ---
             if (ModuleType === 'LESSON') {
                 const messages = Object.entries(result).map(
-                    ([type, res]) => `${type}: ${res?.data?.message || 'OK'}`
+                    ([type, res]) => `${type}: ${res?.data?.message || 'OK'}` // Use optional chaining for message
                 );
                 responseDiv.textContent = 'Success! Modules created:\n' + messages.join('\n');
             } else {
