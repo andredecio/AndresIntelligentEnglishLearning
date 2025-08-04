@@ -12,3 +12,4 @@ v1.006n  Created Module level type content enrichment (images) for any Module Ty
 v1.006p  Created CONVERSATION and READINGWRITING module types, and adjusted return messaging .
 v1.006q  LISTENINGSPEAKING module type, and modified functiont to create audio from text passage and upload .
 v1.006r  LISTENINGSPEAKING module fixed to update learningContent with the audio url. Also  prompt Gemini to produce the SSML string to introduce pauses.
+v1.006r  Created ModuleContent screen to attach/remove lessons from course, and display modules in frienly fashion for selection.

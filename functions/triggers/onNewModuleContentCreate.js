@@ -1,7 +1,7 @@
 // --- Cloud Firestore onCreate Trigger for New Module Content ---
 // This function is triggered when a new document is created in the 'learningContent' collection.
 // It is responsible for enriching Module content with phonetics, audio, and syllable breakdowns,
-// and then triggering image generation.
+// and then triggering image generation.It also adds each moduleid to the LESSON if selected
 
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
@@ -24,10 +24,34 @@ const onNewModuleContentCreate = functions.region('asia-southeast1').runWith({ t
     .document('learningContent/{docId}')
     .onCreate(async (snapshot, context) => {
         const data = snapshot.data();
-        const docId = context.params.docId;
-        const db = admin.firestore();
+        const docId = context.params.docId; // This is the MODULEID of the newly created module
+        const db = admin.firestore(); // Firestore instance
 
         functions.logger.info(`onNewModuleContentCreate triggered for document: ${docId}`);
+	
+        // Firstly, check if it's to be included in a Lesson. If so, update the Lesson's moduleid_array with this module's moduleid.
+        const lessonModuleId = data.LESSON_ID; // Retrieve LESSON_ID from the new module's data
+
+        if (lessonModuleId) { // Check if LESSON_ID exists and has a value
+            functions.logger.info(`Module ${docId} has LESSON_ID: ${lessonModuleId}. Attempting to link to LESSON document.`);
+            try {
+                const lessonRef = db.collection("LESSON").doc(lessonModuleId); 
+                
+                // Atomically add the current module's ID (docId) to the LESSON's MODULEID_ARRAY
+                await lessonRef.update({
+                    MODULEID_ARRAY: admin.firestore.FieldValue.arrayUnion(docId)
+                });
+                functions.logger.info(`Successfully added module ${docId} to LESSON ${lessonModuleId}'s MODULEID_ARRAY.`);
+            } catch (error) {
+                // Log and re-throw the error so Firebase retries this part of the function
+                functions.logger.error(`Error linking module ${docId} to LESSON ${lessonModuleId}:`, error);
+                throw new Error(`Failed to update LESSON MODULEID_ARRAY: ${error.message}`);
+            }
+        } else {
+            functions.logger.info(`Module ${docId} does not have a LESSON_ID. Skipping LESSON MODULEID_ARRAY update.`);
+        }
+
+
 
         if (data.MODULETYPE === 'VOCABULARY') {
             let fullWordIpaWithDelimiters = null; // Stores IPA like 'ˈɛk.skə.veɪt'

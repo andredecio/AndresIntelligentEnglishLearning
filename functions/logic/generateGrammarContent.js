@@ -15,16 +15,21 @@ const generateGrammarContent = functions.region('asia-southeast1').runWith({ tim
     }
     // --- End Security Check ---
 
-    const { cefrLevel, numItems, theme } = data;
+    // 1. Destructure lessonModuleId from the incoming data
+    const { cefrLevel, numItems, theme, lessonModuleId } = data; // <-- ADD lessonModuleId here
 
-    if (!cefrLevel || !numItems || !theme || numItems <= 0) {
+    // 2. Adjust validation to allow 0 numItems if this is for a lesson (handled client-side)
+    // If not for a lesson, numItems must be > 0.
+    // For simplicity, we'll keep it numItems > 0 as 0 items means no function call from client
+    // for standalone generation.
+    if (!cefrLevel || !theme || typeof numItems !== 'number' || numItems < 0) { // Changed to numItems < 0 to allow 0
         throw new functions.https.HttpsError(
             'invalid-argument',
-            'CEFR Level, Number of Words, and Theme are required and must be valid.'
+            'CEFR Level, Number of Items (must be a number >= 0), and Theme are required and must be valid.'
         );
     }
 
-    functions.logger.info(`AdminSystem: Starting grammar content generation for CEFR: ${cefrLevel}, Items: ${numItems}, Theme: ${theme}`);
+    functions.logger.info(`AdminSystem: Starting grammar content generation for CEFR: ${cefrLevel}, Items: ${numItems}, Theme: ${theme}${lessonModuleId ? `, Lesson: ${lessonModuleId}` : ''}`); // Add lessonModuleId to log
 
     const textGenModel = getTextGenModel(); // Get the Gemini text generation model instance
     const firestore = admin.firestore(); 
@@ -34,7 +39,11 @@ const generateGrammarContent = functions.region('asia-southeast1').runWith({ tim
 	const skippedWords = [];
 	let geminiReturnedItemCount = 0;
     let topLevelGrammarCount = 0;
-    let GrammarGroupCount = 0;
+    let GrammarGroupCount = 0; // This variable seems specific to Vocabulary. Consider renaming or removing if not used for Grammar.
+
+    // 3. Prepare lessonDataToMerge for conditional LESSON_ID
+    const lessonDataToMerge = lessonModuleId ? { LESSON_ID: lessonModuleId } : {}; // <-- ADD THIS LINE
+
     try {
         // --- 1. Construct the sophisticated prompt for Gemini ---
         const geminiPrompt = `
@@ -94,19 +103,19 @@ const generateGrammarContent = functions.region('asia-southeast1').runWith({ tim
 		  },
 			
 			]
-        `; // This closes the backtick for the geminiPrompt multiline string.
+        `; 
 
         const result = await textGenModel.generateContent(geminiPrompt);
         const response = await result.response;
         const rawText = await response.text();
 
 
-// Clean & parse
-const cleanedText = rawText
-  .trim()
-  .replace(/^```json/, '')
-  .replace(/```$/, '')
-  .replace(/\s*}+\s*$/, ']');  // Fix Gemini's trailing brace issue
+        // Clean & parse
+        const cleanedText = rawText
+            .trim()
+            .replace(/^```json/, '')
+            .replace(/```$/, '')
+            .replace(/\s*}+\s*$/, ']');  // Fix Gemini's trailing brace issue
 		
 		functions.logger.info(`Cleaned text from Gemini. Length: ${cleanedText.length}`);
         functions.logger.info(`Cleaned text (first 500 chars): ${cleanedText.substring(0, 500)}`);
@@ -119,8 +128,8 @@ const cleanedText = rawText
 			geminiReturnedItemCount = generatedContent.length; //  SET THE COUNT HERE 
             functions.logger.info(`Gemini returned ${geminiReturnedItemCount} top-level JSON items.`);
 	   } catch (e) {
-  functions.logger.error("Failed to parse Gemini JSON:", cleanedText);
-  throw new Error("Failed to parse Gemini output as JSON: " + e.message);
+            functions.logger.error("Failed to parse Gemini JSON:", cleanedText);
+            throw new functions.https.HttpsError('internal', "Failed to parse Gemini output as JSON.", e.message);
         }
 
         // --- 2. Process Generated Content and Write to Firestore (with Deduplication) ---
@@ -143,7 +152,7 @@ const cleanedText = rawText
 
             // --- If the item is NOT skipped, process it and add to the Firestore batch ---
            if (itemModuleType === "GRAMMAR") {
-                 topLevelGrammarCount++; 
+                topLevelGrammarCount++; 
                 functions.logger.info(`Processing  GRAMMAR: "${item.TITLE}".`); 
 				const grammarid = generateUniqueFirestoreId();
                 const grammarRef = firestore.collection('learningContent').doc(grammarid);
@@ -159,9 +168,10 @@ const cleanedText = rawText
                     THEME: item.THEME,
 					IMAGEURL: "",
                     imageStatus: "pending",
-                    MODULEID_ARRAY: [],
+                    MODULEID_ARRAY: [], // Grammar modules typically don't contain sub-modules. Keep if applicable.
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    ...lessonDataToMerge // <-- ADD THIS LINE to include LESSON_ID if present
                 });
                 createdModuleIds.push(grammarid);
 
@@ -172,7 +182,7 @@ const cleanedText = rawText
 
         await batch.commit();
 
- functions.logger.info(`Content generation summary: Requested ${numItems}, Gemini returned ${geminiReturnedItemCount} top-level items. Processed ${topLevelGrammarCount} ). Successfully created ${createdModuleIds.length} new modules. Skipped ${numSkipped} duplicates.`);//        // --- CHANGE: Trigger batchGenerateGRAMMARImages (cleaned up and restored) ---
+        functions.logger.info(`Content generation summary: Requested ${numItems}, Gemini returned ${geminiReturnedItemCount} top-level items. Processed ${topLevelGrammarCount} GRAMMAR modules. Successfully created ${createdModuleIds.length} new modules. Skipped ${numSkipped} duplicates.`); // Adjusted log message
 
         return {
             status: "success",
@@ -181,7 +191,7 @@ const cleanedText = rawText
 			skippedWords: skippedWords,
 			geminiReturnedItemCount: geminiReturnedItemCount,
             topLevelGrammarCount: topLevelGrammarCount,
-            GrammarGroupCount: GrammarGroupCount,
+            // GrammarGroupCount: GrammarGroupCount, // Remove if not relevant for Grammar
 		};
 
     } catch (error) {
@@ -194,4 +204,3 @@ const cleanedText = rawText
 }) // This closes the exports.generateGRAMMARContent function definition
 
 module.exports = { generateGrammarContent };
-

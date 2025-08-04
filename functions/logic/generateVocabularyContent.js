@@ -2,7 +2,6 @@ const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const { getTextGenModel } = require("../helpers/gemini");
 const { normalizeTitle, generateUniqueFirestoreId } = require("../helpers/ipaUtils"); // adjust path if needed
-//const { Schema } = require('@firebase/ai');
 
 // --- generateVocabularyContent Callable Function ---
 // This function is called from your AdminSystem webpage to generate new vocabulary content using Gemini.
@@ -16,16 +15,16 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
     }
     // --- End Security Check ---
 
-    const { cefrLevel, numWords, theme } = data;
+    const { cefrLevel, numWords, theme, lessonModuleId } = data;
 
-    if (!cefrLevel || !numWords || !theme || numWords <= 0) {
+    if (!cefrLevel || !theme || typeof numWords !== 'number' || numWords <= 0) {
         throw new functions.https.HttpsError(
             'invalid-argument',
-            'CEFR Level, Number of Words, and Theme are required and must be valid.'
+            'CEFR Level, Number of Words (must be an integer greater than -1), and Theme are required and must be valid.'
         );
     }
 
-    functions.logger.info(`AdminSystem: Starting content generation for CEFR: ${cefrLevel}, Words: ${numWords}, Theme: ${theme}`);
+    functions.logger.info(`AdminSystem: Starting content generation for CEFR: ${cefrLevel}, Words: ${numWords}, Theme: ${theme}${lessonModuleId ? `, Lesson: ${lessonModuleId}` : ''}`);
 
     const textGenModel = getTextGenModel(); // Get the Gemini text generation model instance
     const firestore = admin.firestore(); 
@@ -37,6 +36,11 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
     let topLevelVocabCount = 0;
     let vocabGroupCount = 0;
     let nestedVocabCount = 0;
+
+    // --- Prepare lessonDataToMerge for conditional LESSON_ID ---
+    const lessonDataToMerge = lessonModuleId ? { LESSON_ID: lessonModuleId } : {};
+    // --- End Prepare lessonDataToMerge ---
+
     try {
         // --- 1. Construct the sophisticated prompt for Gemini ---
         const geminiPrompt = `
@@ -47,23 +51,17 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
 		- "MODULETYPE": String (e.g. VOCABULARY_GROUP, VOCABULARY).
         - "TITLE": String.
         - "CEFR": String (e.g., "A1", "B2").
-        - "DESCRIPTION": String.
         - "THEME": String.
 
         **Module Types and Their Specific Fields:**
 
-        1.  **VOCABULARY_GROUP** (each single VOCABULARY_GROUP is made when there is a word with multiple distinct meanings. For single meaning words there no VOCABULARY_GROUP will be created ):
+        1.  **VOCABULARY_GROUP** (each single VOCABULARY_GROUP is made when there is a word with multiple distinct meanings. For single meaning words  no VOCABULARY_GROUP will be created ):
             - "MODULETYPE": "VOCABULARY_GROUP"
             - "TITLE": The word (or phrase)
             - "CEFR": This must be "A1"
-            - "DESCRIPTION": This must be empty
             - "THEME":This must be ${theme}
-            - "WORD_TYPE": This must be empty
             - "MEANING_ORIGIN": This must contain ONLY details of the multi-meaning word's origin, etymology, common prefixes, infixes, or suffixes relevant to the multi-meaning word, NOT one of the meanings of the mulit-meaning word.
-            - "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": This must be empty
-            - "SIMPLE_PAST": This must be empty
-            - "PAST_PARTICIPLE": This must be empty
-			- "items": An array of nested "VOCABULARY" modules, each defining a unique meaning of the multi-meaning word (eg. 'set' can be a verb or a noun, 'like' has at least 8 separate meanings so that would result in one VOCABULARY_GROUP record, and at least 8 separate VOCABULARY records for 'like').
+            - "items": An array of AT LEAST 2 nested "VOCABULARY" modules, each defining a unique meaning of the multi-meaning word (eg. 'set' can be a verb or a noun, 'like' has at least 8 separate meanings so that would result in one VOCABULARY_GROUP record, and at least 8 separate VOCABULARY records for 'like').
 
         2.  **VOCABULARY** (for single-meaning words, or for individual meanings within a VOCABULARY_GROUP):
             - "MODULETYPE": "VOCABULARY"
@@ -78,19 +76,19 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
                 - "elephant" should be "ˈel.ɪ.fənt"
                 - "important" should be "ɪmˈpɔː.tənt"
 			- "CEFR": This must be "A1"
-            - "DESCRIPTION": Must be 3 numbered sentences (e.g., "1. Sentence one. 2. Sentence two. 3. Sentence three.") that use the word in the context of its specific meaning
+            - "DESCRIPTION": MUST be 3 numbered sentences (e.g., "1. Sentence one. 2. Sentence two. 3. Sentence three.") that MUST include and be an example of the use of the word in the context of its specific meaning
             - "THEME":This must be ${theme}
             - "WORD_TYPE": This must be one of the following: "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "conjunction", "interjection", "article", "determiner"
             - "MEANING_ORIGIN": This must contain the meaning of the specific instance of the word. This must be followed by details of the word's origin, etymology, common prefixes, infixes, or suffixes relevant to the group.
-            - "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": This has a value only when WORD_TYPE = "verb". Provide the 3rd person singular simple present tense form, e.g., "eats" for "eat"
-            - "SIMPLE_PAST": This has a value only when WORD_TYPE = "verb". Provide the simple past tense form, e.g., "ate" for "eat"
-            - "PAST_PARTICIPLE": This has a value only when WORD_TYPE = "verb". Provide the past participle form, e.g., "eaten" for "eat"
+            - "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": This should exist only when WORD_TYPE = "verb". Provide the 3rd person singular simple present tense form, e.g., "eats" for "eat"
+            - "SIMPLE_PAST": This should exist only when WORD_TYPE = "verb". Provide the simple past tense form, e.g., "ate" for "eat"
+            - "PAST_PARTICIPLE": This should exist only when WORD_TYPE = "verb". Provide the past participle form, e.g., "eaten" for "eat"
 			- "imagePrompt": String. A concise, descriptive instruction for an AI image generator to create an image based on one of the sentences in the DESCRIPTION field. (Only for MODULETYPE "VOCABULARY")
 
         **Crucial Rules for Generation:**
-        - ALWAYS check first if a word has more than one meaning. You MUST create a document with VOCABULARY_GROUP MODULETYPE for a word when there is more than one possible meaning of that word. That VOCABULARY_GROUP document must have a null WORD_TYPE.Create a VOCABULARY_GROUP record if there is more than 1 meaning of the word eg. 'present' can be a verb or a noun each with different pronunciation.
-		- Once you have generated a VOCABULARY_GROUP record, you MUST then create one new VOCABULARY record for each meaning of that word that you created the VOCABULARY_GROUP for.
-		- **MODULETYPE:** You MUST create a unique VOCABULARY MODULETYPE document for EACH and EVERY POSSIBLE meaning of any given word. For example 'set' has more than 10 separarate meanings, so it MUST cause the creation of a VOCABULARY_GROUP MODULETYPE document, and at least 10 documents for that word with a MODULETYPE of VOCABULARY, each with their specific values for the other relevant fields described here.      
+        - ALWAYS check first if a word has more than one meaning. You MUST create a document with VOCABULARY_GROUP MODULETYPE for a word when there is more than one possible meaning of that word. You MUST create a VOCABULARY_GROUP record if there is more than 1 meaning of the word eg. 'present' can be a verb or a noun each with different pronunciation.Of course, there will always be a minimum of 2 VOCABULARY documents with each VOCABULARY_GROUP document, each with a unique meaning.	
+		- Once you have generated a VOCABULARY_GROUP record, you MUST then create at least 2 new VOCABULARY records. That is, 1 for each meaning of that word that you created the VOCABULARY_GROUP for.
+		- **MODULETYPE:** You MUST create a unique VOCABULARY MODULETYPE document for EACH and EVERY POSSIBLE meaning of any given word. For example 'set' has more than 10 separarate meanings, so it MUST cause the creation of a VOCABULARY_GROUP MODULETYPE document, and at least 10 documents for that word with a MODULETYPE of VOCABULARY, each with their specific values for each specific meaning.      
 		- **CEFR Hierarchy:** For All VOCABULARY AND VOCABULARY_GROUP modules, their 'CEFR' level MUST be set to "A1").
         - **Polysemy:** If a word has multiple *distinct* meanings or functions including as different parts of speech (e.g., "book" as a noun and "book" as a verb; "like" as a verb and as an adjective, and as a preposition, and as a conjunction ), you MUST create a "VOCABULARY_GROUP" for it. This "VOCABULARY_GROUP" must contain individual "VOCABULARY" entries for *each* distinct meaning and/or part of speech. If a word has only one primary meaning, create only a single "VOCABULARY" entry directly.
         - **Output Format:** Provide ONLY the JSON array. Do not include any introductory or concluding text.
@@ -112,23 +110,14 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
             "THEME": "General English",
             "WORD_TYPE": "noun",
             "MEANING_ORIGIN": "A carnivorous mammal of the Genus 'Felis'.originates from the Old English word "catt" (masculine) and "catte" (feminine), which themselves are derived from the Proto-West Germanic *kattu. This Germanic form likely comes from the Late Latin *cattus, first appearing around the 6th century.  ",
-            "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": "",
-            "SIMPLE_PAST": "",
-            "PAST_PARTICIPLE": "",
 			"imagePrompt": "A fluffy cat sitting."
           },
           {
             "TITLE": "set",
             "MODULETYPE": "VOCABULARY_GROUP",
             "CEFR": "A1",
-            "DESCRIPTION": "",
             "THEME":"General English",
-            "WORD_TYPE": "",
             "MEANING_ORIGIN": "Old English settan, of Germanic origin; related to Dutch zetten, German setzen, also to sit."
-            "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": "",
-            "SIMPLE_PAST": "",
-            "PAST_PARTICIPLE": "",
-
 		 },
           {
             "TITLE": "set", 
@@ -153,9 +142,6 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
             "THEME": "General English",
             "WORD_TYPE": "noun",
             "MEANING_ORIGIN": "a group of similar things that belong together in some way. The most common meaning of "set" as a noun refers to a group of related items. This sense is related to the Old English word "set" meaning "seat" or "place," and also the Middle English "set" referring to a group or sequence. ",
-            "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": "",
-            "SIMPLE_PAST": "",
-            "PAST_PARTICIPLE": "",
 			"imagePrompt": "A golfer holding a set of clubs."
 		  },
 		  {
@@ -167,14 +153,11 @@ const generateVocabularyContent = functions.region('asia-southeast1').runWith({ 
             "THEME": "General English",
             "WORD_TYPE": "noun",
             "MEANING_ORIGIN": "The art of combining vocal or instrumental sounds in a harmonious or expressive way. From Old French musique, from Latin musica, from Greek mousikē (tekhnē) 'art of the Muses'.",
-            "PRESENT_SIMPLE_3RD_PERSON_SINGULAR": "",
-            "SIMPLE_PAST": "",
-            "PAST_PARTICIPLE": "",
             "imagePrompt": "People enjoying live music at a concert.",
         }
 			
 			]
-        `; // This closes the backtick for the geminiPrompt multiline string.
+        `; 
 
         const result = await textGenModel.generateContent(geminiPrompt);
         const response = await result.response;
@@ -199,8 +182,8 @@ const cleanedText = rawText
 			geminiReturnedItemCount = generatedContent.length; //  SET THE COUNT HERE 
             functions.logger.info(`Gemini returned ${geminiReturnedItemCount} top-level JSON items.`);
 	   } catch (e) {
-  functions.logger.error("Failed to parse Gemini JSON:", cleanedText);
-  throw new Error("Failed to parse Gemini output as JSON: " + e.message);
+            functions.logger.error("Failed to parse Gemini JSON:", cleanedText);
+            throw new functions.https.HttpsError('internal', "Failed to parse Gemini output as JSON.", e.message);
         }
 
         // --- 2. Process Generated Content and Write to Firestore (with Deduplication) ---
@@ -208,6 +191,7 @@ const cleanedText = rawText
             const itemModuleType = item.MODULETYPE || 'VOCABULARY';
             const itemNormalizedTitle = normalizeTitle(item.TITLE);
 
+            // Deduplication check
             const existingContentSnapshot = await firestore.collection('learningContent')
                 .where('MODULETYPE', 'in', ['VOCABULARY', 'VOCABULARY_GROUP'])
                 .where('normalizedTitle', '==', itemNormalizedTitle)
@@ -218,7 +202,7 @@ const cleanedText = rawText
                 functions.logger.info(`Skipping "${item.TITLE}" (${itemModuleType}) as a record with this title already exists.`);
                 numSkipped++;
                 skippedWords.push(item.TITLE);
-				continue;
+				continue; // Skip to the next item
             }
 
             // --- If the item is NOT skipped, process it and add to the Firestore batch ---
@@ -227,7 +211,7 @@ const cleanedText = rawText
 				functions.logger.info(`Processing VOCABULARY_GROUP: "${item.TITLE}".`);
 				const groupId = generateUniqueFirestoreId();
                 const groupRef = firestore.collection('learningContent').doc(groupId);
-                const meaningIds = [];
+                const meaningIds = []; // IDs of nested VOCABULARY modules
 
                 if (Array.isArray(item.items)) {
                     for (const meaning of item.items) {
@@ -236,14 +220,14 @@ const cleanedText = rawText
 							functions.logger.info(`  - Processing nested VOCABULARY item: "${meaning.TITLE}".`);
 							const vocabId = generateUniqueFirestoreId();
                             const vocabRef = firestore.collection('learningContent').doc(vocabId);
-                            //new bit below
+                            
 							const verbFields = (meaning.WORD_TYPE === 'verb') ? {
-							PRESENT_SIMPLE_3RD_PERSON_SINGULAR: meaning.PRESENT_SIMPLE_3RD_PERSON_SINGULAR || null,
-							SIMPLE_PAST: meaning.SIMPLE_PAST || null,
-							PAST_PARTICIPLE: meaning.PAST_PARTICIPLE || null,
-								} : {};
-							//
-						   batch.set(vocabRef, {
+								PRESENT_SIMPLE_3RD_PERSON_SINGULAR: meaning.PRESENT_SIMPLE_3RD_PERSON_SINGULAR || '', // Set to empty string if not provided by Gemini
+								SIMPLE_PAST: meaning.SIMPLE_PAST || '',
+								PAST_PARTICIPLE: meaning.PAST_PARTICIPLE || '',
+							} : {};
+							
+                            batch.set(vocabRef, {
                                 MODULEID: vocabId,
                                 MODULETYPE: "VOCABULARY",
                                 TITLE: meaning.TITLE,
@@ -254,54 +238,53 @@ const cleanedText = rawText
                                 imagePrompt: meaning.imagePrompt,
                                 THEME: meaning.THEME,
                                 WORD_TYPE: meaning.WORD_TYPE,
-                                MEANING_ORIGIN: meaning.MEANING_ORIGIN,
-								PRESENT_SIMPLE_3RD_PERSON_SINGULAR: meaning.PRESENT_SIMPLE_3RD_PERSON_SINGULAR,
-								SIMPLE_PAST: meaning.SIMPLE_PAST,
-								PAST_PARTICIPLE: meaning.PAST_PARTICIPLE,
+                                MEANING_ORIGIN: meaning.MEANING_ORIGIN, // MEANING_ORIGIN correctly included here
+                                // Apply verb fields conditionally (only if WORD_TYPE is 'verb')
+                                ...verbFields,
 								IMAGEURL: "", // Placeholder for image URL
                                 imageStatus: "pending", // Mark for batch image generation
                                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                                ...lessonDataToMerge // <--- Add LESSON_ID here for nested VOCABULARY!
                             });
-                            meaningIds.push(vocabId);
+                meaningIds.push(vocabId);
                         } else {
                             functions.logger.warn(`Unexpected module type found in VOCABULARY_GROUP items: ${meaning.MODULETYPE}. Skipping nested item.`);
                         }
                     }
                 }
 
+                // Set the VOCABULARY_GROUP document
                 batch.set(groupRef, {
                     MODULEID: groupId,
                     MODULETYPE: "VOCABULARY_GROUP",
                     TITLE: item.TITLE,
                     normalizedTitle: itemNormalizedTitle,
                     CEFR: item.CEFR,
-                    DESCRIPTION: "",
                     THEME: item.THEME,
-                    WORD_TYPE: "",
-                    MEANING_ORIGIN: item.MEANING_ORIGIN,
-                    PRESENT_SIMPLE_3RD_PERSON_SINGULAR: "",
-					SIMPLE_PAST: "",
-					PAST_PARTICIPLE: "",
-					MODULEID_ARRAY: meaningIds,
-                    IMAGEURL: "",
+                    MEANING_ORIGIN: item.MEANING_ORIGIN, // <--- MEANING_ORIGIN RESTORED AND CORRECTED HERE!
+					MODULEID_ARRAY: meaningIds, // Array of nested VOCABULARY MODULEIDs
+                    IMAGEURL: "", // Placeholder
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    ...lessonDataToMerge // Add LESSON_ID here for VOCABULARY_GROUP!
                 });
-                createdModuleIds.push(groupId);
+                createdModuleIds.push(groupId); // Add the group ID to createdModuleIds
 
             } else if (itemModuleType === "VOCABULARY") {
                  topLevelVocabCount++; 
                 functions.logger.info(`Processing top-level VOCABULARY: "${item.TITLE}".`); 
 				const vocabId = generateUniqueFirestoreId();
                 const vocabRef = firestore.collection('learningContent').doc(vocabId);
+				
 				// --- NEW: Conditionally add verb conjugation fields ---
-							const verbFields = (item.WORD_TYPE === 'verb') ? {
-							PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR || '',
-							SIMPLE_PAST: item.SIMPLE_PAST || '',
-							PAST_PARTICIPLE: item.PAST_PARTICIPLE || '',
-						} : {};
+				const verbFields = (item.WORD_TYPE === 'verb') ? {
+					PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR || '',
+					SIMPLE_PAST: item.SIMPLE_PAST || '',
+					PAST_PARTICIPLE: item.PAST_PARTICIPLE || '',
+				} : {};
 
+                // Set the top-level VOCABULARY document
                 batch.set(vocabRef, {
                     MODULEID: vocabId,
                     MODULETYPE: "VOCABULARY",
@@ -313,26 +296,26 @@ const cleanedText = rawText
                     imagePrompt: item.imagePrompt,
                     THEME: item.THEME,
                     WORD_TYPE: item.WORD_TYPE,
-                    MEANING_ORIGIN: item.MEANING_ORIGIN,
-                    PRESENT_SIMPLE_3RD_PERSON_SINGULAR: item.PRESENT_SIMPLE_3RD_PERSON_SINGULAR,
-					SIMPLE_PAST: item.SIMPLE_PAST,
-					PAST_PARTICIPLE: item.PAST_PARTICIPLE,
+                    MEANING_ORIGIN: item.MEANING_ORIGIN, // MEANING_ORIGIN correctly included here
+                    // Apply verb fields conditionally (only if WORD_TYPE is 'verb')
+                    ...verbFields,
 					IMAGEURL: "",
                     imageStatus: "pending",
-                    MODULEID_ARRAY: [],
+                    MODULEID_ARRAY: [], // Top-level VOCABULARY does not contain sub-modules
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    ...lessonDataToMerge // Add LESSON_ID here for top-level VOCABULARY!
                 });
-                createdModuleIds.push(vocabId);
+                createdModuleIds.push(vocabId); // Add the individual VOCABULARY ID to createdModuleIds
 
             } else {
                 functions.logger.warn(`Skipping unexpected top-level module type generated by Gemini: ${itemModuleType} for item with title "${item.TITLE}".`);
             }
         } // End of for (const item of generatedContent) loop
 
-        await batch.commit();
+        await batch.commit(); // Commit all batched writes to Firestore
 
- functions.logger.info(`Content generation summary: Requested ${numWords}, Gemini returned ${geminiReturnedItemCount} top-level items. Processed ${topLevelVocabCount} top-level VOCABULARY, ${vocabGroupCount} VOCABULARY_GROUPs (containing ${nestedVocabCount} nested VOCABULARY items). Successfully created ${createdModuleIds.length} new modules. Skipped ${numSkipped} duplicates.`);//        // --- CHANGE: Trigger batchGenerateVocabularyImages (cleaned up and restored) ---
+        functions.logger.info(`Content generation summary: Requested ${numWords}, Gemini returned ${geminiReturnedItemCount} top-level items. Processed ${topLevelVocabCount} top-level VOCABULARY, ${vocabGroupCount} VOCABULARY_GROUPs (containing ${nestedVocabCount} nested VOCABULARY items). Successfully created ${createdModuleIds.length} new modules. Skipped ${numSkipped} duplicates.`);
 
         return {
             status: "success",
@@ -348,11 +331,11 @@ const cleanedText = rawText
     } catch (error) {
         functions.logger.error("Error generating or saving content:", error);
         if (error instanceof functions.https.HttpsError) {
-            throw error;
+            throw error; // Re-throw HttpsErrors directly
         }
+        // Catch all other unexpected errors and convert them to HttpsError
         throw new functions.https.HttpsError('internal', 'An unexpected error occurred during content generation.', error.message);
     }
-}) // This closes the exports.generateVocabularyContent function definition
+}); // This closes the exports.generateVocabularyContent function definition
 
 module.exports = { generateVocabularyContent };
-

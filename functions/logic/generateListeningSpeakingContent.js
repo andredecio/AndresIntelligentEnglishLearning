@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 const { getTextGenModel } = require("../helpers/gemini");
 const { normalizeTitle, generateUniqueFirestoreId } = require("../helpers/ipaUtils"); // adjust path if needed
 
-// --- generate Reading-WritingContent Callable Function ---
+// --- generateListeningSpeakingContent Callable Function ---
 // This function is called from your AdminSystem webpage to generate new Listening and Speaking content using Gemini.
 const generateListeningSpeakingContent = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 }).https.onCall(async (data, context) => {
     // --- Security Check (Crucial for Admin Functions) ---
@@ -15,16 +15,18 @@ const generateListeningSpeakingContent = functions.region('asia-southeast1').run
     }
     // --- End Security Check ---
 
-    const { cefrLevel, numItems, theme } = data;
+    // 1. Destructure lessonModuleId from the incoming data
+    const { cefrLevel, numItems, theme, lessonModuleId } = data; // <-- ADD lessonModuleId here
 
-    if (!cefrLevel || !numItems || !theme || numItems <= 0) {
+    // 2. Adjust validation to allow 0 numItems
+    if (!cefrLevel || !theme || typeof numItems !== 'number' || numItems < 0) { // Changed to numItems < 0 to allow 0
         throw new functions.https.HttpsError(
             'invalid-argument',
-            'CEFR Level, Number of Items, and Theme are required and must be valid.'
+            'CEFR Level, Number of Items (must be a number >= 0), and Theme are required and must be valid.'
         );
     }
 
-    functions.logger.info(`AdminSystem: Starting ListeningSpeaking content generation for CEFR: ${cefrLevel}, Items: ${numItems}, Theme: ${theme}`);
+    functions.logger.info(`AdminSystem: Starting ListeningSpeaking content generation for CEFR: ${cefrLevel}, Items: ${numItems}, Theme: ${theme}${lessonModuleId ? `, Lesson: ${lessonModuleId}` : ''}`); // Add lessonModuleId to log
 
     const textGenModel = getTextGenModel(); // Get the Gemini text generation model instance
     const firestore = admin.firestore(); 
@@ -34,7 +36,12 @@ const generateListeningSpeakingContent = functions.region('asia-southeast1').run
 	const skippedWords = [];
 	let geminiReturnedItemCount = 0;
     let topLevelListeningSpeakingCount = 0;
-    let ListeningSpeakingGroupCount = 0;
+    // ListeningSpeakingGroupCount is not relevant for this module type, consider removing or keep for consistency if needed elsewhere.
+    // let ListeningSpeakingGroupCount = 0; 
+
+    // 3. Prepare lessonDataToMerge for conditional LESSON_ID
+    const lessonDataToMerge = lessonModuleId ? { LESSON_ID: lessonModuleId } : {}; // <-- ADD THIS LINE
+
     try {
         // --- 1. Construct the sophisticated prompt for Gemini ---
         const geminiPrompt = `
@@ -98,19 +105,19 @@ Generate a JSON array of ${numItems} Listening Speaking  exercises for CEFR ${ce
 		  },
 			
 			]
-        `; // This closes the backtick for the geminiPrompt multiline string.
+        `; 
 
         const result = await textGenModel.generateContent(geminiPrompt);
         const response = await result.response;
         const rawText = await response.text();
 
 
-// Clean & parse
-const cleanedText = rawText
-  .trim()
-  .replace(/^```json/, '')
-  .replace(/```$/, '')
-  .replace(/\s*}+\s*$/, ']');  // Fix Gemini's trailing brace issue
+        // Clean & parse
+        const cleanedText = rawText
+            .trim()
+            .replace(/^```json/, '')
+            .replace(/```$/, '')
+            .replace(/\s*}+\s*$/, ']');  // Fix Gemini's trailing brace issue
 		
 		functions.logger.info(`Cleaned text from Gemini. Length: ${cleanedText.length}`);
         functions.logger.info(`Cleaned text (first 500 chars): ${cleanedText.substring(0, 500)}`);
@@ -123,8 +130,8 @@ const cleanedText = rawText
 			geminiReturnedItemCount = generatedContent.length; //  SET THE COUNT HERE 
             functions.logger.info(`Gemini returned ${geminiReturnedItemCount} top-level JSON items.`);
 	   } catch (e) {
-  functions.logger.error("Failed to parse Gemini JSON:", cleanedText);
-  throw new Error("Failed to parse Gemini output as JSON: " + e.message);
+            functions.logger.error("Failed to parse Gemini JSON:", cleanedText);
+            throw new functions.https.HttpsError('internal', "Failed to parse Gemini output as JSON.", e.message);
         }
 
         // --- 2. Process Generated Content and Write to Firestore (with Deduplication) ---
@@ -149,11 +156,11 @@ const cleanedText = rawText
            if (itemModuleType === "LISTENINGSPEAKING") {
                  topLevelListeningSpeakingCount++; 
                 functions.logger.info(`Processing  LISTENINGSPEAKING: "${item.TITLE}".`); 
-				const grammarid = generateUniqueFirestoreId();
-                const grammarRef = firestore.collection('learningContent').doc(grammarid);
+				const listeningSpeakingId = generateUniqueFirestoreId(); // Renamed variable for clarity
+                const listeningSpeakingRef = firestore.collection('learningContent').doc(listeningSpeakingId); // Renamed variable
 
-                batch.set(grammarRef, {
-                    MODULEID: grammarid,
+                batch.set(listeningSpeakingRef, { // Using listeningSpeakingRef
+                    MODULEID: listeningSpeakingId, // Using listeningSpeakingId
                     MODULETYPE: "LISTENINGSPEAKING",
                     TITLE: item.TITLE,
                     normalizedTitle: itemNormalizedTitle,
@@ -163,11 +170,12 @@ const cleanedText = rawText
                     THEME: item.THEME,
 					IMAGEURL: "",
                     imageStatus: "pending",
-                    MODULEID_ARRAY: [],
+                    MODULEID_ARRAY: [], // ListeningSpeaking modules typically don't contain sub-modules. Keep if applicable.
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    ...lessonDataToMerge // <-- ADD THIS LINE to include LESSON_ID if present
                 });
-                createdModuleIds.push(grammarid);
+                createdModuleIds.push(listeningSpeakingId); // Using listeningSpeakingId
 
             } else {
                 functions.logger.warn(`Skipping unexpected top-level module type generated by Gemini: ${itemModuleType} for item with title "${item.TITLE}".`);
@@ -176,7 +184,7 @@ const cleanedText = rawText
 
         await batch.commit();
 
- functions.logger.info(`Content generation summary: Requested ${numItems}, Gemini returned ${geminiReturnedItemCount} top-level items. Processed ${topLevelListeningSpeakingCount} ). Successfully created ${createdModuleIds.length} new modules. Skipped ${numSkipped} duplicates.`);//        // --- CHANGE: Trigger batchGenerateListeningSpeakingImages (cleaned up and restored) ---
+        functions.logger.info(`Content generation summary: Requested ${numItems}, Gemini returned ${geminiReturnedItemCount} top-level items. Processed ${topLevelListeningSpeakingCount} LISTENINGSPEAKING modules. Successfully created ${createdModuleIds.length} new modules. Skipped ${numSkipped} duplicates.`); // Adjusted log message
 
         return {
             status: "success",
@@ -185,7 +193,8 @@ const cleanedText = rawText
 			skippedWords: skippedWords,
 			geminiReturnedItemCount: geminiReturnedItemCount,
             topLevelListeningSpeakingCount: topLevelListeningSpeakingCount,
-            ListeningSpeakingGroupCount: ListeningSpeakingGroupCount,
+            // ListeningSpeakingGroupCount is not relevant for this module type, removed from return.
+            // ListeningSpeakingGroupCount: ListeningSpeakingGroupCount, 
 		};
 
     } catch (error) {
@@ -198,4 +207,3 @@ const cleanedText = rawText
 }) // This closes the exports.generateListeningSpeakingContent function definition
 
 module.exports = { generateListeningSpeakingContent };
-

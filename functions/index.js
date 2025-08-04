@@ -56,6 +56,11 @@ exports.onNewModuleContentCreate = onNewModuleContentCreate;
 const { batchGenerateModuleImages } = require('./finite use/batchGenerateModuleImages');
 exports.batchGenerateModuleImages = batchGenerateModuleImages;
 
+//For multi-module generation and bundling into a LESSON called from AdminSystem
+const { createLesson } = require('./logic/createLesson');
+exports.createLesson = createLesson;
+
+
 
 //HELPERS
 //Two helper functions that initialise Genmodel
