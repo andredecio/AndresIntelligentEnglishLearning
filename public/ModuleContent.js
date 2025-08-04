@@ -12,7 +12,7 @@ let currentActiveRecord = null; // Stores the data of the COURSE/LESSON/SEMANTIC
 let allAvailableModules = [];   // Stores all modules fetched for the larger list (LESSONs, SEMANTIC_GROUPs, etc.)
 let moduleTypes = { // Define module types and their corresponding collections (simplified for now)
     'COURSE': 'courses',
-    'LESSON': 'lessons',
+    'LESSON': 'LESSON',
     'SEMANTIC_GROUP': 'learningContent',
     'VOCABULARY_GROUP': 'learningContent',
     'VOCABULARY': 'learningContent',
@@ -271,8 +271,8 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
         // Attempt to guess collection based on likely types
         let docSnap = null;
         // Try common collections first
-        docSnap = await db.collection('lessons').doc(childId).get();
-        if (docSnap.exists) return { id: docSnap.id, ...docSnap.data(), collection: 'lessons' };
+        docSnap = await db.collection('LESSON').doc(childId).get();
+        if (docSnap.exists) return { id: docSnap.id, ...docSnap.data(), collection: 'LESSON' };
 
         docSnap = await db.collection('learningContent').doc(childId).get();
         if (docSnap.exists) return { id: docSnap.id, ...docSnap.data(), collection: 'learningContent' };
@@ -313,7 +313,7 @@ async function loadAllAvailableModules() {
         const allFetchedModules = [];
 
         // 1. Fetch all LESSONs
-        const lessonsSnapshot = await db.collection('lessons').get();
+        const lessonsSnapshot = await db.collection('LESSON').get();
         lessonsSnapshot.forEach(doc => {
             allFetchedModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'LESSON' });
         });
@@ -487,7 +487,7 @@ async function updateCurrentChildrenDisplay() {
     const childPromises = currentActiveRecord.MODULEID_ARRAY.map(async (childId) => {
         // This is a simplified fetch; in a more robust app, you might know the child's type
         // and target its specific collection. For now, we'll iterate through common collections.
-        let docRef = db.collection('lessons').doc(childId);
+        let docRef = db.collection('LESSON').doc(childId);
         let docSnap = await docRef.get();
         if (!docSnap.exists) {
             docRef = db.collection('learningContent').doc(childId);
