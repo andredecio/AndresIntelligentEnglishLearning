@@ -381,9 +381,20 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
         tempDiv.appendChild(childLi);
     });
 
-    // Insert children right after the parent LI
-    parentLi.after(tempDiv.children); // This will insert each child from the tempDiv after the parentLi
-  console.log(`DEBUG: Children rendered for parent ${parentId}.`);
+   // --- NEW INSERTION LOGIC START ---
+        // We will insert each child LI one by one, immediately after the previous one inserted,
+        // starting after the parentLi.
+
+        let currentNodeToInsertAfter = parentLi; // Start inserting immediately after the parent <li>
+
+        // Use Array.from to get a real array of children from the tempDiv
+        Array.from(tempDiv.children).forEach(childElement => {
+            // Insert the current childElement immediately after currentNodeToInsertAfter
+            currentNodeToInsertAfter.after(childElement);
+            // Update currentNodeToInsertAfter to the element we just inserted,
+            // so the next child is inserted after *it*.
+            currentNodeToInsertAfter = childElement;
+        });  console.log(`DEBUG: Children rendered for parent ${parentId}.`);
 	}
 
 }
