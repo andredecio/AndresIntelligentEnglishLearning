@@ -11,7 +11,7 @@ const storage = firebase.storage(); // Get Storage instance
 let currentActiveRecord = null; // Stores the data of the COURSE/LESSON/SEMANTIC_GROUP currently in the single-record view
 let allAvailableModules = [];   // Stores all modules fetched for the larger list (LESSONs, SEMANTIC_GROUPs, etc.)
 let moduleTypes = { // Define module types and their corresponding collections (simplified for now)
-    'COURSE': 'courses',
+    'COURSE': 'COURSE',
     'LESSON': 'LESSON',
     'SEMANTIC_GROUP': 'learningContent',
     'VOCABULARY_GROUP': 'learningContent',
@@ -456,7 +456,7 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
     } else {
         // Clear form for a new record
         activeRecordIdInput.value = '';
-        activeRecordCollectionInput.value = 'courses'; // Default to creating a new COURSE
+        activeRecordCollectionInput.value = 'COURSE'; // Default to creating a new COURSE
         activeRecordTypeInput.value = 'COURSE'; // Default to creating a new COURSE
         recordTitleInput.value = '';
         recordThemeInput.value = '';
@@ -559,7 +559,7 @@ async function saveRecord() {
             showAlert('Module created successfully!');
             console.log("Created new record with ID:", docRef.id, dataToSave);
         }
-        // After save, ensure navigation list is updated (especially for new courses)
+        // After save, ensure navigation list is updated (especially for new COURSE)
         await fetchAndPopulateCourseNavigation();
         // Set the newly created/updated record as the active one in the navigation
         const currentIndex = courseNavigationList.findIndex(c => c.id === activeRecordIdInput.value);
@@ -594,10 +594,10 @@ async function deleteRecord() {
         if (courseNavigationList.length > 0) {
             currentCourseIndex = Math.min(currentCourseIndex, courseNavigationList.length - 1);
             const nextCourse = courseNavigationList[currentCourseIndex];
-            const nextCourseSnap = await db.collection('courses').doc(nextCourse.id).get();
-            loadRecordIntoEditor({ id: nextCourseSnap.id, ...nextCourseSnap.data() }, 'courses');
+            const nextCourseSnap = await db.collection('COURSE').doc(nextCourse.id).get();
+            loadRecordIntoEditor({ id: nextCourseSnap.id, ...nextCourseSnap.data() }, 'COURSE');
         } else {
-            loadRecordIntoEditor(null); // No courses left, show new record form
+            loadRecordIntoEditor(null); // No COURSE left, show new record form
         }
         updateNavigationButtons();
 
@@ -612,11 +612,11 @@ let courseNavigationList = []; // Array of { id, title } for courses
 let currentCourseIndex = -1;
 
 /**
- * Fetches all courses and populates the navigation list.
+ * Fetches all COURSE and populates the navigation list.
  */
 async function fetchAndPopulateCourseNavigation() {
     try {
-        const snapshot = await db.collection('courses').orderBy('TITLE').get(); // Order by title for consistent navigation
+        const snapshot = await db.collection('COURSE').orderBy('TITLE').get(); // Order by title for consistent navigation
         courseNavigationList = snapshot.docs.map(doc => ({ id: doc.id, TITLE: doc.data().TITLE || doc.data().name }));
         updateNavigationButtons();
     } catch (error) {
@@ -645,9 +645,9 @@ prevRecordBtn.addEventListener('click', async () => {
     if (currentCourseIndex > 0) {
         currentCourseIndex--;
         const courseId = courseNavigationList[currentCourseIndex].id;
-        const courseSnap = await db.collection('courses').doc(courseId).get();
+        const courseSnap = await db.collection('COURSE').doc(courseId).get();
         if (courseSnap.exists) {
-            loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'courses');
+            loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'COURSE');
         } else {
             showAlert("Selected course not found, refreshing navigation.", true);
             await fetchAndPopulateCourseNavigation();
@@ -661,9 +661,9 @@ nextRecordBtn.addEventListener('click', async () => {
     if (currentCourseIndex < courseNavigationList.length - 1) {
         currentCourseIndex++;
         const courseId = courseNavigationList[currentCourseIndex].id;
-        const courseSnap = await db.collection('courses').doc(courseId).get();
+        const courseSnap = await db.collection('COURSE').doc(courseId).get();
         if (courseSnap.exists) {
-            loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'courses');
+            loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'COURSE');
         } else {
             showAlert("Selected course not found, refreshing navigation.", true);
             await fetchAndPopulateCourseNavigation();
@@ -685,21 +685,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // (unless they are exposed via an ID token claim, which would be managed by your Cloud Functions/Admin SDK).
     // Assuming common.js redirects non-admins away, we just proceed.
 
-    // Initial setup: Load courses for navigation, then load the first one or a new record form
+    // Initial setup: Load COURSE for navigation, then load the first one or a new record form
     await fetchAndPopulateCourseNavigation();
 
     if (courseNavigationList.length > 0) {
         currentCourseIndex = 0;
         const firstCourse = courseNavigationList[currentCourseIndex];
-        const courseSnap = await db.collection('courses').doc(firstCourse.id).get();
+        const courseSnap = await db.collection('COURSE').doc(firstCourse.id).get();
         if (courseSnap.exists) {
-            loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'courses');
+            loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'COURSE');
         } else {
             showAlert("First course not found, starting with a new record.", true);
             loadRecordIntoEditor(null);
         }
     } else {
-        loadRecordIntoEditor(null); // No courses exist, start with a blank form
+        loadRecordIntoEditor(null); // No COURSE exist, start with a blank form
     }
 
     // Load all available modules for the larger selection list
