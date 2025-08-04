@@ -154,6 +154,9 @@ function renderAudioPlayer(gsUrl) {
 // --- Module List Rendering ---
 
 /**
+// module-content.js (Full corrected renderModuleListItem function)
+
+/**
  * Creates an HTML list item for a module.
  * @param {Object} moduleData The module document data.
  * @param {string} moduleData.id The document ID of the module.
@@ -167,36 +170,52 @@ function renderAudioPlayer(gsUrl) {
  * @returns {HTMLLIElement} The created list item element.
  */
 function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
+    // console.log('--- Processing Module ---'); // Keep these debug logs for now if you like
+    // console.log('ID:', moduleData.id);
+    // console.log('TYPE:', moduleData.MODULETYPE);
+    // console.log('TITLE:', moduleData.TITLE || moduleData.name);
+    // console.log('MODULEID_ARRAY (raw):', moduleData.MODULEID_ARRAY);
+    // console.log('MODULEID_ARRAY type:', typeof moduleData.MODULEID_ARRAY, Array.isArray(moduleData.MODULEID_ARRAY));
+
     const li = document.createElement('li');
     li.className = `module-item level-${level}`;
     li.dataset.moduleId = moduleData.id;
     li.dataset.moduleType = moduleData.MODULETYPE;
     li.dataset.level = level;
+
+    const hasChildren = moduleData.MODULEID_ARRAY && moduleData.MODULEID_ARRAY.length > 0;
+    // console.log('Calculated hasChildren:', hasChildren); // Keep this debug log for now
+
     // Store child IDs for easier access without re-fetching parent data
-    if (moduleData.MODULEID_ARRAY) {
+    if (hasChildren) {
         li.dataset.children = JSON.stringify(moduleData.MODULEID_ARRAY);
     }
 
     const isSelectable = !NON_SELECTABLE_LEAF_MODULE_TYPES.includes(moduleData.MODULETYPE);
-    const hasChildren = moduleData.MODULEID_ARRAY && moduleData.MODULEID_ARRAY.length > 0;
 
-    let contentHTML = ``;
+    // --- Build the core HTML content as a string first ---
+    let coreContentHTML = ``;
 
     // Checkbox (if selectable)
     if (isSelectable) {
         const isCurrentlySelected = selectedModuleIds.includes(moduleData.id);
-        contentHTML += `<input type="checkbox" data-module-id="${moduleData.id}" ${isCurrentlySelected ? 'checked' : ''}>`;
+        coreContentHTML += `<input type="checkbox" data-module-id="${moduleData.id}" ${isCurrentlySelected ? 'checked' : ''}>`;
     } else {
         // Add a placeholder or disable checkbox for non-selectable items visually
-        contentHTML += `<input type="checkbox" disabled style="opacity: 0.5;">`;
+        coreContentHTML += `<input type="checkbox" disabled style="opacity: 0.5;">`;
     }
 
-    contentHTML += `
+    coreContentHTML += `
         <div class="module-item-content">
             <span class="title">${moduleData.TITLE || moduleData.name || 'Untitled'}</span>
             <span class="type">${moduleData.MODULETYPE}</span>
         </div>
     `;
+
+    // Set the innerHTML first. This effectively creates the initial DOM structure from the string.
+    li.innerHTML = coreContentHTML;
+
+    // --- Now append other dynamic elements and attach listeners ---
 
     // Media (Thumbnail and Audio Player)
     const mediaContainer = document.createElement('div');
@@ -209,7 +228,8 @@ function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
         const audioPlayer = renderAudioPlayer(moduleData.audioUrl);
         if (audioPlayer) mediaContainer.appendChild(audioPlayer);
     }
-    if (mediaContainer.children.length > 0) { // Only append if there's actual media
+    // Only append if there's actual media
+    if (mediaContainer.children.length > 0) {
         li.appendChild(mediaContainer);
     }
 
@@ -219,15 +239,22 @@ function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
         toggle.className = 'expand-toggle';
         toggle.textContent = '▶'; // Right-facing triangle
         toggle.dataset.expanded = 'false'; // Custom attribute to track state
-        li.appendChild(toggle);
+        li.appendChild(toggle); // Append the toggle element to the list item
 
+        // Now attach the event listener to the 'toggle' element that is actually part of the DOM
         toggle.addEventListener('click', async (event) => {
             event.stopPropagation(); // Prevent parent click handlers from firing
             const isExpanded = toggle.dataset.expanded === 'true';
+
+            console.log(`DEBUG: Toggle clicked for module: ${moduleData.TITLE || moduleData.name} (${moduleData.id}) - Currently expanded: ${isExpanded}`);
+
+
             if (isExpanded) {
-                // Collapse: Remove child items
+                // Collapse logic
+                console.log('DEBUG: Attempting to collapse...');
                 let nextSibling = li.nextElementSibling;
-                while (nextSibling && parseInt(nextSibling.dataset.level) > level) {
+                const parentLevel = parseInt(li.dataset.level); // Get the level of the current LI
+                while (nextSibling && parseInt(nextSibling.dataset.level) > parentLevel) {
                     const temp = nextSibling.nextElementSibling;
                     nextSibling.remove();
                     nextSibling = temp;
@@ -235,19 +262,30 @@ function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
                 toggle.dataset.expanded = 'false';
                 toggle.textContent = '▶';
                 toggle.classList.remove('expanded');
+                console.log('DEBUG: Collapsed successfully.');
             } else {
-                // Expand: Fetch and render children
+                // Expand logic
+                console.log('DEBUG: Attempting to expand...');
                 toggle.classList.add('expanded'); // Rotate the triangle
                 showSpinner(li); // Show spinner next to parent
-                await fetchAndRenderChildren(moduleData.id, moduleData.MODULEID_ARRAY, level + 1, li, selectedModuleIds);
-                hideSpinner(li); // Hide spinner after children are rendered
-                toggle.dataset.expanded = 'true';
-                toggle.textContent = '▼'; // Down-facing triangle
+
+                console.log(`DEBUG: Calling fetchAndRenderChildren for ${moduleData.id} with children IDs:`, moduleData.MODULEID_ARRAY);
+                try {
+                    await fetchAndRenderChildren(moduleData.id, moduleData.MODULEID_ARRAY, level + 1, li, selectedModuleIds);
+                    console.log('DEBUG: fetchAndRenderChildren completed.');
+                } catch (error) {
+                    console.error('DEBUG: Error during fetchAndRenderChildren:', error);
+                    showAlert(`Error loading children: ${error.message}`, true);
+                } finally {
+                    hideSpinner(li); // Hide spinner after children are rendered
+                    toggle.dataset.expanded = 'true';
+                    toggle.textContent = '▼'; // Change arrow to down
+                    console.log('DEBUG: Expansion UI updated.');
+                }
             }
         });
     }
 
-    li.innerHTML = contentHTML + li.innerHTML; // Prepend checkbox and title, then append media/toggle
     return li;
 }
 
