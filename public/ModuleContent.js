@@ -163,7 +163,7 @@ function renderAudioPlayer(gsUrl) {
  * @param {string} moduleData.MODULETYPE The type of the module (e.g., 'LESSON', 'SEMANTIC_GROUP').
  * @param {string} moduleData.TITLE The title of the module.
  * @param {Array<string>} [moduleData.MODULEID_ARRAY] Array of child module IDs.
- * @param {string} [moduleData.imageUrl] URL for an associated image.
+ * @param {string} [moduleData.IMAGEURL] URL for an associated image.
  * @param {string} [moduleData.audioUrl] URL for an associated audio file.
  * @param {number} level The nesting level (for indentation).
  * @param {Array<string>} [selectedModuleIds=[]] Array of IDs currently selected for the active parent.
@@ -220,8 +220,8 @@ function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
     // Media (Thumbnail and Audio Player)
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'module-media';
-    if (moduleData.imageUrl) {
-        const thumbnail = renderThumbnail(moduleData.imageUrl);
+    if (moduleData.IMAGEURL) {
+        const thumbnail = renderThumbnail(moduleData.IMAGEURL);
         if (thumbnail) mediaContainer.appendChild(thumbnail);
     }
     if (moduleData.audioUrl) {
