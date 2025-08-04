@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Admin: Module Content</title>
+    <!-- Link to your existing global styles -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Link to the specific styles for this page -->
+    <link rel="stylesheet" href="module-content.css">
+    <!-- Firebase SDKs - These are loaded via the Firebase Hosting reserved URL -->
+    <!-- You should ensure these are included in the AdminSystem.html or similar parent page that leads here,
+         or explicitly include them if this page is standalone.
+         For this example, I'm assuming they are globally available from /__/firebase/init.js -->
+    <script src="/__/firebase/8.10.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.10.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.10.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/8.10.1/firebase-storage.js"></script>
+    <script src="/__/firebase/init.js"></script>
+
+    <!-- Link to your existing common JavaScript -->
+    <script src="common.js" defer></script>
+    <!-- Link to the JavaScript for this page -->
+    <script src="module-content.js" defer></script>
+</head>
+<body>
+    <h1>Module Content Management</h1>
+
+    <!-- Login/Auth Status (from common.js) -->
+    <div id="login-info" style="display: none; text-align: center; margin-bottom: 20px;">
+        <p>Logged in as: <span id="currentUserEmail"></span></p>
+        <button id="signOutButtonMain" class="signOutButton">Sign Out</button>
+    </div>
+
+    <div class="content-wrapper">
+        <!-- Single Record View (for active COURSE/LESSON/SEMANTIC_GROUP) -->
+        <div class="single-record-view">
+            <h2>Active Module Details</h2>
+            <div class="record-navigation">
+                <button id="prevRecordBtn" disabled>&lt; Prev</button>
+                <button id="newRecordBtn">New</button>
+                <button id="nextRecordBtn" disabled>Next &gt;</button>
+            </div>
+
+            <div class="record-form">
+                <input type="hidden" id="activeRecordId">
+                <input type="hidden" id="activeRecordCollection">
+                <input type="hidden" id="activeRecordType">
+
+                <label for="recordTitle">Title:</label>
+                <input type="text" id="recordTitle" placeholder="Module Title" required>
+
+                <label for="recordTheme" class="theme-field hidden">Theme:</label>
+                <input type="text" id="recordTheme" placeholder="Module Theme (for Course/Lesson)" class="theme-field hidden">
+
+                <label for="recordDescription">Description:</label>
+                <textarea id="recordDescription" rows="3" placeholder="Module Description"></textarea>
+
+                <div class="actions">
+                    <button id="saveRecordBtn">Save Module</button>
+                    <button id="deleteRecordBtn" class="delete-btn">Delete Module</button>
+                </div>
+
+                <div class="current-children-list">
+                    <h3>Currently Included Modules:</h3>
+                    <ul id="currentChildrenDisplay">
+                        <!-- Dynamically populated -->
+                        <li>No modules included yet.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Larger Module List View (for selecting children) -->
+        <div class="larger-list-view">
+            <h2>Available Modules for Selection</h2>
+            <div class="module-filter-search">
+                <select id="filterModuleType">
+                    <option value="all">All Selectable Modules</option>
+                    <option value="LESSON">Lessons</option>
+                    <option value="SEMANTIC_GROUP">Semantic Groups</option>
+                    <option value="VOCABULARY_GROUP">Vocabulary Groups</option>
+                    <!-- Add more module types as needed -->
+                </select>
+                <input type="text" id="searchModules" placeholder="Search by title...">
+            </div>
+
+            <ul id="availableModulesList">
+                <!-- Dynamically populated with LESSONs for Course creation,
+                     or other module types for LESSON/SEMANTIC_GROUP content -->
+                <li class="loading-placeholder">Loading modules... <span class="spinner"></span></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Error/Status Alert (using your common styles) -->
+    <div id="statusAlert" class="error-alert hidden">
+        <span id="statusMessage"></span>
+        <button class="error-button" onclick="document.getElementById('statusAlert').classList.add('hidden');">Dismiss</button>
+    </div>
+</body>
+</html>

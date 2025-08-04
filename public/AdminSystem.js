@@ -105,7 +105,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Logout Error:", error);
         }
     });
-
+	
+ // NEW: Event listener for the "Manage Module Content" button
+    if (manageContentBtn) {
+        manageContentBtn.addEventListener('click', () => {
+            window.location.href = 'ModuleContent.html'; // Navigate to the new page
+        });
+    }
 
     // --- Content Generator Form Submission Handler (Your original logic, now secured) ---
     contentGeneratorForm.addEventListener('submit', async (e) => {

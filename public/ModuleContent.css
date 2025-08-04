@@ -1,0 +1,307 @@
+/* ModuleContent.css - Specific styles for ModuleContent.html */
+
+/* Main layout for the two-column structure */
+.content-wrapper {
+    display: flex;
+    flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
+    gap: 20px; /* Space between the two columns */
+    margin-top: 20px;
+    padding: 0 20px; /* Adjust padding to match body, or remove if body padding is sufficient */
+}
+
+/* Styling for the single record view (left/top column) */
+.single-record-view {
+    flex: 1; /* Allows it to grow and shrink */
+    min-width: 300px; /* Minimum width before wrapping */
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.single-record-view h2 {
+    color: #007bff; /* A nice blue for the section heading */
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+/* Record navigation buttons (Prev, New, Next) */
+.record-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.record-navigation button {
+    flex: 1;
+    margin: 0 5px;
+    background-color: #6c757d; /* Grey for navigation buttons */
+}
+
+.record-navigation button:hover {
+    background-color: #5a6268;
+}
+
+.record-navigation button:first-child { margin-left: 0; }
+.record-navigation button:last-child { margin-right: 0; }
+
+/* Form styling within the single record view */
+.record-form label {
+    display: block;
+    margin-bottom: 8px;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #555;
+}
+
+.record-form input[type="text"],
+.record-form textarea {
+    width: calc(100% - 24px); /* Account for padding and border */
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+.record-form textarea {
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 80px;
+}
+
+.record-form .actions {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.record-form .actions button {
+    flex: 1;
+    margin: 0; /* Override common.css margin */
+}
+
+.record-form .actions .delete-btn {
+    background-color: #dc3545; /* Red for delete button */
+}
+
+.record-form .actions .delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Current children list styling */
+.current-children-list {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.current-children-list h3 {
+    font-size: 1.3em;
+    color: #007bff;
+    margin-top: 0;
+}
+
+#currentChildrenDisplay {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#currentChildrenDisplay li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    color: #666;
+}
+
+#currentChildrenDisplay li:last-child {
+    border-bottom: none;
+}
+
+
+/* Styling for the larger module list view (right/bottom column) */
+.larger-list-view {
+    flex: 2; /* Allows it to take up more space */
+    min-width: 400px; /* Minimum width before wrapping */
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+.larger-list-view h2 {
+    color: #28a745; /* Green for the section heading */
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+/* Filter and search bar */
+.module-filter-search {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.module-filter-search select,
+.module-filter-search input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1em;
+    flex: 1;
+}
+
+/* Module List Styling */
+#availableModulesList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 600px; /* Make the list scrollable if it gets too long */
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    background-color: #fcfcfc;
+}
+
+.module-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.module-item:last-child {
+    border-bottom: none;
+}
+
+.module-item:hover {
+    background-color: #f0f0f0;
+}
+
+.module-item.selected {
+    background-color: #e0f7fa; /* Light blue background for selected items */
+    border-left: 5px solid #007bff;
+    padding-left: 10px;
+}
+
+.module-item input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2); /* Slightly larger checkbox */
+}
+
+.module-item-content {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer; /* Indicates it's clickable for expansion */
+}
+
+.module-item-content .title {
+    font-weight: bold;
+    color: #333;
+}
+
+.module-item-content .type {
+    font-size: 0.8em;
+    color: #666;
+    background-color: #e9ecef;
+    padding: 3px 6px;
+    border-radius: 3px;
+}
+
+.module-item .expand-toggle {
+    cursor: pointer;
+    font-size: 1.2em;
+    color: #007bff;
+    margin-left: 10px;
+    user-select: none; /* Prevent text selection on toggle */
+    transition: transform 0.2s ease;
+}
+
+.module-item .expand-toggle.expanded {
+    transform: rotate(90deg); /* Rotate arrow when expanded */
+}
+
+/* Indentation for nested modules */
+.module-item.level-1 { padding-left: 30px; } /* Base indentation */
+.module-item.level-2 { padding-left: 50px; }
+.module-item.level-3 { padding-left: 70px; }
+.module-item.level-4 { padding-left: 90px; }
+/* Add more levels if you expect deeper nesting */
+.module-item.level-5 { padding-left: 110px; }
+.module-item.level-6 { padding-left: 130px; }
+
+/* Media specific styling for images and audio */
+.module-media {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto; /* Push media to the right */
+}
+
+.module-media img.thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.module-media .audio-player-btn {
+    background-color: #17a2b8; /* Info blue for audio */
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.module-media .audio-player-btn:hover {
+    background-color: #138496;
+}
+
+/* Placeholder for loading state */
+.loading-placeholder {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+    .single-record-view,
+    .larger-list-view {
+        min-width: unset; /* Remove min-width to allow full width */
+        width: 100%;
+    }
+    .module-filter-search {
+        flex-direction: column;
+    }
+    .module-filter-search select,
+    .module-filter-search input[type="text"] {
+        width: 100%;
+    }
+}

@@ -53,18 +53,14 @@ body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; 
             padding: 8px 15px;
             font-size: 16px;
         }
-		  .input-pair {
+		.input-group {
 			display: flex;
-			gap: 1rem; /* spacing between items */
-			align-items: center;
+	gap: 1rem; /* space between input blocks */
+			align-items: flex-start;
 			margin-bottom: 1rem;
 		}
 
-		.input-pair label {
-			margin-right: 0.5rem;
-		}
-
-		.input-pair div {
+		.input-group > div {
 			display: flex;
 			flex-direction: column;
 		}
