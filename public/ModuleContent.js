@@ -260,36 +260,74 @@ function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
  * @param {Array<string>} [selectedModuleIds=[]] Array of IDs currently selected for the active parent.
  */
 async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selectedModuleIds = []) {
-    if (!childIds || childIds.length === 0) return;
+    console.log(`--- fetchAndRenderChildren called for parent: ${parentId}, level: ${level} ---`);
+    console.log(`Child IDs to fetch:`, childIds);
 
-    // Determine the collection for children based on the parent's type, or the child's type
-    // This is where it gets tricky due to cross-collection references
-    // For simplicity here, we'll iterate and fetch each child from its respective collection.
-    // In a highly optimized scenario, you might do batched lookups or pre-fetch if you know the child types.
+    if (!childIds || childIds.length === 0) {
+        console.log(`DEBUG: No child IDs provided or array is empty for parent ${parentId}. Returning.`);
+        // Optionally, display a "No children" message here
+        const noChildrenLi = document.createElement('li');
+        noChildrenLi.className = `module-item level-${level} no-content-message`;
+        noChildrenLi.textContent = '(No children found or defined for this module)';
+        parentLi.after(noChildrenLi);
+        return;
+    }
 
     const allChildPromises = childIds.map(async (childId) => {
-        // Attempt to guess collection based on likely types
         let docSnap = null;
-        // Try common collections first
-        docSnap = await db.collection('LESSON').doc(childId).get();
-        if (docSnap.exists) return { id: docSnap.id, ...docSnap.data(), collection: 'LESSON' };
+        try {
+            // Priority for where children of LESSONs (or SEMANTIC_GROUPs) typically reside
+            // According to our refined model, LESSON children are from `learningContent`
+            docSnap = await db.collection('learningContent').doc(childId).get();
+            if (docSnap.exists) {
+                console.log(`DEBUG: Found child ${childId} in 'learningContent' collection.`);
+                return { id: docSnap.id, ...docSnap.data(), collection: 'learningContent' };
+            }
 
-        docSnap = await db.collection('learningContent').doc(childId).get();
-        if (docSnap.exists) return { id: docSnap.id, ...docSnap.data(), collection: 'learningContent' };
-        
-        docSnap = await db.collection('syllables').doc(childId).get();
-        if (docSnap.exists) return { id: docSnap.id, ...docSnap.data(), collection: 'syllables' };
+            // Check 'syllables' collection (children of VOCABULARY items from learningContent)
+            docSnap = await db.collection('syllables').doc(childId).get();
+            if (docSnap.exists) {
+                console.log(`DEBUG: Found child ${childId} in 'syllables' collection.`);
+                return { id: docSnap.id, ...docSnap.data(), collection: 'syllables' };
+            }
 
-        docSnap = await db.collection('phonemes').doc(childId).get();
-        if (docSnap.exists) return { id: docSnap.id, ...docSnap.data(), collection: 'phonemes' };
+            // Check 'phonemes' collection (children of SYLLABLE items from syllables)
+            docSnap = await db.collection('phonemes').doc(childId).get();
+            if (docSnap.exists) {
+                console.log(`DEBUG: Found child ${childId} in 'phonemes' collection.`);
+                return { id: docSnap.id, ...docSnap.data(), collection: 'phonemes' };
+            }
 
-        // If not found in common collections, it might be an invalid ID or deleted.
-        console.warn(`Child module with ID ${childId} not found in any expected collection.`);
-        return null;
+            // Note: LESSONs are not usually children of other LESSONs or SEMANTIC_GROUPs
+            //       Courses are not children of anything.
+            //       If an ID is here and not found above, it's likely an error or old data.
+            console.warn(`DEBUG: Child module with ID ${childId} not found in 'learningContent', 'syllables', or 'phonemes' collections.`);
+            return null; // Return null if not found in any expected collection
+        } catch (error) {
+            console.error(`DEBUG: Error fetching child ${childId}:`, error);
+            // Crucial: Permissions errors will show up here.
+            // If you see "Missing or insufficient permissions" here, that's the problem!
+            showAlert(`Permission denied for child module ${childId}. Check Firestore Rules.`, true);
+            return null; // Ensure null is returned on error to prevent breaking Promise.all
+        }
     });
-
     const children = (await Promise.all(allChildPromises)).filter(Boolean); // Filter out nulls
+   console.log(`DEBUG: Number of valid children fetched for parent ${parentId}: ${children.length}`);
+    console.log(`DEBUG: Fetched children data (filtered):`, children);
+// Remove any previous "No content" message if present from a previous expansion attempt.
+    const existingNoContent = parentLi.nextElementSibling;
+    if (existingNoContent && existingNoContent.classList.contains('no-content-message') && parseInt(existingNoContent.dataset.level) === level) {
+        existingNoContent.remove();
+    }
 
+
+    if (children.length === 0) {
+        console.log(`DEBUG: No actual child documents were retrieved for parent ID: ${parentId}. Displaying 'No content' message.`);
+        const noContentLi = document.createElement('li');
+        noContentLi.textContent = `(No content found or could be loaded for this module)`;
+        noContentLi.className = `module-item level-${level} no-content-message`;
+        parentLi.after(noContentLi);
+    } else {
     const tempDiv = document.createElement('div'); // Use a temp div to build children before inserting
     children.forEach(childData => {
         const childLi = renderModuleListItem(childData, level, selectedModuleIds);
@@ -298,9 +336,10 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
 
     // Insert children right after the parent LI
     parentLi.after(tempDiv.children); // This will insert each child from the tempDiv after the parentLi
+  console.log(`DEBUG: Children rendered for parent ${parentId}.`);
+	}
+
 }
-
-
 /**
  * Loads all relevant modules for the larger list view.
  * This includes LESSONs (for COURSE building) and all selectable items from learningContent.
