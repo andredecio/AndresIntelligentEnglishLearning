@@ -305,3 +305,19 @@
         width: 100%;
     }
 }
+
+/* Specific styles for inline spinners */
+.spinner.spinner-inline {
+    width: 18px; /* Slightly smaller than default */
+    height: 18px;
+    border-width: 3px; /* Thinner border */
+    margin-left: 10px; /* Space it out from the toggle/title */
+    display: inline-block; /* Ensure it stays in line with content */
+    vertical-align: middle; /* Align nicely with text */
+}
+
+/* Ensure the main list loading spinner still works as before */
+.loading-placeholder .spinner {
+    /* Uses the default spinner styles from style.css */
+    /* Only ensure it's not hidden by the .spinner-inline rule */
+}
