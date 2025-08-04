@@ -125,7 +125,7 @@ function renderThumbnail(gsUrl) {
     img.title = 'Click to view full image'; // Add a helpful tooltip on hover
   // Create the anchor element
     const link = document.createElement('a');
-    link.href = IMAGEURL; // Link to the full image URL
+    link.href = gsUrl; // Link to the full image URL
     link.target = "_blank"; // Open in a new tab
     link.rel = "noopener noreferrer"; // Recommended for security when using target="_blank"
     link.appendChild(img); // Put the image inside the link
