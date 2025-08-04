@@ -240,7 +240,12 @@ function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
         toggle.textContent = '▶'; // Right-facing triangle
         toggle.dataset.expanded = 'false'; // Custom attribute to track state
         li.appendChild(toggle); // Append the toggle element to the list item
-
+ 
+// --- NEW INLINE SPINNER ELEMENT ---
+        const inlineSpinner = document.createElement('span');
+        inlineSpinner.className = 'spinner spinner-inline hidden'; // Will need 'spinner-inline' CSS
+        li.appendChild(inlineSpinner);
+        // --- END NEW INLINE SPINNER ELEMENT ---
         // Now attach the event listener to the 'toggle' element that is actually part of the DOM
         toggle.addEventListener('click', async (event) => {
             event.stopPropagation(); // Prevent parent click handlers from firing
@@ -267,8 +272,9 @@ function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
                 // Expand logic
                 console.log('DEBUG: Attempting to expand...');
                 toggle.classList.add('expanded'); // Rotate the triangle
-                showSpinner(li); // Show spinner next to parent
-
+   // --- SHOW THE INLINE SPINNER ---
+                inlineSpinner.classList.remove('hidden');
+                // --- END SHOW INLINE SPINNER ---
                 console.log(`DEBUG: Calling fetchAndRenderChildren for ${moduleData.id} with children IDs:`, moduleData.MODULEID_ARRAY);
                 try {
                     await fetchAndRenderChildren(moduleData.id, moduleData.MODULEID_ARRAY, level + 1, li, selectedModuleIds);
@@ -277,8 +283,11 @@ function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
                     console.error('DEBUG: Error during fetchAndRenderChildren:', error);
                     showAlert(`Error loading children: ${error.message}`, true);
                 } finally {
-                    hideSpinner(li); // Hide spinner after children are rendered
-                    toggle.dataset.expanded = 'true';
+                   // --- HIDE THE INLINE SPINNER ---
+                    inlineSpinner.classList.add('hidden');
+                    // --- END HIDE INLINE SPINNER ---
+                    
+                      toggle.dataset.expanded = 'true';
                     toggle.textContent = '▼'; // Change arrow to down
                     console.log('DEBUG: Expansion UI updated.');
                 }
