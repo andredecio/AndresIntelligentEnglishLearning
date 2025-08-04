@@ -149,7 +149,7 @@ function renderAudioPlayer(gsUrl) {
     };
     return button;
 }
-// module-content.js (Continued from Part 1)
+// ModuleContent.js (Continued from Part 1)
 
 // --- Module List Rendering ---
 
@@ -423,7 +423,7 @@ searchModulesInput.addEventListener('input', displayFilteredModules);
 
 
 // End of Part 2
-// module-content.js (Continued from Part 2)
+// ModuleContent.js (Continued from Part 2)
 
 // --- Single Record View Logic ---
 
