@@ -674,39 +674,48 @@ async function updateCurrentChildrenDisplay() {
 }
 
 /**
+/**
  * Saves (creates or updates) the active record in Firestore.
  */
 async function saveRecord() {
+    // Retrieve values from the form elements
     const recordId = activeRecordIdInput.value;
+    // recordCollection is now set dynamically by the activeRecordTypeSelect's change listener
     const recordCollection = activeRecordCollectionInput.value;
+    // Get the module type directly from the visible select element
     const recordType = activeRecordTypeSelect.value;
     const title = recordTitleInput.value.trim();
-    const theme = recordThemeInput.value.trim();
-    const description = recordDescriptionTextarea.value.trim();
+    const theme = recordThemeInput.value.trim(); // Trim theme as well
+    const description = recordDescriptionTextarea.value.trim(); // Trim description as well
 
+    // Basic validation
     if (!title) {
         showAlert('Title cannot be empty!', true);
         return;
     }
     if (!recordCollection || !recordType) {
-        showAlert('Collection and Module Type are missing!', true);
+        showAlert('Collection and Module Type are missing! This should not happen.', true);
         return;
     }
 
-    // Prepare data for saving
+    // Prepare data object for saving to Firestore
     const dataToSave = {
         TITLE: title,
         DESCRIPTION: description,
         MODULETYPE: recordType,
-        MODULEID_ARRAY: currentActiveRecord ? [...currentActiveRecord.MODULEID_ARRAY] : [] // Clone array
+        // Ensure MODULEID_ARRAY exists, cloning if currentActiveRecord has it
+        MODULEID_ARRAY: currentActiveRecord && currentActiveRecord.MODULEID_ARRAY ? [...currentActiveRecord.MODULEID_ARRAY] : []
     };
 
+    // Conditionally add THEME if the module type supports it
     if (recordType === 'COURSE' || recordType === 'LESSON') {
         dataToSave.THEME = theme;
     }
+
+    // Conditionally add imageStatus if the module type supports it
     const typesWithImageStatus = [
         'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
-        'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Added new types here
+        'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAING'
     ];
     if (typesWithImageStatus.includes(recordType)) {
         dataToSave.imageStatus = imageStatusSelect.value;
@@ -714,25 +723,46 @@ async function saveRecord() {
 
     try {
         if (recordId) {
-            // Update existing record
+            // --- Update Existing Record ---
             const docRef = db.collection(recordCollection).doc(recordId);
             await docRef.update(dataToSave);
             showAlert('Module updated successfully!');
             console.log("Updated record:", recordId, dataToSave);
+
+            // Update currentActiveRecord global state to reflect the latest changes
+            currentActiveRecord = { ...currentActiveRecord, ...dataToSave };
+
+            // Refresh the top-level navigation list and update current index
+            await fetchAndPopulateTopLevelNavigation();
+            const updatedIndex = topLevelModuleNavigationList.findIndex(m => m.id === recordId);
+            if (updatedIndex !== -1) {
+                currentTopLevelModuleIndex = updatedIndex;
+                updateNavigationButtons();
+            }
+
         } else {
-            // Create new record
+            // --- Create New Record ---
             const docRef = await db.collection(recordCollection).add(dataToSave);
-            activeRecordIdInput.value = docRef.id; // Set the new ID
-            currentActiveRecord = { id: docRef.id, ...dataToSave }; // Update global state
+            const newRecordId = docRef.id;
+
+            // Update form fields with the new ID
+            activeRecordIdInput.value = newRecordId;
+
+            // Update currentActiveRecord global state for the newly created record
+            currentActiveRecord = { id: newRecordId, ...dataToSave, collection: recordCollection };
             showAlert('Module created successfully!');
-            console.log("Created new record with ID:", docRef.id, dataToSave);
+            console.log("Created new record with ID:", newRecordId, dataToSave);
+
+            // Refresh the top-level navigation list and select the newly created record
+            await fetchAndPopulateTopLevelNavigation();
+            const newIndex = topLevelModuleNavigationList.findIndex(m => m.id === newRecordId);
+            if (newIndex !== -1) {
+                currentTopLevelModuleIndex = newIndex;
+                updateNavigationButtons();
+                // Optionally, re-load the record into the editor to ensure all fields are fresh
+                // loadRecordIntoEditor(currentActiveRecord, recordCollection);
+            }
         }
-        // After save, ensure navigation list is updated (especially for new COURSE)
-        await fetchAndPopulateCourseNavigation();
-        // Set the newly created/updated record as the active one in the navigation
-        const currentIndex = courseNavigationList.findIndex(c => c.id === activeRecordIdInput.value);
-        if (currentIndex !== -1) currentCourseIndex = currentIndex;
-        updateNavigationButtons();
 
     } catch (error) {
         console.error('Error saving record:', error);
@@ -759,9 +789,9 @@ async function deleteRecord() {
 
         // After deletion, load the "new record" state or the next available record
         await fetchAndPopulateCourseNavigation(); // Refresh navigation list
-        if (courseNavigationList.length > 0) {
-            currentCourseIndex = Math.min(currentCourseIndex, courseNavigationList.length - 1);
-            const nextCourse = courseNavigationList[currentCourseIndex];
+        if (topLevelModuleNavigationList.length > 0) {
+            currentTopLevelModuleIndex = Math.min(currentTopLevelModuleIndex, topLevelModuleNavigationList.length - 1);
+            const nextCourse = topLevelModuleNavigationList[currentTopLevelModuleIndex];
             const nextCourseSnap = await db.collection('COURSE').doc(nextCourse.id).get();
             loadRecordIntoEditor({ id: nextCourseSnap.id, ...nextCourseSnap.data() }, 'COURSE');
         } else {
@@ -776,20 +806,58 @@ async function deleteRecord() {
 }
 
 // --- Course Navigation Logic (for single record view) ---
-let courseNavigationList = []; // Array of { id, title } for courses
-let currentCourseIndex = -1;
-
+//let topLevelModuleNavigationList = []; // Array of { id, title } for courses
+//let currentTopLevelModuleIndex = -1;
+let topLevelModuleNavigationList = []; // Array of { id, title, type, collection } for all top-level modules
+let currentTopLevelModuleIndex = -1;
 /**
  * Fetches all COURSE and populates the navigation list.
  */
-async function fetchAndPopulateCourseNavigation() {
+// OLD: async function fetchAndPopulateCourseNavigation() { ... }
+// DELETE the old function above entirely.
+
+/**
+ * Fetches all top-level modules (COURSE, LESSON, SEMANTIC_GROUP, GRAMMAR, etc.)
+ * and populates the navigation list.
+ */
+async function fetchAndPopulateTopLevelNavigation() {
     try {
-        const snapshot = await db.collection('COURSE').orderBy('TITLE').get(); // Order by title for consistent navigation
-        courseNavigationList = snapshot.docs.map(doc => ({ id: doc.id, TITLE: doc.data().TITLE || doc.data().name }));
+        const allTopLevelModules = [];
+
+        // 1. Fetch all COURSEs
+        const coursesSnapshot = await db.collection('COURSE').get();
+        coursesSnapshot.forEach(doc => {
+            allTopLevelModules.push({ id: doc.id, TITLE: doc.data().TITLE || 'Untitled Course', MODULETYPE: 'COURSE', collection: 'COURSE' });
+        });
+
+        // 2. Fetch all LESSONs
+        const lessonsSnapshot = await db.collection('LESSON').get();
+        lessonsSnapshot.forEach(doc => {
+            allTopLevelModules.push({ id: doc.id, TITLE: doc.data().TITLE || 'Untitled Lesson', MODULETYPE: 'LESSON', collection: 'LESSON' });
+        });
+
+        // 3. Fetch top-level types from learningContent
+        // These are modules that can act as independent top-level entries, not just children.
+        const topLevelLearningContentTypes = [
+            'SEMANTIC_GROUP', 'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAING', 'VOCABULARY_GROUP'
+            // Add other learningContent types here if they can be edited as top-level entities
+        ];
+        const learningContentSnapshot = await db.collection('learningContent').get();
+        learningContentSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (topLevelLearningContentTypes.includes(data.MODULETYPE)) {
+                allTopLevelModules.push({ id: doc.id, TITLE: data.TITLE || data.name || 'Untitled Content', MODULETYPE: data.MODULETYPE, collection: 'learningContent' });
+            }
+        });
+
+        // Sort the combined list (e.g., alphabetically by title)
+        allTopLevelModules.sort((a, b) => (a.TITLE || '').localeCompare(b.TITLE || ''));
+
+        topLevelModuleNavigationList = allTopLevelModules;
         updateNavigationButtons();
     } catch (error) {
-        console.error("Error fetching course navigation:", error);
-        showAlert("Failed to load course navigation.", true);
+        console.error("Error fetching top-level navigation:", error);
+        showAlert("Failed to load top-level navigation. " + error.message, true);
     }
 }
 
@@ -797,22 +865,22 @@ async function fetchAndPopulateCourseNavigation() {
  * Updates the disabled state of Prev/Next buttons.
  */
 function updateNavigationButtons() {
-    prevRecordBtn.disabled = currentCourseIndex <= 0;
-    nextRecordBtn.disabled = currentCourseIndex >= courseNavigationList.length - 1;
+      prevRecordBtn.disabled = currentTopLevelModuleIndex <= 0;
+    nextRecordBtn.disabled = currentTopLevelModuleIndex >= topLevelModuleNavigationList.length - 1;
 }
 
 // --- Event Listeners for Single Record View Buttons ---
 
 newRecordBtn.addEventListener('click', () => {
     loadRecordIntoEditor(null); // Load a blank form for new record
-    currentCourseIndex = -1; // Indicate no course is active in navigation
+    currentTopLevelModuleIndex = -1; // Indicate no course is active in navigation
     updateNavigationButtons();
 });
 
 prevRecordBtn.addEventListener('click', async () => {
-    if (currentCourseIndex > 0) {
-        currentCourseIndex--;
-        const courseId = courseNavigationList[currentCourseIndex].id;
+    if (currentTopLevelModuleIndex > 0) {
+        currentTopLevelModuleIndex--;
+        const courseId = topLevelModuleNavigationList[currentTopLevelModuleIndex].id;
         const courseSnap = await db.collection('COURSE').doc(courseId).get();
         if (courseSnap.exists) {
             loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'COURSE');
@@ -826,15 +894,15 @@ prevRecordBtn.addEventListener('click', async () => {
 });
 
 nextRecordBtn.addEventListener('click', async () => {
-    if (currentCourseIndex < courseNavigationList.length - 1) {
-        currentCourseIndex++;
-        const courseId = courseNavigationList[currentCourseIndex].id;
+    if (currentTopLevelModuleIndex < topLevelModuleNavigationList.length - 1) {
+        currentTopLevelModuleIndex++;
+        const courseId = topLevelModuleNavigationList[currentTopLevelModuleIndex].id;
         const courseSnap = await db.collection('COURSE').doc(courseId).get();
         if (courseSnap.exists) {
             loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'COURSE');
         } else {
-            showAlert("Selected course not found, refreshing navigation.", true);
-            await fetchAndPopulateCourseNavigation();
+            showAlert("Selected module not found, refreshing navigation.", true);
+           await fetchAndPopulateTopLevelNavigation(); // Refresh navigation if item is missing
             loadRecordIntoEditor(null); // Fallback to new record
         }
         updateNavigationButtons();
@@ -854,20 +922,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Assuming common.js redirects non-admins away, we just proceed.
 
     // Initial setup: Load COURSE for navigation, then load the first one or a new record form
-    await fetchAndPopulateCourseNavigation();
+     await fetchAndPopulateTopLevelNavigation(); // Use the new function
 
-    if (courseNavigationList.length > 0) {
-        currentCourseIndex = 0;
-        const firstCourse = courseNavigationList[currentCourseIndex];
-        const courseSnap = await db.collection('COURSE').doc(firstCourse.id).get();
-        if (courseSnap.exists) {
-            loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'COURSE');
+  if (topLevelModuleNavigationList.length > 0) {
+        currentTopLevelModuleIndex = 0;
+        const firstModule = topLevelModuleNavigationList[currentTopLevelModuleIndex];
+        const moduleSnap = await db.collection(firstModule.collection).doc(firstModule.id).get();
+        if (moduleSnap.exists) {
+            loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, firstModule.collection);
         } else {
-            showAlert("First course not found, starting with a new record.", true);
+            showAlert("First module in navigation not found, starting with a new record.", true);
             loadRecordIntoEditor(null);
         }
     } else {
-        loadRecordIntoEditor(null); // No COURSE exist, start with a blank form
+        loadRecordIntoEditor(null); // No top-level modules exist, start with a blank form
     }
 
     // Load all available modules for the larger selection list
