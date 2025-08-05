@@ -886,9 +886,6 @@ async function deleteRecord() {
     }
 }
 
-// Get reference to your new filter dropdown (make sure its ID is 'moduleTypeFilter')
-const moduleTypeFilterSelect = document.getElementById('moduleTypeFilter');
-
 
 // --- NEW FUNCTION: Populate the filter dropdown with unique module types ---
 function populateModuleTypeFilter() {
