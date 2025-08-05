@@ -74,8 +74,6 @@ let currentActiveRecord = null;       // Stores the data of the module currently
 let allAvailableModules = [];
 
 // --- Global State Variables ---
-let currentActiveRecord = null; // Stores the data of the COURSE/LESSON/SEMANTIC_GROUP currently in the single-record view
-let allAvailableModules = [];   // Stores all modules fetched for the larger list (LESSONs, SEMANTIC_GROUPs, etc.)
 let moduleTypes = { // Define module types and their corresponding collections (simplified for now)
     'COURSE': 'COURSE',
     'LESSON': 'LESSON',
