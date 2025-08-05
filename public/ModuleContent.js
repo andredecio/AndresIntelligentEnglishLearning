@@ -167,7 +167,7 @@ function renderAudioPlayer(gsUrl) {
 
 // --- Module List Rendering ---
 
-/**
+
 // module-content.js (Full corrected renderModuleListItem function)
 
 // This function creates an individual list item for the larger availableModulesList.
