@@ -1,4 +1,4 @@
-/* Modulecontent.css */
+/* ModuleContent.css - Specific styles for ModuleContent.html */
 
 /* --- General Utilities & Global Elements (can be merged with other global CSS) --- */
 body {
@@ -13,176 +13,439 @@ body {
     display: none !important; /* Force hide elements using this class */
 }
 
-/* --- Form Group Styling (for single record editor fields) --- */
-.form-group {
-    margin-bottom: 15px;
+/* --- Main Layout for the two-column structure --- */
+.content-wrapper {
+    display: flex;
+    flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
+    gap: 20px; /* Space between the two columns */
+    margin-top: 20px;
+    padding: 0 20px; /* Adjust padding to match body, or remove if body padding is sufficient */
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-group input[type="text"],
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+/* --- Styling for the single record view (left/top column) --- */
+.single-record-view {
+    flex: 1; /* Allows it to grow and shrink */
+    min-width: 300px; /* Minimum width before wrapping */
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     box-sizing: border-box; /* Include padding and border in the element's total width and height */
-    font-size: 1em; /* Ensure consistent font size */
 }
 
-.form-group textarea {
-    resize: vertical; /* Allow vertical resizing of textareas */
-    min-height: 80px;
+.single-record-view h2 {
+    color: #007bff; /* A nice blue for the section heading */
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
 }
 
-/* Specific styling for CEFR input field if needed beyond generic input */
-#cefrInput {
-    /* Add specific styles here if you want CEFR to look different */
+/* --- Record navigation buttons (Prev, New, Next) --- */
+.record-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
 }
 
-/* Styling for buttons */
-button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
-    margin-right: 10px; /* Space between buttons */
+.record-navigation button {
+    flex: 1;
+    margin: 0 5px;
+    background-color: #6c757d; /* Grey for navigation buttons */
+    padding: 10px 15px; /* Added padding */
+    border: none; /* Added border reset */
+    border-radius: 4px; /* Added border-radius */
+    cursor: pointer; /* Added cursor */
+    font-size: 1em; /* Added font-size */
+    transition: background-color 0.2s ease; /* Added transition */
 }
 
-button:hover:not(:disabled) {
-    opacity: 0.9;
+.record-navigation button:hover:not(:disabled) {
+    background-color: #5a6268;
 }
 
-button:disabled {
+.record-navigation button:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
     opacity: 0.7;
 }
 
-/* --- Filter Controls (for the module type filter dropdown) --- */
-.filter-controls {
-    margin-bottom: 20px;
-    padding: 15px;
-    background-color: #e9ecef;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
+.record-navigation button:first-child { margin-left: 0; }
+.record-navigation button:last-child { margin-right: 0; }
+
+/* --- Form styling within the single record view --- */
+.record-form {
+    /* Removed problematic line-height: 7.0 here */
+    padding: 0; /* Adjusted from 1px 0 */
+    margin: 0;
 }
 
-.filter-controls label {
+.record-form label {
+    display: block;
+    margin-bottom: 8px;
+    margin-top: 15px;
     font-weight: bold;
-    font-size: 1em;
+    color: #555;
+    line-height: 1.5; /* Ensure reasonable line height */
 }
 
-#moduleTypeFilter {
-    padding: 8px 12px;
-    border: 1px solid #bbb;
-    border-radius: 4px;
+.record-form input[type="text"],
+.record-form textarea,
+.record-form select { /* Added select for consistency */
+    width: calc(100% - 24px); /* Account for padding and border */
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    box-sizing: border-box;
     font-size: 1em;
-    background-color: #fff;
-    cursor: pointer;
+    line-height: 1.5; /* Ensure reasonable line height */
 }
 
-/* --- Available Modules List (the "larger viewer screen") --- */
-#availableModulesList {
-    list-style: none; /* Remove bullet points */
+.record-form textarea {
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 80px;
+}
+
+/* Form actions (Save/Delete buttons) */
+.record-form .actions {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.record-form .actions button {
+    flex: 1;
+    margin: 0; /* Override common.css margin */
+    padding: 10px 15px; /* Ensure padding */
+    border: none; /* Ensure no border */
+    border-radius: 4px; /* Ensure border-radius */
+    cursor: pointer; /* Ensure cursor */
+    font-size: 1em; /* Ensure font-size */
+    transition: background-color 0.2s ease; /* Ensure transition */
+}
+
+.record-form .actions .delete-btn {
+    background-color: #dc3545; /* Red for delete button */
+}
+
+.record-form .actions .delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* --- Current children list styling --- */
+.current-children-list {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.current-children-list h3 {
+    font-size: 1.3em;
+    color: #007bff;
+    margin-top: 0;
+}
+
+#currentChildrenDisplay {
+    list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 500px; /* Make the list scrollable if it gets too long */
-    overflow-y: auto; /* Enable vertical scrolling */
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #fdfdfd;
 }
 
-/* Individual list item styling */
-.module-list-item {
-    display: flex; /* Use flexbox for layout of content and checkbox */
-    align-items: flex-start; /* Align items to the top of the flex container */
-    padding: 8px 10px; /* Padding inside each list item */
-    border-bottom: 1px solid #eee; /* Separator between items */
-    background-color: #fff;
+#currentChildrenDisplay li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    color: #666;
+    line-height: 1.4; /* Adjusted for better spacing */
+}
+
+#currentChildrenDisplay li:last-child {
+    border-bottom: none;
+}
+
+
+/* --- Styling for the larger module list view (right/bottom column) --- */
+.larger-list-view {
+    flex: 2; /* Allows it to take up more space */
+    min-width: 400px; /* Minimum width before wrapping */
+    background-color: #ffffff;
+    padding: 25px; /* Adjusted from 1px 0 */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    /* Removed problematic line-height: 7.0 here */
+}
+
+.larger-list-view h2 {
+    color: #28a745; /* Green for the section heading */
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+/* --- Filter and search bar --- */
+.module-filter-search {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.module-filter-search select,
+.module-filter-search input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1em;
+    flex: 1;
+    min-width: 150px; /* Ensure inputs don't become too small */
+}
+
+/* --- Module List Styling --- */
+#availableModulesList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 600px; /* Make the list scrollable if it gets too long */
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    background-color: #fcfcfc;
+}
+
+/* Individual module list item (li) */
+.module-item {
+    padding: 8px 10px; /* Adjusted padding from 12px 15px */
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: flex-start; /* Align checkbox to top of content */
     transition: background-color 0.2s ease;
-    font-size: 0.85em; /* Slightly smaller overall font size for items */
-    line-height: 1.2; /* Reduce vertical spacing between lines of text within an item */
+    font-size: 0.85em; /* Slightly smaller overall font for list items */
+    line-height: 1.3; /* Optimized line height for list item details */
 }
 
-.module-list-item:last-child {
-    border-bottom: none; /* No border for the last item */
+.module-item:last-child {
+    border-bottom: none;
 }
 
-.module-list-item:hover {
-    background-color: #f0f0f0; /* Hover effect for better UX */
+.module-item:hover {
+    background-color: #f0f0f0;
 }
 
-/* Wrapper for the textual content (title, theme, description, CEFR) */
-.module-item-content-wrapper {
-    flex-grow: 1; /* Allows this wrapper to take up available space */
-    margin-right: 10px; /* Space between content and checkbox */
+.module-item.selected {
+    background-color: #e0f7fa; /* Light blue background for selected items */
+    border-left: 5px solid #007bff;
+    padding-left: 5px; /* Adjust padding due to border-left */
 }
 
-.module-item-title {
+.module-item input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.1); /* Slightly larger checkbox, adjusted from 1.2 */
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+    margin-top: 4px; /* Align checkbox with top of content */
+}
+
+/* Content wrapper within the module item */
+.module-item-content {
+    flex-grow: 1;
+    display: block; /* Changed to block for stacked details */
+    /* Removed align-items: center; gap: 10px; from original */
+}
+
+/* New wrapper for Title and Type to keep them on one line (flex) */
+.module-item-title-wrapper {
+    display: flex;
+    align-items: baseline; /* Align text baselines */
+    margin-bottom: 2px; /* Small space after title/type line */
+}
+
+.module-item-content .title {
     font-weight: bold;
-    font-size: 1.05em; /* Title can be slightly larger than parent item font */
     color: #333;
-    margin-bottom: 2px;
-    display: flex; /* Use flexbox to align title and type indicator */
-    align-items: baseline;
+    font-size: 1em; /* Relative to module-item's font-size */
+    line-height: 1.2;
 }
 
-.module-item-type-indicator {
-    font-size: 0.75em; /* Very small for the type */
-    color: #888;
-    font-weight: normal; /* Override bold from parent title */
-    margin-left: 5px;
+.module-item-content .type {
+    font-size: 0.8em; /* Relative to title's font-size */
+    color: #666;
+    background-color: #e9ecef;
+    padding: 1px 4px; /* Reduced padding */
+    border-radius: 3px;
+    margin-left: 8px; /* Space from title */
+    line-height: 1; /* Tighter line height for badge */
 }
 
-.module-item-theme,
-.module-item-description {
-    font-size: 0.9em; /* Smaller font for secondary details relative to title */
+/* New classes for Theme, Description, CEFR details */
+.module-item-detail {
+    font-size: 0.9em; /* Slightly larger than list item base, smaller than title */
     color: #555;
-    margin-top: 4px; /* Small vertical spacing */
-    line-height: 1.3; /* Adjust line height for readability */
+    margin-top: 4px; /* Small vertical spacing between detail lines */
+    line-height: 1.4; /* Comfortable line height for details */
 }
 
 .module-item-description {
-    max-height: 3.9em; /* Limit description height to about 3 lines (1.3 * 3) */
-    overflow: hidden; /* Hide overflow */
+    max-height: 4.2em; /* Limit description to about 3 lines (1.4 * 3) */
+    overflow: hidden;
     text-overflow: ellipsis; /* Add ellipsis for truncated text */
+    /* Ensure it handles long words gracefully */
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 .module-item-cefr {
-    font-size: 0.8em; /* Smaller for CEFR */
-    color: #007bff; /* Highlight CEFR */
-    margin-top: 4px;
     font-weight: bold;
-    display: block; /* Make it take its own line below description */
+    color: #007bff;
+    font-size: 0.85em; /* Slightly smaller for CEFR */
 }
 
-/* Checkbox container for alignment */
-.module-item-checkbox-container {
-    flex-shrink: 0; /* Prevents checkbox from shrinking */
-    padding-left: 10px; /* Space between content and checkbox */
-    display: flex;
-    align-items: center; /* Vertically center the checkbox */
-}
-
-.module-item-checkbox-container input[type="checkbox"] {
-    width: 18px; /* Standardize checkbox size */
-    height: 18px;
+/* Original expand toggle and media styles */
+.module-item .expand-toggle {
     cursor: pointer;
+    font-size: 1.2em;
+    color: #007bff;
+    margin-left: 10px;
+    user-select: none; /* Prevent text selection on toggle */
+    transition: transform 0.2s ease;
+    flex-shrink: 0; /* Prevent shrinking */
+    margin-top: 4px; /* Align with top of content */
 }
 
-/* You can add type-specific styling if desired, e.g.: */
-/*
-.module-type-course { background-color: #e6f7ff; }
-.module-type-lesson { background-color: #f0fff0; }
-*/
+.module-item .expand-toggle.expanded {
+    transform: rotate(90deg); /* Rotate arrow when expanded */
+}
+
+/* Indentation for nested modules */
+.module-item.level-1 { padding-left: 30px; } /* Base indentation */
+.module-item.level-2 { padding-left: 50px; }
+.module-item.level-3 { padding-left: 70px; }
+.module-item.level-4 { padding-left: 90px; }
+.module-item.level-5 { padding-left: 110px; }
+.module-item.level-6 { padding-left: 130px; }
+
+/* Media specific styling for images and audio */
+.module-media {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto; /* Push media to the right */
+    flex-shrink: 0; /* Prevent shrinking */
+    margin-top: 4px; /* Align with top of content */
+}
+
+.module-media img.thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.module-media .audio-player-btn {
+    background-color: #17a2b8; /* Info blue for audio */
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.module-media .audio-player-btn:hover {
+    background-color: #138496;
+}
+
+/* Placeholder for loading state */
+.loading-placeholder {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    line-height: 1.5; /* Ensure proper line height */
+}
+
+/* --- Specific styles for inline spinners --- */
+.spinner.spinner-inline {
+    width: 18px; /* Slightly smaller than default */
+    height: 18px;
+    border-width: 3px; /* Thinner border */
+    margin-left: 10px; /* Space it out from the toggle/title */
+    display: inline-block; /* Ensure it stays in line with content */
+    vertical-align: middle; /* Align nicely with text */
+}
+
+/* --- Basic styling for the new module type selector --- */
+/* This assumes your CEFR elements are wrapped in a div with class 'cefr-fields' as discussed */
+.cefr-fields {
+    /* Add any specific styles for the container if needed */
+    margin-bottom: 15px; /* Adjust spacing as per form fields */
+}
+
+.new-record-type-selector-group label {
+  display: block;
+  margin-top: 15px; /* Add some space above */
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.new-record-type-selector-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* --- Responsive adjustments --- */
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+        padding: 0 10px; /* Reduce padding on small screens */
+    }
+    .single-record-view,
+    .larger-list-view {
+        min-width: unset; /* Remove min-width to allow full width */
+        width: 100%;
+        padding: 15px; /* Reduce padding on small screens */
+    }
+    .record-form input[type="text"],
+    .record-form textarea,
+    .record-form select {
+        width: 100%; /* Ensure full width on small screens */
+    }
+    .module-filter-search {
+        flex-direction: column;
+        align-items: stretch; /* Stretch items to fill width */
+    }
+    .module-filter-search select,
+    .module-filter-search input[type="text"] {
+        width: 100%;
+    }
+    .module-item {
+        flex-wrap: wrap; /* Allow content to wrap within list item */
+    }
+    .module-item input[type="checkbox"] {
+        margin-top: 0; /* Reset margin top */
+        margin-bottom: 5px; /* Add space below checkbox */
+    }
+    .module-item-content {
+        width: calc(100% - 30px); /* Adjust width to account for checkbox */
+    }
+    .module-item .expand-toggle,
+    .module-media {
+        margin-top: 0; /* Reset margin top */
+        margin-left: 0; /* Reset margin left */
+        width: 100%; /* Take full width below content */
+        justify-content: flex-end; /* Push media/toggle to the right if they wrap */
+    }
+}
