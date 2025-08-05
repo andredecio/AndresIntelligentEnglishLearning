@@ -1,15 +1,15 @@
 /* ModuleContent.css - Specific styles for ModuleContent.html */
         <!-- Larger Module List View (for selecting children) -->
 .larger-list-view {
-	font-size: 0.85em;
-	line-height: 1.2;
-	padding: 3px 0; 
+	font-size: 0.8em;
+	line-height: 1.0;
+	padding: 2px 0; 
 	margin: 0; 
 }	
 .record-form {
-	font-size: 0.85em;
-	line-height: 1.2;
-	padding: 3px 0; 
+	font-size: 0.8em;
+	line-height: 1.0;
+	padding: 2px 0; 
 	margin: 0; 
 }
 /* Main layout for the two-column structure */
