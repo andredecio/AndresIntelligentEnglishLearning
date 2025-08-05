@@ -168,11 +168,15 @@ function renderAudioPlayer(gsUrl) {
 // and currentModuleIds (for checkbox pre-selection).
 function renderModuleListItem(moduleData, level, currentModuleIds) {
     const li = document.createElement('li');
-    li.classList.add('module-item'); // Make sure it has this class
+    li.classList.add('module-item'); // Main class for list item styling
     li.classList.add(`module-type-${moduleData.MODULETYPE.toLowerCase().replace(/_/g, '-')}`);
     li.dataset.moduleId = moduleData.id;
+    // Add level class for indentation (if your data has a 'level' property for nesting)
+    if (level > 0) {
+        li.classList.add(`level-${level}`);
+    }
 
-    // --- 1. Checkbox --- (Direct child of <li>)
+    // --- 1. Checkbox (Direct child of <li>) ---
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.dataset.moduleId = moduleData.id;
@@ -181,40 +185,42 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
     }
     li.appendChild(checkbox);
 
-    // --- 2. Main Content Wrapper (for Title, Theme, Desc, CEFR) --- (Direct child of <li>)
+    // --- 2. Main Content Wrapper (for Title, Theme, Desc, CEFR) (Direct child of <li>) ---
+    // This div will grow to take available space
     const contentWrapper = document.createElement('div');
-    contentWrapper.classList.add('module-item-content'); // This class is important for flex-grow
+    contentWrapper.classList.add('module-item-content');
     li.appendChild(contentWrapper);
 
     // --- Title and Type (inside contentWrapper) ---
     const titleWrapper = document.createElement('div');
-    titleWrapper.classList.add('module-item-title-wrapper'); // New wrapper for title/type
+    titleWrapper.classList.add('module-item-title-wrapper');
     contentWrapper.appendChild(titleWrapper);
 
     const titleElement = document.createElement('div');
-    titleElement.classList.add('title'); // Changed from module-item-title
+    titleElement.classList.add('title'); // Corresponds to .module-item-content .title CSS
     titleElement.textContent = moduleData.TITLE || moduleData.name || 'Untitled Module';
     titleWrapper.appendChild(titleElement);
 
     const typeIndicator = document.createElement('span');
-    typeIndicator.classList.add('type'); // Changed from module-item-type-indicator
+    typeIndicator.classList.add('type'); // Corresponds to .module-item-content .type CSS
     typeIndicator.textContent = `${moduleData.MODULETYPE.replace(/_/g, ' ')}`;
     titleWrapper.appendChild(typeIndicator);
 
-    // --- THEME (inside contentWrapper, new class 'module-item-detail') ---
-    const typesWithTheme = ['COURSE', 'LESSON']; // Your definition of theme-having types
+    // --- THEME (inside contentWrapper) ---
+    const typesWithTheme = ['COURSE', 'LESSON', 'VOCABULARY_GROUP', 'VOCABULARY']; // **UPDATED FOR THEME VISIBILITY**
     if (moduleData.THEME && typesWithTheme.includes(moduleData.MODULETYPE)) {
         const themeElement = document.createElement('div');
         themeElement.classList.add('module-item-detail');
+        themeElement.classList.add('module-item-theme'); // Specific class for theme
         themeElement.textContent = `Theme: ${moduleData.THEME}`;
         contentWrapper.appendChild(themeElement);
     }
 
-    // --- DESCRIPTION (inside contentWrapper, new class 'module-item-detail') ---
+    // --- DESCRIPTION (inside contentWrapper) ---
     if (moduleData.DESCRIPTION) {
         const descriptionElement = document.createElement('p');
-        descriptionElement.classList.add('module-item-detail'); // Add module-item-detail
-        descriptionElement.classList.add('module-item-description'); // Specific class for description
+        descriptionElement.classList.add('module-item-detail');
+        descriptionElement.classList.add('module-item-description');
         const displayDescription = moduleData.DESCRIPTION.length > 150
             ? moduleData.DESCRIPTION.substring(0, 147) + '...'
             : moduleData.DESCRIPTION;
@@ -222,49 +228,66 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
         contentWrapper.appendChild(descriptionElement);
     }
 
-    // --- CEFR (inside contentWrapper, new class 'module-item-detail') ---
-    const typesWithCEFR = [ // Your definition of CEFR-having types
+    // --- CEFR (inside contentWrapper) ---
+    const typesWithCEFR = [ // Should match your typesWithCEFR in loadRecordIntoEditor
         'LESSON', 'SEMANTIC_GROUP', 'GRAMMAR', 'CONVERSATION',
-        'READING-WRITING', 'LISTENINGSPEAKING', 'VOCABULARY'
+        'READING-WRITING', 'LISTENINGSPEAKING', 'VOCABULARY_GROUP', 'VOCABULARY' // **ADDED VOCABULARY_GROUP & VOCABULARY**
     ];
     if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE)) {
-        const cefrElement = document.createElement('span'); // Changed to span for inline text
-        cefrElement.classList.add('module-item-detail'); // Add module-item-detail
-        cefrElement.classList.add('module-item-cefr'); // Specific class for CEFR
+        const cefrElement = document.createElement('span');
+        cefrElement.classList.add('module-item-detail');
+        cefrElement.classList.add('module-item-cefr');
         cefrElement.textContent = `CEFR: ${moduleData.CEFR}`;
         contentWrapper.appendChild(cefrElement);
     }
 
+    // --- MEANING_ORIGIN (inside contentWrapper) --- **NEW FIELD**
+    const typesWithMeaningOrigin = ['VOCABULARY_GROUP', 'VOCABULARY']; // Define where MEANING_ORIGIN applies
+    if (moduleData.MEANING_ORIGIN && typesWithMeaningOrigin.includes(moduleData.MODULETYPE)) {
+        const meaningOriginElement = document.createElement('div');
+        meaningOriginElement.classList.add('module-item-detail');
+        meaningOriginElement.classList.add('module-item-meaning-origin');
+        meaningOriginElement.textContent = `Origin: ${moduleData.MEANING_ORIGIN}`;
+        contentWrapper.appendChild(meaningOriginElement);
+    }
 
-    // --- 3. Media Container (for images and audio) --- (Direct child of <li>)
-    // You must have code here to create 'module-media' and append it.
-    // Example (adapt to your actual media loading logic):
-    // if (moduleData.imageUrl || moduleData.audioUrl) {
+    // --- 3. Media Container (Direct child of <li>) ---
+    // Make sure your moduleData actually has imageUrl and audioUrl properties from Firestore
+    if (moduleData.imageUrl || moduleData.audioUrl) {
         const mediaContainer = document.createElement('div');
         mediaContainer.classList.add('module-media');
-        // Example: Add image
-        // if (moduleData.imageUrl) {
-        //     const img = document.createElement('img');
-        //     img.classList.add('thumbnail');
-        //     img.src = moduleData.imageUrl;
-        //     mediaContainer.appendChild(img);
-        // }
-        // Example: Add audio button
-        // if (moduleData.audioUrl) {
-        //     const audioBtn = document.createElement('button');
-        //     audioBtn.classList.add('audio-player-btn');
-        //     audioBtn.textContent = 'Play Audio';
-        //     mediaContainer.appendChild(audioBtn);
-        // }
-        li.appendChild(mediaContainer);
-    // }
 
-    // --- 4. Expand/Collapse Toggle (if you have one) --- (Direct child of <li>)
-    // Example (adapt to your actual toggle logic):
-    // const expandToggle = document.createElement('span');
-    // expandToggle.classList.add('expand-toggle');
-    // expandToggle.textContent = '▶'; // Or an icon
-    // li.appendChild(expandToggle);
+        if (moduleData.imageUrl) {
+            const img = document.createElement('img');
+            img.classList.add('thumbnail');
+            img.src = moduleData.imageUrl;
+            img.alt = `Thumbnail for ${moduleData.TITLE || 'module'}`;
+            mediaContainer.appendChild(img);
+        }
+
+        if (moduleData.audioUrl) {
+            const audioBtn = document.createElement('button');
+            audioBtn.classList.add('audio-player-btn');
+            audioBtn.textContent = 'Play Audio'; // You could use an icon here too
+            audioBtn.onclick = () => {
+                const audio = new Audio(moduleData.audioUrl);
+                audio.play().catch(e => console.error("Audio playback failed:", e));
+            };
+            mediaContainer.appendChild(audioBtn);
+        }
+        li.appendChild(mediaContainer);
+    }
+
+    // --- 4. Expand/Collapse Toggle (Direct child of <li>) ---
+    // This assumes you have logic elsewhere to track children and expand/collapse.
+    // If you don't have children or expand/collapse functionality, you can remove this.
+    // Example: Only show toggle if there are children to expand
+    // if (moduleData.CHILDREN && moduleData.CHILDREN.length > 0) {
+        const expandToggle = document.createElement('span');
+        expandToggle.classList.add('expand-toggle');
+        expandToggle.textContent = '▶'; // Right-pointing triangle unicode character
+        li.appendChild(expandToggle);
+    // }
 
     return li;
 }
@@ -531,76 +554,132 @@ searchModulesInput.addEventListener('input', displayFilteredModules);
 
 // --- Single Record View Logic ---
 
-/**
- * Populates the single record view with data from a given module.
- * @param {Object|null} recordData The module data to load, or null for a new record.
- * @param {string} [collectionName] The name of the collection this record belongs to.
- */
-// ...
+// --- Ensure these DOM elements/NodeLists are defined globally at the top of your script ---
+// const activeRecordIdInput = document.getElementById('activeRecordIdInput');
+// const activeRecordCollectionInput = document.getElementById('activeRecordCollectionInput');
+// const activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect');
+// const newRecordTypeSelectorGroup = document.getElementById('newRecordTypeSelectorGroup'); // Or however you select this group
+// const recordTitleInput = document.getElementById('recordTitleInput');
+// const recordDescriptionTextarea = document.getElementById('recordDescriptionTextarea');
+// const recordThemeInput = document.getElementById('recordThemeInput');
+// const themeFields = document.querySelectorAll('.theme-fields'); // Example: div for theme input & label
+// const imageStatusSelect = document.getElementById('imageStatusSelect');
+// const imageStatusFields = document.querySelectorAll('.image-status-fields'); // Example: div for image status select & label
+// const cefrInput = document.getElementById('cefrInput');
+// const cefrFields = document.querySelectorAll('.cefr-fields'); // Example: div for CEFR input & label
+// const meaningOriginInput = document.getElementById('meaningOriginInput');
+// const meaningOriginFields = document.querySelectorAll('.meaning-origin-fields'); // Example: div for Meaning Origin input & label
+// const saveRecordBtn = document.getElementById('saveRecordBtn');
+// const deleteRecordBtn = document.getElementById('deleteRecordBtn');
+// --- And of course, currentActiveRecord (object) and moduleTypes (object) global variables ---
+
+
 function loadRecordIntoEditor(recordData, collectionName = null) {
-    currentActiveRecord = recordData;
+    currentActiveRecord = recordData; // Set the global currentActiveRecord
 
     if (recordData) {
+        // --- Populating fields for an existing record ---
         activeRecordIdInput.value = recordData.id || '';
-        activeRecordCollectionInput.value = collectionName || ''; // Existing record's collection
+        activeRecordCollectionInput.value = collectionName || ''; // Set the collection name for the active record
 
-        // Set the select value for existing record and disable it
+        // Module Type selection
         activeRecordTypeSelect.value = recordData.MODULETYPE || '';
         activeRecordTypeSelect.disabled = true; // Disable editing type for existing records
-        newRecordTypeSelectorGroup.classList.remove('hidden'); // Always show the selector for existing too
+        newRecordTypeSelectorGroup.classList.remove('hidden'); // Ensure visible for existing records too, just disabled
 
+        // Basic fields
         recordTitleInput.value = recordData.TITLE || recordData.name || '';
         recordDescriptionTextarea.value = recordData.DESCRIPTION || '';
 
-        // Handle Theme field visibility (this logic remains the same)
-        if (recordData.MODULETYPE === 'COURSE' || recordData.MODULETYPE === 'LESSON') {
+        // Conditional fields and their visibility:
+
+        // 1. THEME field
+        const typesWithTheme = [
+            'COURSE',
+            'LESSON',
+            'VOCABULARY_GROUP', // Included as requested
+            'VOCABULARY'        // Included as requested
+        ];
+        if (recordData.MODULETYPE && typesWithTheme.includes(recordData.MODULETYPE)) {
             recordThemeInput.value = recordData.THEME || '';
-            themeFields.forEach(el => el.classList.remove('hidden'));
+            themeFields.forEach(el => el.classList.remove('hidden')); // Show theme fields
         } else {
-            recordThemeInput.value = '';
-            themeFields.forEach(el => el.classList.add('hidden'));
+            recordThemeInput.value = ''; // Clear value if not applicable
+            themeFields.forEach(el => el.classList.add('hidden')); // Hide theme fields
         }
 
-        // Handle Image Status field visibility (this logic remains the same)
+        // 2. Image Status field
         const typesWithImageStatus = [
             'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
             'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING'
         ];
         if (recordData.MODULETYPE && typesWithImageStatus.includes(recordData.MODULETYPE)) {
             imageStatusSelect.value = recordData.imageStatus || 'needs_review';
-            imageStatusFields.forEach(el => el.classList.remove('hidden'));
+            imageStatusFields.forEach(el => el.classList.remove('hidden')); // Show image status fields
         } else {
-            imageStatusSelect.value = '';
-            imageStatusFields.forEach(el => el.classList.add('hidden'));
+            imageStatusSelect.value = ''; // Clear value if not applicable
+            imageStatusFields.forEach(el => el.classList.add('hidden')); // Hide image status fields
         }
 
+        // 3. CEFR field
+        const typesWithCEFR = [
+            'LESSON', 'SEMANTIC_GROUP', 'GRAMMAR', 'CONVERSATION',
+            'READING-WRITING', 'LISTENINGSPEAKING', 'VOCABULARY_GROUP', 'VOCABULARY' // Included as requested
+        ];
+        if (recordData.MODULETYPE && typesWithCEFR.includes(recordData.MODULETYPE)) {
+            cefrInput.value = recordData.CEFR || '';
+            cefrFields.forEach(el => el.classList.remove('hidden')); // Show CEFR fields
+        } else {
+            cefrInput.value = ''; // Clear value if not applicable
+            cefrFields.forEach(el => el.classList.add('hidden')); // Hide CEFR fields
+        }
+
+        // 4. MEANING_ORIGIN field
+        const typesWithMeaningOrigin = ['VOCABULARY_GROUP', 'VOCABULARY']; // Define where MEANING_ORIGIN applies
+        if (recordData.MODULETYPE && typesWithMeaningOrigin.includes(recordData.MODULETYPE)) {
+            meaningOriginInput.value = recordData.MEANING_ORIGIN || '';
+            meaningOriginFields.forEach(el => el.classList.remove('hidden')); // Show Meaning Origin fields
+        } else {
+            meaningOriginInput.value = ''; // Clear value if not applicable
+            meaningOriginFields.forEach(el => el.classList.add('hidden')); // Hide Meaning Origin fields
+        }
+
+        // Button text and visibility for existing record
         saveRecordBtn.textContent = 'Update Module';
         deleteRecordBtn.style.display = 'inline-block';
+
     } else {
-        // Clear form for a new record
-        activeRecordIdInput.value = '';
+        // --- Clearing and setting defaults for a new record ---
+        activeRecordIdInput.value = ''; // Clear ID for new record
 
         // For new records, enable the type select and default to COURSE
         activeRecordTypeSelect.value = 'COURSE'; // Default new record to COURSE
         activeRecordTypeSelect.disabled = false; // Enable type selection
         newRecordTypeSelectorGroup.classList.remove('hidden'); // Ensure visible for new records
 
-        // Set the hidden collection input based on the default selected type
+        // Set the hidden collection input based on the default selected type (COURSE)
         activeRecordCollectionInput.value = moduleTypes[activeRecordTypeSelect.value];
 
+        // Clear all input fields
         recordTitleInput.value = '';
-        recordThemeInput.value = ''; // Clear theme
-        recordDescriptionTextarea.value = ''; // Clear description
+        recordDescriptionTextarea.value = '';
+        recordThemeInput.value = '';
+        imageStatusSelect.value = '';
+        cefrInput.value = '';
+        meaningOriginInput.value = '';
 
-        // Adjust visibility for new record default (COURSE)
+        // Set initial visibility for conditional fields based on default 'COURSE' type
         themeFields.forEach(el => el.classList.remove('hidden')); // COURSE has theme
         imageStatusFields.forEach(el => el.classList.add('hidden')); // COURSE does not have image status
-        imageStatusSelect.value = ''; // Clear image status
+        cefrFields.forEach(el => el.classList.add('hidden')); // COURSE does not have CEFR
+        meaningOriginFields.forEach(el => el.classList.add('hidden')); // COURSE does not have Meaning Origin
 
+        // Button text and visibility for new record
         saveRecordBtn.textContent = 'Create Module';
         deleteRecordBtn.style.display = 'none';
     }
 
+    // Always update these after record data is loaded/cleared
     updateCurrentChildrenDisplay();
     displayFilteredModules();
 }
