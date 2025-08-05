@@ -809,18 +809,78 @@ async function deleteRecord() {
 //let topLevelModuleNavigationList = []; // Array of { id, title } for courses
 //let currentTopLevelModuleIndex = -1;
 let topLevelModuleNavigationList = []; // Array of { id, title, type, collection } for all top-level modules
+let filteredNavigationList = [];      // This is the new list that Prev/Next buttons will use
 let currentTopLevelModuleIndex = 0;
-/**
- * Fetches all COURSE and populates the navigation list.
- */
-// OLD: async function fetchAndPopulateCourseNavigation() { ... }
-// DELETE the old function above entirely.
+// Get reference to your new filter dropdown (make sure its ID is 'moduleTypeFilter')
+const moduleTypeFilterSelect = document.getElementById('moduleTypeFilter');
 
-/**
- * Fetches all top-level modules (COURSE, LESSON, SEMANTIC_GROUP, GRAMMAR, etc.)
- * and populates the navigation list.
- */
-async function fetchAndPopulateTopLevelNavigation() {
+
+// --- NEW FUNCTION: Populate the filter dropdown with unique module types ---
+function populateModuleTypeFilter() {
+    // Clear existing options except 'ALL'
+    moduleTypeFilterSelect.innerHTML = '<option value="ALL">All Module Types</option>';
+
+    const uniqueModuleTypes = new Set();
+    topLevelModuleNavigationList.forEach(module => {
+        uniqueModuleTypes.add(module.MODULETYPE);
+    });
+
+    // Sort the types alphabetically for a cleaner dropdown
+    const sortedTypes = Array.from(uniqueModuleTypes).sort();
+
+    sortedTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        // Make the text more readable (e.g., SEMANTIC_GROUP becomes Semantic Group)
+        option.textContent = type.replace(/_/g, ' ');
+        moduleTypeFilterSelect.appendChild(option);
+    });
+
+    // Add event listener so that when the selection changes, we apply the filter
+    moduleTypeFilterSelect.addEventListener('change', applyModuleTypeFilter);
+}
+
+
+// --- NEW FUNCTION: Apply the selected filter and update the navigation ---
+async function applyModuleTypeFilter() {
+    const selectedFilterType = moduleTypeFilterSelect.value;
+
+    if (selectedFilterType === 'ALL') {
+        // If 'ALL' is selected, the filtered list is a copy of the master list
+        filteredNavigationList = [...topLevelModuleNavigationList];
+    } else {
+        // Otherwise, filter the master list by the selected MODULETYPE
+        filteredNavigationList = topLevelModuleNavigationList.filter(module => {
+            return module.MODULETYPE === selectedFilterType;
+            // The magic: Since fetchAndPopulateTopLevelNavigation already correctly assigns
+            // 'collection' (e.g., 'COURSE' for COURSE, 'learningContent' for SEMANTIC_GROUP),
+            // simply filtering by MODULETYPE automatically handles your collection-specific request!
+        });
+    }
+
+    // After filtering, we need to reset our current index to the beginning of the new list
+    currentTopLevelModuleIndex = 0;
+
+    // Load the first record from this new filtered list, or clear the editor if the list is empty
+    if (filteredNavigationList.length > 0) {
+        const firstModule = filteredNavigationList[currentTopLevelModuleIndex];
+        const moduleSnap = await db.collection(firstModule.collection).doc(firstModule.id).get();
+        if (moduleSnap.exists) {
+            loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, firstModule.collection);
+        } else {
+            // This case should be rare if your data is consistent, but it's a good fallback
+            showAlert(`First module of type '${selectedFilterType}' not found in its collection.`, true);
+            loadRecordIntoEditor(null); // Clear editor if the first item somehow isn't there
+        }
+    } else {
+        // No records match the selected filter, so clear the editor
+        loadRecordIntoEditor(null);
+        showAlert(`No records found for module type: ${selectedFilterType}`, false);
+    }
+
+    // Finally, update the state of the Prev/Next buttons
+    updateNavigationButtons();
+}async function fetchAndPopulateTopLevelNavigation() {
     try {
         const allTopLevelModules = [];
 
@@ -864,9 +924,16 @@ async function fetchAndPopulateTopLevelNavigation() {
 /**
  * Updates the disabled state of Prev/Next buttons.
  */
+// --- MODIFIED: updateNavigationButtons function ---
+// This function now uses 'filteredNavigationList' to determine button states
 function updateNavigationButtons() {
-      prevRecordBtn.disabled = currentTopLevelModuleIndex <= 0;
-    nextRecordBtn.disabled = currentTopLevelModuleIndex >= topLevelModuleNavigationList.length - 1;
+    prevRecordBtn.disabled = currentTopLevelModuleIndex <= 0;
+    nextRecordBtn.disabled = currentTopLevelModuleIndex >= filteredNavigationList.length - 1;
+    // Also disable if the filtered list is empty
+    if (filteredNavigationList.length === 0) {
+        prevRecordBtn.disabled = true;
+        nextRecordBtn.disabled = true;
+    }
 }
 
 // --- Event Listeners for Single Record View Buttons ---
@@ -877,39 +944,39 @@ newRecordBtn.addEventListener('click', () => {
     updateNavigationButtons();
 });
 
+// --- MODIFIED: prevRecordBtn event listener ---
 prevRecordBtn.addEventListener('click', async () => {
+    // Now, we operate on the 'filteredNavigationList'
     if (currentTopLevelModuleIndex > 0) {
         currentTopLevelModuleIndex--;
-        const selectedModule = topLevelModuleNavigationList[currentTopLevelModuleIndex];
-         const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
-         if (moduleSnap.exists) {
-            // Pass the module's collection to loadRecordIntoEditor
+        const selectedModule = filteredNavigationList[currentTopLevelModuleIndex];
+        const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
+        if (moduleSnap.exists) {
             loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
         } else {
             showAlert("Selected module not found, refreshing navigation.", true);
-            // Always use the correct top-level navigation refresh function
+            // If an item is missing, re-fetch all data and re-apply the filter
             await fetchAndPopulateTopLevelNavigation();
-            loadRecordIntoEditor(null); // Fallback to new record
+            await applyModuleTypeFilter(); // This will reload the first item of the now-refreshed filtered list
         }
         updateNavigationButtons();
     }
 });
 
+// --- MODIFIED: nextRecordBtn event listener ---
 nextRecordBtn.addEventListener('click', async () => {
-    if (currentTopLevelModuleIndex < topLevelModuleNavigationList.length - 1) {
+    // Now, we operate on the 'filteredNavigationList'
+    if (currentTopLevelModuleIndex < filteredNavigationList.length - 1) {
         currentTopLevelModuleIndex++;
-        const selectedModule = topLevelModuleNavigationList[currentTopLevelModuleIndex];
-        // Use the stored collection name for fetching!
+        const selectedModule = filteredNavigationList[currentTopLevelModuleIndex];
         const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
-
         if (moduleSnap.exists) {
-            // Pass the module's collection to loadRecordIntoEditor
             loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
         } else {
             showAlert("Selected module not found, refreshing navigation.", true);
-            // Always use the correct top-level navigation refresh function
-            await fetchAndPopulateTopLevelNavigation(); // Refresh navigation if item is missing
-            loadRecordIntoEditor(null); // Fallback to new record
+            // If an item is missing, re-fetch all data and re-apply the filter
+            await fetchAndPopulateTopLevelNavigation();
+            await applyModuleTypeFilter(); // This will reload the first item of the now-refreshed filtered list
         }
         updateNavigationButtons();
     }
@@ -919,32 +986,20 @@ saveRecordBtn.addEventListener('click', saveRecord);
 deleteRecordBtn.addEventListener('click', deleteRecord);
 
 
-// --- Main DOMContentLoaded Listener ---
+// --- MODIFIED: DOMContentLoaded listener ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // Ensure Firebase Auth is ready and user is admin
-    // This part relies on common.js to handle auth state and redirection.
-    // We can't directly check 'admin' claims here from the client-side for security reasons
-    // (unless they are exposed via an ID token claim, which would be managed by your Cloud Functions/Admin SDK).
-    // Assuming common.js redirects non-admins away, we just proceed.
+    // Assuming your common.js handles auth state and admin checks first
 
-    // Initial setup: Load COURSE for navigation, then load the first one or a new record form
-     await fetchAndPopulateTopLevelNavigation(); // Use the new function
+    // 1. Fetch all top-level modules into our master list
+    await fetchAndPopulateTopLevelNavigation();
 
-  if (topLevelModuleNavigationList.length > 0) {
-        currentTopLevelModuleIndex = 0;
-        const firstModule = topLevelModuleNavigationList[currentTopLevelModuleIndex];
-        const moduleSnap = await db.collection(firstModule.collection).doc(firstModule.id).get();
-        if (moduleSnap.exists) {
-            loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, firstModule.collection);
-        } else {
-            showAlert("First module in navigation not found, starting with a new record.", true);
-            loadRecordIntoEditor(null);
-        }
-    } else {
-        loadRecordIntoEditor(null); // No top-level modules exist, start with a blank form
-    }
+    // 2. Populate the new module type filter dropdown
+    populateModuleTypeFilter();
 
-    // Load all available modules for the larger selection list
+    // 3. Apply the default filter (e.g., 'ALL') and load the first record based on that
+    await applyModuleTypeFilter();
+
+    // Your existing call to loadAllAvailableModules() (keep this as it is)
     await loadAllAvailableModules();
 });
 // ... (at the bottom of ModuleContent.js, outside any other function) ...
