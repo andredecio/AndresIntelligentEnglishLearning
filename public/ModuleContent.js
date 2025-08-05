@@ -170,144 +170,83 @@ function renderAudioPlayer(gsUrl) {
 /**
 // module-content.js (Full corrected renderModuleListItem function)
 
-/**
- * Creates an HTML list item for a module.
- * @param {Object} moduleData The module document data.
- * @param {string} moduleData.id The document ID of the module.
- * @param {string} moduleData.MODULETYPE The type of the module (e.g., 'LESSON', 'SEMANTIC_GROUP').
- * @param {string} moduleData.TITLE The title of the module.
- * @param {Array<string>} [moduleData.MODULEID_ARRAY] Array of child module IDs.
- * @param {string} [moduleData.IMAGEURL] URL for an associated image.
- * @param {string} [moduleData.audioUrl] URL for an associated audio file.
- * @param {number} level The nesting level (for indentation).
- * @param {Array<string>} [selectedModuleIds=[]] Array of IDs currently selected for the active parent.
- * @returns {HTMLLIElement} The created list item element.
- */
-function renderModuleListItem(moduleData, level, selectedModuleIds = []) {
-    // console.log('--- Processing Module ---'); // Keep these debug logs for now if you like
-    // console.log('ID:', moduleData.id);
-    // console.log('TYPE:', moduleData.MODULETYPE);
-    // console.log('TITLE:', moduleData.TITLE || moduleData.name);
-    // console.log('MODULEID_ARRAY (raw):', moduleData.MODULEID_ARRAY);
-    // console.log('MODULEID_ARRAY type:', typeof moduleData.MODULEID_ARRAY, Array.isArray(moduleData.MODULEID_ARRAY));
-
+// This function creates an individual list item for the larger availableModulesList.
+// It receives moduleData (the record from Firestore), a level (which you're currently using as 0),
+// and currentModuleIds (for checkbox pre-selection).
+function renderModuleListItem(moduleData, level, currentModuleIds) {
     const li = document.createElement('li');
-    li.className = `module-item level-${level}`;
+    li.classList.add('module-list-item');
+    // Add a class based on the module type for potential type-specific styling
+    li.classList.add(`module-type-${moduleData.MODULETYPE.toLowerCase().replace(/_/g, '-')}`);
+    // Add a data attribute for easier identification if needed
     li.dataset.moduleId = moduleData.id;
-    li.dataset.moduleType = moduleData.MODULETYPE;
-    li.dataset.level = level;
 
-    const hasChildren = moduleData.MODULEID_ARRAY && moduleData.MODULEID_ARRAY.length > 0;
-    // console.log('Calculated hasChildren:', hasChildren); // Keep this debug log for now
+    // --- Container for textual content to manage layout ---
+    const contentWrapper = document.createElement('div');
+    contentWrapper.classList.add('module-item-content-wrapper'); // New wrapper for better organization
+    li.appendChild(contentWrapper);
 
-    // Store child IDs for easier access without re-fetching parent data
-    if (hasChildren) {
-        li.dataset.children = JSON.stringify(moduleData.MODULEID_ARRAY);
+    // --- 1. TITLE (Always present, bold, and primary) ---
+    const titleElement = document.createElement('div');
+    titleElement.classList.add('module-item-title');
+    titleElement.textContent = moduleData.TITLE || moduleData.name || 'Untitled Module'; // Use TITLE, fallback to name, then 'Untitled'
+    contentWrapper.appendChild(titleElement);
+
+    // Add ModuleType next to title for quick identification
+    const typeIndicator = document.createElement('span');
+    typeIndicator.classList.add('module-item-type-indicator');
+    typeIndicator.textContent = ` (${moduleData.MODULETYPE.replace(/_/g, ' ')})`; // e.g., "COURSE", "SEMANTIC GROUP"
+    titleElement.appendChild(typeIndicator); // Append to title element so they stay together
+
+    // --- 2. THEME (Conditional: only for specific module types like COURSE/LESSON) ---
+    // You define which types have a theme.
+    const typesWithTheme = ['COURSE', 'LESSON']; // Extend this if other types also have themes
+    if (moduleData.THEME && typesWithTheme.includes(moduleData.MODULETYPE)) {
+        const themeElement = document.createElement('div');
+        themeElement.classList.add('module-item-theme');
+        themeElement.textContent = `Theme: ${moduleData.THEME}`;
+        contentWrapper.appendChild(themeElement);
     }
 
-    const isSelectable = !NON_SELECTABLE_LEAF_MODULE_TYPES.includes(moduleData.MODULETYPE);
-
-    // --- Build the core HTML content as a string first ---
-    let coreContentHTML = ``;
-
-    // Checkbox (if selectable)
-    if (isSelectable) {
-        const isCurrentlySelected = selectedModuleIds.includes(moduleData.id);
-        coreContentHTML += `<input type="checkbox" data-module-id="${moduleData.id}" ${isCurrentlySelected ? 'checked' : ''}>`;
-    } else {
-        // Add a placeholder or disable checkbox for non-selectable items visually
-        coreContentHTML += `<input type="checkbox" disabled style="opacity: 0.5;">`;
+    // --- 3. DESCRIPTION (Conditional, and often truncated for list view) ---
+    if (moduleData.DESCRIPTION) { // Only display if description exists
+        const descriptionElement = document.createElement('p');
+        descriptionElement.classList.add('module-item-description');
+        // Truncate long descriptions to keep the list compact
+        const displayDescription = moduleData.DESCRIPTION.length > 150 // Adjust 150 as needed
+            ? moduleData.DESCRIPTION.substring(0, 147) + '...'
+            : moduleData.DESCRIPTION;
+        descriptionElement.textContent = `Description: ${displayDescription}`;
+        contentWrapper.appendChild(descriptionElement);
     }
 
-    coreContentHTML += `
-        <div class="module-item-content">
-            <span class="title">${moduleData.TITLE || moduleData.name || 'Untitled'}</span>
-            <span class="type">${moduleData.MODULETYPE}</span>
-        </div>
-    `;
-
-    // Set the innerHTML first. This effectively creates the initial DOM structure from the string.
-    li.innerHTML = coreContentHTML;
-
-    // --- Now append other dynamic elements and attach listeners ---
-
-    // Media (Thumbnail and Audio Player)
-    const mediaContainer = document.createElement('div');
-    mediaContainer.className = 'module-media';
-    if (moduleData.IMAGEURL) {
-        const thumbnail = renderThumbnail(moduleData.IMAGEURL);
-        if (thumbnail) mediaContainer.appendChild(thumbnail);
-    }
-    if (moduleData.audioUrl) {
-        const audioPlayer = renderAudioPlayer(moduleData.audioUrl);
-        if (audioPlayer) mediaContainer.appendChild(audioPlayer);
-    }
-    // Only append if there's actual media
-    if (mediaContainer.children.length > 0) {
-        li.appendChild(mediaContainer);
+    // --- 4. CEFR (Conditional: only for specific module types) ---
+    const typesWithCEFR = [
+        'LESSON', 'SEMANTIC_GROUP', 'GRAMMAR', 'CONVERSATION',
+        'READING-WRITING', 'LISTENINGSPEAKING', 'VOCABULARY' // Ensure this list matches your logic in loadRecordIntoEditor
+    ];
+    if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE)) {
+        const cefrElement = document.createElement('span');
+        cefrElement.classList.add('module-item-cefr');
+        cefrElement.textContent = `CEFR: ${moduleData.CEFR}`;
+        contentWrapper.appendChild(cefrElement);
     }
 
-    // Expand/Collapse Toggle (if has children)
-    if (hasChildren) {
-        const toggle = document.createElement('span');
-        toggle.className = 'expand-toggle';
-        toggle.textContent = '▶'; // Right-facing triangle
-        toggle.dataset.expanded = 'false'; // Custom attribute to track state
-        li.appendChild(toggle); // Append the toggle element to the list item
- 
-// --- NEW INLINE SPINNER ELEMENT ---
-        const inlineSpinner = document.createElement('span');
-        inlineSpinner.className = 'spinner spinner-inline hidden'; // Will need 'spinner-inline' CSS
-        li.appendChild(inlineSpinner);
-        // --- END NEW INLINE SPINNER ELEMENT ---
-        // Now attach the event listener to the 'toggle' element that is actually part of the DOM
-        toggle.addEventListener('click', async (event) => {
-            event.stopPropagation(); // Prevent parent click handlers from firing
-            const isExpanded = toggle.dataset.expanded === 'true';
+    // --- Checkbox (for linking modules) ---
+    // This part remains similar to your existing logic.
+    const checkboxContainer = document.createElement('div');
+    checkboxContainer.classList.add('module-item-checkbox-container'); // Container for checkbox
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.dataset.moduleId = moduleData.id; // Store module ID on the checkbox
 
-            console.log(`DEBUG: Toggle clicked for module: ${moduleData.TITLE || moduleData.name} (${moduleData.id}) - Currently expanded: ${isExpanded}`);
-
-
-            if (isExpanded) {
-                // Collapse logic
-                console.log('DEBUG: Attempting to collapse...');
-                let nextSibling = li.nextElementSibling;
-                const parentLevel = parseInt(li.dataset.level); // Get the level of the current LI
-                while (nextSibling && parseInt(nextSibling.dataset.level) > parentLevel) {
-                    const temp = nextSibling.nextElementSibling;
-                    nextSibling.remove();
-                    nextSibling = temp;
-                }
-                toggle.dataset.expanded = 'false';
-                toggle.textContent = '▶';
-                toggle.classList.remove('expanded');
-                console.log('DEBUG: Collapsed successfully.');
-            } else {
-                // Expand logic
-                console.log('DEBUG: Attempting to expand...');
-                toggle.classList.add('expanded'); // Rotate the triangle
-   // --- SHOW THE INLINE SPINNER ---
-                inlineSpinner.classList.remove('hidden');
-                // --- END SHOW INLINE SPINNER ---
-                console.log(`DEBUG: Calling fetchAndRenderChildren for ${moduleData.id} with children IDs:`, moduleData.MODULEID_ARRAY);
-                try {
-                    await fetchAndRenderChildren(moduleData.id, moduleData.MODULEID_ARRAY, level + 1, li, selectedModuleIds);
-                    console.log('DEBUG: fetchAndRenderChildren completed.');
-                } catch (error) {
-                    console.error('DEBUG: Error during fetchAndRenderChildren:', error);
-                    showAlert(`Error loading children: ${error.message}`, true);
-                } finally {
-                   // --- HIDE THE INLINE SPINNER ---
-                    inlineSpinner.classList.add('hidden');
-                    // --- END HIDE INLINE SPINNER ---
-                    
-                      toggle.dataset.expanded = 'true';
-                    toggle.textContent = '▼'; // Change arrow to down
-                    console.log('DEBUG: Expansion UI updated.');
-                }
-            }
-        });
+    // Check if this module is already linked to the currently active record
+    if (currentModuleIds.includes(moduleData.id)) {
+        checkbox.checked = true;
     }
+
+    checkboxContainer.appendChild(checkbox);
+    li.appendChild(checkboxContainer); // Append the checkbox container directly to the list item
 
     return li;
 }
