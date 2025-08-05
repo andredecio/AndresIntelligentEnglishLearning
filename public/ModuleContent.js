@@ -886,12 +886,6 @@ async function deleteRecord() {
     }
 }
 
-// --- Course Navigation Logic (for single record view) ---
-//let topLevelModuleNavigationList = []; // Array of { id, title } for courses
-//let currentTopLevelModuleIndex = -1;
-let topLevelModuleNavigationList = []; // Array of { id, title, type, collection } for all top-level modules
-let filteredNavigationList = [];      // This is the new list that Prev/Next buttons will use
-let currentTopLevelModuleIndex = 0;
 // Get reference to your new filter dropdown (make sure its ID is 'moduleTypeFilter')
 const moduleTypeFilterSelect = document.getElementById('moduleTypeFilter');
 
