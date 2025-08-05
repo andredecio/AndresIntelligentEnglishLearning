@@ -163,90 +163,108 @@ function renderAudioPlayer(gsUrl) {
     };
     return button;
 }
-// ModuleContent.js (Continued from Part 1)
-
-// --- Module List Rendering ---
-
-
-// module-content.js (Full corrected renderModuleListItem function)
-
 // This function creates an individual list item for the larger availableModulesList.
 // It receives moduleData (the record from Firestore), a level (which you're currently using as 0),
 // and currentModuleIds (for checkbox pre-selection).
 function renderModuleListItem(moduleData, level, currentModuleIds) {
     const li = document.createElement('li');
-    li.classList.add('module-list-item');
-    // Add a class based on the module type for potential type-specific styling
+    li.classList.add('module-item'); // Make sure it has this class
     li.classList.add(`module-type-${moduleData.MODULETYPE.toLowerCase().replace(/_/g, '-')}`);
-    // Add a data attribute for easier identification if needed
     li.dataset.moduleId = moduleData.id;
 
-    // --- Container for textual content to manage layout ---
+    // --- 1. Checkbox --- (Direct child of <li>)
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.dataset.moduleId = moduleData.id;
+    if (currentModuleIds.includes(moduleData.id)) {
+        checkbox.checked = true;
+    }
+    li.appendChild(checkbox);
+
+    // --- 2. Main Content Wrapper (for Title, Theme, Desc, CEFR) --- (Direct child of <li>)
     const contentWrapper = document.createElement('div');
-    contentWrapper.classList.add('module-item-content-wrapper'); // New wrapper for better organization
+    contentWrapper.classList.add('module-item-content'); // This class is important for flex-grow
     li.appendChild(contentWrapper);
 
-    // --- 1. TITLE (Always present, bold, and primary) ---
+    // --- Title and Type (inside contentWrapper) ---
+    const titleWrapper = document.createElement('div');
+    titleWrapper.classList.add('module-item-title-wrapper'); // New wrapper for title/type
+    contentWrapper.appendChild(titleWrapper);
+
     const titleElement = document.createElement('div');
-    titleElement.classList.add('module-item-title');
-    titleElement.textContent = moduleData.TITLE || moduleData.name || 'Untitled Module'; // Use TITLE, fallback to name, then 'Untitled'
-    contentWrapper.appendChild(titleElement);
+    titleElement.classList.add('title'); // Changed from module-item-title
+    titleElement.textContent = moduleData.TITLE || moduleData.name || 'Untitled Module';
+    titleWrapper.appendChild(titleElement);
 
-    // Add ModuleType next to title for quick identification
     const typeIndicator = document.createElement('span');
-    typeIndicator.classList.add('module-item-type-indicator');
-    typeIndicator.textContent = ` (${moduleData.MODULETYPE.replace(/_/g, ' ')})`; // e.g., "COURSE", "SEMANTIC GROUP"
-    titleElement.appendChild(typeIndicator); // Append to title element so they stay together
+    typeIndicator.classList.add('type'); // Changed from module-item-type-indicator
+    typeIndicator.textContent = `${moduleData.MODULETYPE.replace(/_/g, ' ')}`;
+    titleWrapper.appendChild(typeIndicator);
 
-    // --- 2. THEME (Conditional: only for specific module types like COURSE/LESSON) ---
-    // You define which types have a theme.
-    const typesWithTheme = ['COURSE', 'LESSON']; // Extend this if other types also have themes
+    // --- THEME (inside contentWrapper, new class 'module-item-detail') ---
+    const typesWithTheme = ['COURSE', 'LESSON']; // Your definition of theme-having types
     if (moduleData.THEME && typesWithTheme.includes(moduleData.MODULETYPE)) {
         const themeElement = document.createElement('div');
-        themeElement.classList.add('module-item-theme');
+        themeElement.classList.add('module-item-detail');
         themeElement.textContent = `Theme: ${moduleData.THEME}`;
         contentWrapper.appendChild(themeElement);
     }
 
-    // --- 3. DESCRIPTION (Conditional, and often truncated for list view) ---
-    if (moduleData.DESCRIPTION) { // Only display if description exists
+    // --- DESCRIPTION (inside contentWrapper, new class 'module-item-detail') ---
+    if (moduleData.DESCRIPTION) {
         const descriptionElement = document.createElement('p');
-        descriptionElement.classList.add('module-item-description');
-        // Truncate long descriptions to keep the list compact
-        const displayDescription = moduleData.DESCRIPTION.length > 150 // Adjust 150 as needed
+        descriptionElement.classList.add('module-item-detail'); // Add module-item-detail
+        descriptionElement.classList.add('module-item-description'); // Specific class for description
+        const displayDescription = moduleData.DESCRIPTION.length > 150
             ? moduleData.DESCRIPTION.substring(0, 147) + '...'
             : moduleData.DESCRIPTION;
         descriptionElement.textContent = `Description: ${displayDescription}`;
         contentWrapper.appendChild(descriptionElement);
     }
 
-    // --- 4. CEFR (Conditional: only for specific module types) ---
-    const typesWithCEFR = [
+    // --- CEFR (inside contentWrapper, new class 'module-item-detail') ---
+    const typesWithCEFR = [ // Your definition of CEFR-having types
         'LESSON', 'SEMANTIC_GROUP', 'GRAMMAR', 'CONVERSATION',
-        'READING-WRITING', 'LISTENINGSPEAKING', 'VOCABULARY' // Ensure this list matches your logic in loadRecordIntoEditor
+        'READING-WRITING', 'LISTENINGSPEAKING', 'VOCABULARY'
     ];
     if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE)) {
-        const cefrElement = document.createElement('span');
-        cefrElement.classList.add('module-item-cefr');
+        const cefrElement = document.createElement('span'); // Changed to span for inline text
+        cefrElement.classList.add('module-item-detail'); // Add module-item-detail
+        cefrElement.classList.add('module-item-cefr'); // Specific class for CEFR
         cefrElement.textContent = `CEFR: ${moduleData.CEFR}`;
         contentWrapper.appendChild(cefrElement);
     }
 
-    // --- Checkbox (for linking modules) ---
-    // This part remains similar to your existing logic.
-    const checkboxContainer = document.createElement('div');
-    checkboxContainer.classList.add('module-item-checkbox-container'); // Container for checkbox
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.dataset.moduleId = moduleData.id; // Store module ID on the checkbox
 
-    // Check if this module is already linked to the currently active record
-    if (currentModuleIds.includes(moduleData.id)) {
-        checkbox.checked = true;
-    }
+    // --- 3. Media Container (for images and audio) --- (Direct child of <li>)
+    // You must have code here to create 'module-media' and append it.
+    // Example (adapt to your actual media loading logic):
+    // if (moduleData.imageUrl || moduleData.audioUrl) {
+        const mediaContainer = document.createElement('div');
+        mediaContainer.classList.add('module-media');
+        // Example: Add image
+        // if (moduleData.imageUrl) {
+        //     const img = document.createElement('img');
+        //     img.classList.add('thumbnail');
+        //     img.src = moduleData.imageUrl;
+        //     mediaContainer.appendChild(img);
+        // }
+        // Example: Add audio button
+        // if (moduleData.audioUrl) {
+        //     const audioBtn = document.createElement('button');
+        //     audioBtn.classList.add('audio-player-btn');
+        //     audioBtn.textContent = 'Play Audio';
+        //     mediaContainer.appendChild(audioBtn);
+        // }
+        li.appendChild(mediaContainer);
+    // }
 
-    checkboxContainer.appendChild(checkbox);
-    li.appendChild(checkboxContainer); // Append the checkbox container directly to the list item
+    // --- 4. Expand/Collapse Toggle (if you have one) --- (Direct child of <li>)
+    // Example (adapt to your actual toggle logic):
+    // const expandToggle = document.createElement('span');
+    // expandToggle.classList.add('expand-toggle');
+    // expandToggle.textContent = '▶'; // Or an icon
+    // li.appendChild(expandToggle);
 
     return li;
 }
