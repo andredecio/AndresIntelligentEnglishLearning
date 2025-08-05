@@ -1,14 +1,109 @@
+/* Modulecontent.css */
+
+/* --- General Utilities & Global Elements (can be merged with other global CSS) --- */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f7f6;
+    color: #333;
+}
+
+.hidden {
+    display: none !important; /* Force hide elements using this class */
+}
+
+/* --- Form Group Styling (for single record editor fields) --- */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    font-size: 1em; /* Ensure consistent font size */
+}
+
+.form-group textarea {
+    resize: vertical; /* Allow vertical resizing of textareas */
+    min-height: 80px;
+}
+
+/* Specific styling for CEFR input field if needed beyond generic input */
+#cefrInput {
+    /* Add specific styles here if you want CEFR to look different */
+}
+
+/* Styling for buttons */
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+    margin-right: 10px; /* Space between buttons */
+}
+
+button:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* --- Filter Controls (for the module type filter dropdown) --- */
+.filter-controls {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-controls label {
+    font-weight: bold;
+    font-size: 1em;
+}
+
+#moduleTypeFilter {
+    padding: 8px 12px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-size: 1em;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+/* --- Available Modules List (the "larger viewer screen") --- */
 #availableModulesList {
-    /* Existing list styling */
     list-style: none; /* Remove bullet points */
     padding: 0;
     margin: 0;
-    max-height: 500px; /* Example: make the list scrollable if it gets too long */
-    overflow-y: auto;
+    max-height: 500px; /* Make the list scrollable if it gets too long */
+    overflow-y: auto; /* Enable vertical scrolling */
     border: 1px solid #ddd;
-    background-color: #f9f9f9;
+    border-radius: 5px;
+    background-color: #fdfdfd;
 }
 
+/* Individual list item styling */
 .module-list-item {
     display: flex; /* Use flexbox for layout of content and checkbox */
     align-items: flex-start; /* Align items to the top of the flex container */
@@ -16,6 +111,8 @@
     border-bottom: 1px solid #eee; /* Separator between items */
     background-color: #fff;
     transition: background-color 0.2s ease;
+    font-size: 0.85em; /* Slightly smaller overall font size for items */
+    line-height: 1.2; /* Reduce vertical spacing between lines of text within an item */
 }
 
 .module-list-item:last-child {
@@ -26,6 +123,7 @@
     background-color: #f0f0f0; /* Hover effect for better UX */
 }
 
+/* Wrapper for the textual content (title, theme, description, CEFR) */
 .module-item-content-wrapper {
     flex-grow: 1; /* Allows this wrapper to take up available space */
     margin-right: 10px; /* Space between content and checkbox */
@@ -33,13 +131,15 @@
 
 .module-item-title {
     font-weight: bold;
-    font-size: 0.95em; /* Slightly larger for title */
+    font-size: 1.05em; /* Title can be slightly larger than parent item font */
     color: #333;
     margin-bottom: 2px;
+    display: flex; /* Use flexbox to align title and type indicator */
+    align-items: baseline;
 }
 
 .module-item-type-indicator {
-    font-size: 0.7em; /* Very small for the type */
+    font-size: 0.75em; /* Very small for the type */
     color: #888;
     font-weight: normal; /* Override bold from parent title */
     margin-left: 5px;
@@ -47,20 +147,27 @@
 
 .module-item-theme,
 .module-item-description {
-    font-size: 0.8em; /* Smaller font for secondary details */
+    font-size: 0.9em; /* Smaller font for secondary details relative to title */
     color: #555;
     margin-top: 4px; /* Small vertical spacing */
     line-height: 1.3; /* Adjust line height for readability */
 }
 
-.module-item-cefr {
-    font-size: 0.75em; /* Smaller for CEFR */
-    color: #007bff; /* Highlight CEFR maybe */
-    margin-top: 4px;
-    font-weight: bold;
-    display: block; /* Make it take its own line */
+.module-item-description {
+    max-height: 3.9em; /* Limit description height to about 3 lines (1.3 * 3) */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for truncated text */
 }
 
+.module-item-cefr {
+    font-size: 0.8em; /* Smaller for CEFR */
+    color: #007bff; /* Highlight CEFR */
+    margin-top: 4px;
+    font-weight: bold;
+    display: block; /* Make it take its own line below description */
+}
+
+/* Checkbox container for alignment */
 .module-item-checkbox-container {
     flex-shrink: 0; /* Prevents checkbox from shrinking */
     padding-left: 10px; /* Space between content and checkbox */
@@ -73,3 +180,9 @@
     height: 18px;
     cursor: pointer;
 }
+
+/* You can add type-specific styling if desired, e.g.: */
+/*
+.module-type-course { background-color: #e6f7ff; }
+.module-type-lesson { background-color: #f0fff0; }
+*/
