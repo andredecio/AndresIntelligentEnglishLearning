@@ -38,6 +38,8 @@ const recordTitleInput = document.getElementById('recordTitle');
 const recordThemeInput = document.getElementById('recordTheme');
 const recordDescriptionTextarea = document.getElementById('recordDescription');
 const themeFields = document.querySelectorAll('.theme-field'); // Elements related to theme (like label and input)
+const activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect'); // Reference to the new select element
+const newRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group'); // Reference to its parent div
 const imageStatusSelect = document.getElementById('imageStatus'); // This grabs your <select id="imageStatus">
 const imageStatusFields = document.querySelectorAll('.image-status-field'); // This grabs the surrounding <div>
 
@@ -564,17 +566,23 @@ searchModulesInput.addEventListener('input', displayFilteredModules);
  * @param {Object|null} recordData The module data to load, or null for a new record.
  * @param {string} [collectionName] The name of the collection this record belongs to.
  */
+// ...
 function loadRecordIntoEditor(recordData, collectionName = null) {
     currentActiveRecord = recordData;
 
     if (recordData) {
         activeRecordIdInput.value = recordData.id || '';
-        activeRecordCollectionInput.value = collectionName || ''; // Store the collection
-        activeRecordTypeInput.value = recordData.MODULETYPE || '';
+        activeRecordCollectionInput.value = collectionName || ''; // Existing record's collection
+
+        // Set the select value for existing record and disable it
+        activeRecordTypeSelect.value = recordData.MODULETYPE || '';
+        activeRecordTypeSelect.disabled = true; // Disable editing type for existing records
+        newRecordTypeSelectorGroup.classList.remove('hidden'); // Always show the selector for existing too
+
         recordTitleInput.value = recordData.TITLE || recordData.name || '';
         recordDescriptionTextarea.value = recordData.DESCRIPTION || '';
 
-        // Handle Theme field visibility based on MODULETYPE
+        // Handle Theme field visibility (this logic remains the same)
         if (recordData.MODULETYPE === 'COURSE' || recordData.MODULETYPE === 'LESSON') {
             recordThemeInput.value = recordData.THEME || '';
             themeFields.forEach(el => el.classList.remove('hidden'));
@@ -582,37 +590,48 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
             recordThemeInput.value = '';
             themeFields.forEach(el => el.classList.add('hidden'));
         }
-   const typesWithImageStatus = [
-            'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
-            'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Added new types here
-        ];
 
+        // Handle Image Status field visibility (this logic remains the same)
+        const typesWithImageStatus = [
+            'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
+            'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING'
+        ];
         if (recordData.MODULETYPE && typesWithImageStatus.includes(recordData.MODULETYPE)) {
-            imageStatusSelect.value = recordData.imageStatus || 'needs_review'; // Set value, default to 'needs_review' if not set
-            imageStatusFields.forEach(el => el.classList.remove('hidden')); // Show the fields
+            imageStatusSelect.value = recordData.imageStatus || 'needs_review';
+            imageStatusFields.forEach(el => el.classList.remove('hidden'));
         } else {
-            imageStatusSelect.value = ''; // Clear value if not relevant
-            imageStatusFields.forEach(el => el.classList.add('hidden')); // Hide the fields
+            imageStatusSelect.value = '';
+            imageStatusFields.forEach(el => el.classList.add('hidden'));
         }
+
         saveRecordBtn.textContent = 'Update Module';
-        deleteRecordBtn.style.display = 'inline-block'; // Show delete button for existing records
+        deleteRecordBtn.style.display = 'inline-block';
     } else {
         // Clear form for a new record
         activeRecordIdInput.value = '';
-        activeRecordCollectionInput.value = 'COURSE'; // Default to creating a new COURSE
-        activeRecordTypeInput.value = 'COURSE'; // Default to creating a new COURSE
-        recordTitleInput.value = '';
-        recordThemeInput.value = '';
-        recordDescriptionTextarea.value = '';
 
-        themeFields.forEach(el => el.classList.remove('hidden')); // Show theme fields for new COURSE
+        // For new records, enable the type select and default to COURSE
+        activeRecordTypeSelect.value = 'COURSE'; // Default new record to COURSE
+        activeRecordTypeSelect.disabled = false; // Enable type selection
+        newRecordTypeSelectorGroup.classList.remove('hidden'); // Ensure visible for new records
+
+        // Set the hidden collection input based on the default selected type
+        activeRecordCollectionInput.value = moduleTypes[activeRecordTypeSelect.value];
+
+        recordTitleInput.value = '';
+        recordThemeInput.value = ''; // Clear theme
+        recordDescriptionTextarea.value = ''; // Clear description
+
+        // Adjust visibility for new record default (COURSE)
+        themeFields.forEach(el => el.classList.remove('hidden')); // COURSE has theme
+        imageStatusFields.forEach(el => el.classList.add('hidden')); // COURSE does not have image status
+        imageStatusSelect.value = ''; // Clear image status
 
         saveRecordBtn.textContent = 'Create Module';
-        deleteRecordBtn.style.display = 'none'; // Hide delete button for new records
+        deleteRecordBtn.style.display = 'none';
     }
 
     updateCurrentChildrenDisplay();
-    // Refresh the available modules list to update selected states for the new active record
     displayFilteredModules();
 }
 
@@ -854,5 +873,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load all available modules for the larger selection list
     await loadAllAvailableModules();
+});
+// ... (at the bottom of ModuleContent.js, outside any other function) ...
+
+activeRecordTypeSelect.addEventListener('change', () => {
+    // This listener should only act when the select is enabled (i.e., for new records)
+    if (!activeRecordTypeSelect.disabled) {
+        const selectedType = activeRecordTypeSelect.value;
+
+        // Update the hidden collection input based on the selected module type
+        activeRecordCollectionInput.value = moduleTypes[selectedType];
+
+        // Adjust visibility of Theme and Image Status fields based on the newly selected type
+        // Theme field logic
+        const isThemeRelevant = (selectedType === 'COURSE' || selectedType === 'LESSON');
+        if (isThemeRelevant) {
+            themeFields.forEach(el => el.classList.remove('hidden'));
+        } else {
+            themeFields.forEach(el => el.classList.add('hidden'));
+        }
+
+        // Image Status field logic
+        const typesWithImageStatus = [
+            'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
+            'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAING'
+        ];
+        const isImageStatusRelevant = typesWithImageStatus.includes(selectedType);
+        if (isImageStatusRelevant) {
+            imageStatusFields.forEach(el => el.classList.remove('hidden'));
+        } else {
+            imageStatusFields.forEach(el => el.classList.add('hidden'));
+        }
+    }
 });
 

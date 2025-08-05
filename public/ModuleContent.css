@@ -321,3 +321,22 @@
     /* Uses the default spinner styles from style.css */
     /* Only ensure it's not hidden by the .spinner-inline rule */
 }
+/* Basic styling for the new module type selector */
+.new-record-type-selector-group label {
+  display: block;
+  margin-top: 15px; /* Add some space above */
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.new-record-type-selector-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Ensure the .hidden class is defined for visibility control */
+.hidden {
+  display: none !important;
+}

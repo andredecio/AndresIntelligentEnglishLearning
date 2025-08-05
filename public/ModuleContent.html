@@ -43,9 +43,26 @@
             </div>
 
             <div class="record-form">
-                <input type="hidden" id="activeRecordId">
+                                <input type="hidden" id="activeRecordId">
                 <input type="hidden" id="activeRecordCollection">
-                <input type="hidden" id="activeRecordType">
+                <!-- NEW: Replaces hidden activeRecordType. This will be shown/hidden/disabled by JS -->
+                <div class="form-group new-record-type-selector-group">
+                    <label for="activeRecordTypeSelect">Module Type:</label>
+                    <select id="activeRecordTypeSelect" class="form-control">
+                        <option value="COURSE">Course</option>
+                        <option value="LESSON">Lesson</option>
+                        <option value="SEMANTIC_GROUP">Semantic Group</option>
+                        <option value="VOCABULARY_GROUP">Vocabulary Group</option>
+                        <option value="VOCABULARY">Vocabulary</option>
+                        <option value="SYLLABLE">Syllable</option>
+                        <option value="PHONEME">Phoneme</option>
+                        <option value="GRAMMAR">Grammar</option>
+                        <option value="CONVERSATION">Conversation</option>
+                        <option value="READING-WRITING">Reading & Writing</option>
+                        <option value="LISTENINGSPEAKING">Listening & Speaking</option>
+                    </select>
+                </div>
+                <!-- The existing label and input for recordTitle will now follow this block -->
 
                 <label for="recordTitle">Title:</label>
                 <input type="text" id="recordTitle" placeholder="Module Title" required>
