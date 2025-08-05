@@ -7,6 +7,72 @@ const auth = firebase.auth();
 const db = firebase.firestore(); // Get Firestore instance
 const storage = firebase.storage(); // Get Storage instance
 
+// List of module types that can be 'parent' containers and thus selectable for inclusion
+const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY', 'SYLLABLE'];
+// List of module types that are "leaf" nodes or part of a parent, not independently selectable for inclusion
+const NON_SELECTABLE_LEAF_MODULE_TYPES = ['PHONEME'];
+
+// --- Global DOM Element References ---
+
+// Main layout and view containers
+const singleRecordView = document.querySelector('.single-record-view');
+const largerListView = document.querySelector('.larger-list-view');
+
+// Single Record Editor Form Fields
+const activeRecordIdInput = document.getElementById('activeRecordId');
+const activeRecordCollectionInput = document.getElementById('activeRecordCollection');
+const activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect'); // The selector for record type
+const newRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group'); // The container for the record type selector
+
+const recordTitleInput = document.getElementById('recordTitle');
+const recordDescriptionTextarea = document.getElementById('recordDescription');
+
+const recordThemeInput = document.getElementById('recordTheme'); // Input for Theme
+const themeFields = document.querySelectorAll('.theme-fields'); // Container for Theme input/label (used for show/hide)
+
+const imageStatusSelect = document.getElementById('imageStatus'); // Select for Image Status
+const imageStatusFields = document.querySelectorAll('.image-status-fields'); // Container for Image Status select/label (used for show/hide)
+
+const cefrInput = document.getElementById('cefrInput'); // Input for CEFR Level
+const cefrFields = document.querySelectorAll('.cefr-fields'); // Container for CEFR input/label (used for show/hide)
+
+const meaningOriginInput = document.getElementById('meaningOriginInput'); // Input for Meaning Origin
+const meaningOriginFields = document.querySelectorAll('.meaning-origin-fields'); // Container for Meaning Origin input/label (used for show/hide)
+
+
+// Navigation Buttons (Prev, New, Next)
+const prevRecordBtn = document.getElementById('prevRecordBtn');
+const newRecordBtn = document.getElementById('newRecordBtn');
+const nextRecordBtn = document.getElementById('nextRecordBtn');
+
+// Action Buttons (Save, Delete)
+const saveRecordBtn = document.getElementById('saveRecordBtn');
+const deleteRecordBtn = document.getElementById('deleteRecordBtn');
+
+// Current Children Display
+const currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
+
+// Larger Module List View (for selecting children) - Filter & Search
+const moduleTypeFilterSelect = document.getElementById('moduleTypeFilter'); // The NEW main filter for top-level navigation
+const filterModuleTypeSelect = document.getElementById('filterModuleType'); // The filter within the larger 'children' list
+const searchModulesInput = document.getElementById('searchModules'); // Search input for the larger list
+const availableModulesList = document.getElementById('availableModulesList'); // The UL/container for the larger list
+
+// Status/Alerts
+const statusAlert = document.getElementById('statusAlert');
+const statusMessageSpan = document.getElementById('statusMessage');
+const loadingSpinner = availableModulesList.querySelector('.spinner'); // Spinner specifically for the available modules list
+
+
+// --- Crucial Global State Variables ---
+let topLevelModuleNavigationList = []; // Stores ALL top-level modules for main navigation
+let filteredNavigationList = [];      // Stores the currently filtered list for Prev/Next buttons
+let currentTopLevelModuleIndex = 0;   // Current index within filteredNavigationList
+let currentActiveRecord = null;       // Stores the data of the module currently loaded in the editor
+
+// For the larger list of *all* selectable modules (for linking as children)
+let allAvailableModules = [];
+
 // --- Global State Variables ---
 let currentActiveRecord = null; // Stores the data of the COURSE/LESSON/SEMANTIC_GROUP currently in the single-record view
 let allAvailableModules = [];   // Stores all modules fetched for the larger list (LESSONs, SEMANTIC_GROUPs, etc.)
@@ -24,41 +90,8 @@ let moduleTypes = { // Define module types and their corresponding collections (
     'LISTENINGSPEAkING': 'learningContent',
 
 };
-// List of module types that can be 'parent' containers and thus selectable for inclusion
-const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY', 'SYLLABLE'];
-// List of module types that are "leaf" nodes or part of a parent, not independently selectable for inclusion
-const NON_SELECTABLE_LEAF_MODULE_TYPES = ['PHONEME'];
 
-// --- DOM Element References ---
-const singleRecordView = document.querySelector('.single-record-view');
-const activeRecordIdInput = document.getElementById('activeRecordId');
-const activeRecordCollectionInput = document.getElementById('activeRecordCollection');
-const recordTitleInput = document.getElementById('recordTitle');
-const recordThemeInput = document.getElementById('recordTheme');
-const recordDescriptionTextarea = document.getElementById('recordDescription');
-const themeFields = document.querySelectorAll('.theme-field'); // Elements related to theme (like label and input)
-const activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect'); // Reference to the new select element
-const newRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group'); // Reference to its parent div
-const imageStatusSelect = document.getElementById('imageStatus'); // This grabs your <select id="imageStatus">
-const imageStatusFields = document.querySelectorAll('.image-status-field'); // This grabs the surrounding <div>
-
-const prevRecordBtn = document.getElementById('prevRecordBtn');
-const newRecordBtn = document.getElementById('newRecordBtn');
-const nextRecordBtn = document.getElementById('nextRecordBtn');
-const saveRecordBtn = document.getElementById('saveRecordBtn');
-const deleteRecordBtn = document.getElementById('deleteRecordBtn');
-
-const currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
-
-const largerListView = document.querySelector('.larger-list-view');
-const filterModuleTypeSelect = document.getElementById('filterModuleType');
-const searchModulesInput = document.getElementById('searchModules');
-const availableModulesList = document.getElementById('availableModulesList');
-
-const statusAlert = document.getElementById('statusAlert');
-const statusMessageSpan = document.getElementById('statusMessage');
-const loadingSpinner = availableModulesList.querySelector('.spinner'); // Use the spinner inside the list
-
+// --- (Your functions will follow after these declarations) ---
 // --- Utility Functions ---
 
 /**
