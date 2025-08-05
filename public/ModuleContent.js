@@ -18,7 +18,11 @@ let moduleTypes = { // Define module types and their corresponding collections (
     'VOCABULARY': 'learningContent',
     'SYLLABLE': 'syllables',
     'PHONEME': 'phonemes',
-    // Add other types as they get their own collections or handling
+    'GRAMMAR': 'learningContent',
+    'CONVERSATION': 'learningContent',
+    'READING-WRITING': 'learningContent',
+    'LISTENINGSPEAkING': 'learningContent',
+
 };
 // List of module types that can be 'parent' containers and thus selectable for inclusion
 const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP'];
@@ -406,6 +410,7 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
 
 }
 /**
+/**
  * Loads all relevant modules for the larger list view.
  * This includes LESSONs (for COURSE building) and all selectable items from learningContent.
  */
@@ -423,7 +428,8 @@ async function loadAllAvailableModules() {
         });
 
         // 2. Fetch all selectable items from learningContent (SEMANTIC_GROUP, VOCABULARY_GROUP, etc.)
-        // We'll rely on the MODULETYPE field within the document to filter later.
+        // This is where your new module types (GRAMMAR, CONVERSATION, etc.) will be picked up,
+        // as they reside in 'learningContent' and are not in NON_SELECTABLE_LEAF_MODULE_TYPES.
         const learningContentSnapshot = await db.collection('learningContent').get();
         learningContentSnapshot.forEach(doc => {
              // Only include if it's a known parent type or a specific item type
@@ -432,13 +438,13 @@ async function loadAllAvailableModules() {
                  allFetchedModules.push({ id: doc.id, ...data });
             }
         });
-        
+
         // At this stage, we are not pre-fetching syllabes or phonemes as they are non-selectable leaves
         // They will be fetched on demand when their parent VOCABULARY or SYLLABLE is expanded.
 
         allAvailableModules = allFetchedModules; // Store for filtering/searching
         displayFilteredModules(); // Display initially without filters
-        
+
     } catch (error) {
         console.error("Error loading all available modules:", error);
         showAlert("Failed to load available modules. " + error.message, true);
@@ -574,7 +580,18 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
             recordThemeInput.value = '';
             themeFields.forEach(el => el.classList.add('hidden'));
         }
+   const typesWithImageStatus = [
+            'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
+            'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Added new types here
+        ];
 
+        if (recordData.MODULETYPE && typesWithImageStatus.includes(recordData.MODULETYPE)) {
+            imageStatusSelect.value = recordData.imageStatus || 'needs_review'; // Set value, default to 'needs_review' if not set
+            imageStatusFields.forEach(el => el.classList.remove('hidden')); // Show the fields
+        } else {
+            imageStatusSelect.value = ''; // Clear value if not relevant
+            imageStatusFields.forEach(el => el.classList.add('hidden')); // Hide the fields
+        }
         saveRecordBtn.textContent = 'Update Module';
         deleteRecordBtn.style.display = 'inline-block'; // Show delete button for existing records
     } else {
@@ -666,6 +683,13 @@ async function saveRecord() {
 
     if (recordType === 'COURSE' || recordType === 'LESSON') {
         dataToSave.THEME = theme;
+    }
+    const typesWithImageStatus = [
+        'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
+        'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Added new types here
+    ];
+    if (typesWithImageStatus.includes(recordType)) {
+        dataToSave.imageStatus = imageStatusSelect.value;
     }
 
     try {
