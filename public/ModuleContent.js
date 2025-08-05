@@ -38,6 +38,8 @@ const recordTitleInput = document.getElementById('recordTitle');
 const recordThemeInput = document.getElementById('recordTheme');
 const recordDescriptionTextarea = document.getElementById('recordDescription');
 const themeFields = document.querySelectorAll('.theme-field'); // Elements related to theme (like label and input)
+const imageStatusSelect = document.getElementById('imageStatus'); // This grabs your <select id="imageStatus">
+const imageStatusFields = document.querySelectorAll('.image-status-field'); // This grabs the surrounding <div>
 
 const prevRecordBtn = document.getElementById('prevRecordBtn');
 const newRecordBtn = document.getElementById('newRecordBtn');
