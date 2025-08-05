@@ -54,7 +54,21 @@
                 <input type="text" id="recordTheme" placeholder="Module Theme (for Course/Lesson)" class="theme-field hidden">
 
                 <label for="recordDescription">Description:</label>
-                <textarea id="recordDescription" rows="3" placeholder="Module Description"></textarea>
+                 <textarea id="recordDescription" rows="10" placeholder="Module Description" class="scrollable-textarea"></textarea>
+ <!-- NEW: Image Status Field - Insert this entire block -->
+                <div class="form-group image-status-field hidden"> <!-- Starts hidden by default -->
+                    <label for="imageStatus">Image Status:</label>
+                    <select id="imageStatus" class="form-control">
+                        <option value="needs_review">Needs Review</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <!-- Add other relevant statuses here as you define them -->
+                        <option value="failed">Failed</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <!-- END NEW -->
 
                 <div class="actions">
                     <button id="saveRecordBtn">Save Module</button>

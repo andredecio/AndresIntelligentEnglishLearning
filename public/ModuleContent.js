@@ -25,9 +25,9 @@ let moduleTypes = { // Define module types and their corresponding collections (
 
 };
 // List of module types that can be 'parent' containers and thus selectable for inclusion
-const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP'];
+const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY', 'SYLLABLE'];
 // List of module types that are "leaf" nodes or part of a parent, not independently selectable for inclusion
-const NON_SELECTABLE_LEAF_MODULE_TYPES = ['VOCABULARY', 'SYLLABLE', 'PHONEME'];
+const NON_SELECTABLE_LEAF_MODULE_TYPES = ['PHONEME'];
 
 // --- DOM Element References ---
 const singleRecordView = document.querySelector('.single-record-view');
