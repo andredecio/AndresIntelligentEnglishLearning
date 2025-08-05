@@ -465,9 +465,13 @@ function displayFilteredModules() {
     const filterType = filterModuleTypeSelect.value;
     const searchTerm = searchModulesInput.value.toLowerCase();
 
+    // Get the ID of the currently active record. If no record is active, this will be null.
+    const activeRecordId = currentActiveRecord ? currentActiveRecord.id : null;
+
+    // currentModuleIds seems to be for indicating which children are already linked,
+    // not for filtering the *available* list itself.
     const currentModuleIds = currentActiveRecord && currentActiveRecord.MODULEID_ARRAY ? currentActiveRecord.MODULEID_ARRAY : [];
 
-    // --- NEW LOGIC START ---
     let modulesToShow = [...allAvailableModules]; // Start with a copy of all fetched modules
 
     // If the active record is a COURSE, filter to show only LESSONs
@@ -481,25 +485,35 @@ function displayFilteredModules() {
         filterModuleTypeSelect.disabled = false;
         // If the current filter is 'LESSON' from a previous COURSE context, reset it to 'all'
         // unless the user has explicitly selected 'LESSON'
+        // This logic might need further refinement based on how you manage parent-child relationships
+        // for other module types. For now, keeping it as is.
         if (filterModuleTypeSelect.value === 'LESSON' && !currentActiveRecord) { // Or based on other parent types
             filterModuleTypeSelect.value = 'all'; // Reset to show all selectable types
         }
     }
-    // --- NEW LOGIC END ---
 
-
-    const filtered = modulesToShow.filter(module => { // Apply existing filters to the now pre-filtered list
+    const filtered = modulesToShow.filter(module => {
         const matchesType = (filterType === 'all' || module.MODULETYPE === filterType);
         const matchesSearch = (module.TITLE || '').toLowerCase().includes(searchTerm) ||
                               (module.name || '').toLowerCase().includes(searchTerm);
-        return matchesType && matchesSearch;
+
+        // *** NEW LOGIC: Exclude the currently active record ***
+        // If there's an active record AND its ID matches the current module's ID,
+        // then this module should NOT be included in the 'filtered' list.
+        const isCurrentActiveRecord = (activeRecordId && module.id === activeRecordId);
+
+        return matchesType && matchesSearch && !isCurrentActiveRecord;
     });
+
     if (filtered.length === 0) {
-        availableModulesList.innerHTML = `<li class="loading-placeholder">No modules found.</li>`;
+        // Updated message for clarity
+        availableModulesList.innerHTML = `<li class="loading-placeholder">No modules found matching criteria or available for selection.</li>`;
         return;
     }
 
     filtered.forEach(moduleData => {
+        // This is where renderModuleListItem comes in, it will likely render
+        // the actual selectable items including the checkbox.
         const li = renderModuleListItem(moduleData, 0, currentModuleIds); // Level 0 for top-level modules
         availableModulesList.appendChild(li);
 
