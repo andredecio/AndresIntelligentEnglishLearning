@@ -899,7 +899,7 @@ async function applyModuleTypeFilter() {
         // 3. Fetch top-level types from learningContent
         // These are modules that can act as independent top-level entries, not just children.
         const topLevelLearningContentTypes = [
-            'SEMANTIC_GROUP', 'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAING', 'VOCABULARY_GROUP'
+            'SEMANTIC_GROUP', 'VOCABULARY', 'VOCABULARY_GROUP', 'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING'
             // Add other learningContent types here if they can be edited as top-level entities
         ];
         const learningContentSnapshot = await db.collection('learningContent').get();
