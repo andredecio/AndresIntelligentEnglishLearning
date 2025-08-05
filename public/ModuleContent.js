@@ -33,7 +33,6 @@ const NON_SELECTABLE_LEAF_MODULE_TYPES = ['PHONEME'];
 const singleRecordView = document.querySelector('.single-record-view');
 const activeRecordIdInput = document.getElementById('activeRecordId');
 const activeRecordCollectionInput = document.getElementById('activeRecordCollection');
-const activeRecordTypeInput = document.getElementById('activeRecordType');
 const recordTitleInput = document.getElementById('recordTitle');
 const recordThemeInput = document.getElementById('recordTheme');
 const recordDescriptionTextarea = document.getElementById('recordDescription');
@@ -680,7 +679,7 @@ async function updateCurrentChildrenDisplay() {
 async function saveRecord() {
     const recordId = activeRecordIdInput.value;
     const recordCollection = activeRecordCollectionInput.value;
-    const recordType = activeRecordTypeInput.value;
+    const recordType = activeRecordTypeSelect.value;
     const title = recordTitleInput.value.trim();
     const theme = recordThemeInput.value.trim();
     const description = recordDescriptionTextarea.value.trim();
