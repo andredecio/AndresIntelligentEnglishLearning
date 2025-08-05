@@ -809,7 +809,7 @@ async function deleteRecord() {
 //let topLevelModuleNavigationList = []; // Array of { id, title } for courses
 //let currentTopLevelModuleIndex = -1;
 let topLevelModuleNavigationList = []; // Array of { id, title, type, collection } for all top-level modules
-let currentTopLevelModuleIndex = -1;
+let currentTopLevelModuleIndex = 0;
 /**
  * Fetches all COURSE and populates the navigation list.
  */
@@ -880,13 +880,15 @@ newRecordBtn.addEventListener('click', () => {
 prevRecordBtn.addEventListener('click', async () => {
     if (currentTopLevelModuleIndex > 0) {
         currentTopLevelModuleIndex--;
-        const courseId = topLevelModuleNavigationList[currentTopLevelModuleIndex].id;
-        const courseSnap = await db.collection('COURSE').doc(courseId).get();
-        if (courseSnap.exists) {
-            loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'COURSE');
+        const selectedModule = topLevelModuleNavigationList[currentTopLevelModuleIndex];
+         const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
+         if (moduleSnap.exists) {
+            // Pass the module's collection to loadRecordIntoEditor
+            loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
         } else {
-            showAlert("Selected course not found, refreshing navigation.", true);
-            await fetchAndPopulateCourseNavigation();
+            showAlert("Selected module not found, refreshing navigation.", true);
+            // Always use the correct top-level navigation refresh function
+            await fetchAndPopulateTopLevelNavigation();
             loadRecordIntoEditor(null); // Fallback to new record
         }
         updateNavigationButtons();
@@ -896,13 +898,17 @@ prevRecordBtn.addEventListener('click', async () => {
 nextRecordBtn.addEventListener('click', async () => {
     if (currentTopLevelModuleIndex < topLevelModuleNavigationList.length - 1) {
         currentTopLevelModuleIndex++;
-        const courseId = topLevelModuleNavigationList[currentTopLevelModuleIndex].id;
-        const courseSnap = await db.collection('COURSE').doc(courseId).get();
-        if (courseSnap.exists) {
-            loadRecordIntoEditor({ id: courseSnap.id, ...courseSnap.data() }, 'COURSE');
+        const selectedModule = topLevelModuleNavigationList[currentTopLevelModuleIndex];
+        // Use the stored collection name for fetching!
+        const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
+
+        if (moduleSnap.exists) {
+            // Pass the module's collection to loadRecordIntoEditor
+            loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
         } else {
             showAlert("Selected module not found, refreshing navigation.", true);
-           await fetchAndPopulateTopLevelNavigation(); // Refresh navigation if item is missing
+            // Always use the correct top-level navigation refresh function
+            await fetchAndPopulateTopLevelNavigation(); // Refresh navigation if item is missing
             loadRecordIntoEditor(null); // Fallback to new record
         }
         updateNavigationButtons();
