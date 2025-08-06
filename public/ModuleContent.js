@@ -13,6 +13,22 @@ const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_G
 const NON_SELECTABLE_LEAF_MODULE_TYPES = ['PHONEME'];
 
 // --- Global DOM Element References ---
+// --- MODIFIED: DOMContentLoaded listener ---
+document.addEventListener('DOMContentLoaded', async () => {
+    // Assuming your common.js handles auth state and admin checks first
+
+    // 1. Fetch all top-level modules into our master list
+    await fetchAndPopulateTopLevelNavigation();
+
+    // 2. Populate the new module type filter dropdown
+    populateModuleTypeFilter();
+
+    // 3. Apply the default filter (e.g., 'ALL') and load the first record based on that
+    await applyModuleTypeFilter();
+
+    // Your existing call to loadAllAvailableModules() (keep this as it is)
+    await loadAllAvailableModules();
+
 
 // Main layout and view containers
 const singleRecordView = document.querySelector('.single-record-view');
@@ -62,7 +78,7 @@ const availableModulesList = document.getElementById('availableModulesList'); //
 const statusAlert = document.getElementById('statusAlert');
 const statusMessageSpan = document.getElementById('statusMessage');
 const loadingSpinner = availableModulesList.querySelector('.spinner'); // Spinner specifically for the available modules list
-
+});
 
 // --- Crucial Global State Variables ---
 let topLevelModuleNavigationList = []; // Stores ALL top-level modules for main navigation
@@ -118,10 +134,6 @@ function showAlert(message, isError = false) {
     }, 5000);
 }
 
-/**
- * Shows a loading spinner.
- * @param {HTMLElement} targetElement The element to display the spinner within or next to.
- */
 function showSpinner(targetElement) {
     if (targetElement) {
         targetElement.innerHTML = `<li class="loading-placeholder">Loading... <span class="spinner"></span></li>`;
@@ -129,10 +141,6 @@ function showSpinner(targetElement) {
     }
 }
 
-/**
- * Hides the loading spinner.
- * @param {HTMLElement} targetElement The element where the spinner was displayed.
- */
 function hideSpinner(targetElement) {
     if (targetElement && targetElement.querySelector('.spinner')) {
         targetElement.querySelector('.spinner').classList.add('hidden');
@@ -585,24 +593,6 @@ searchModulesInput.addEventListener('input', displayFilteredModules);
 
 // --- Single Record View Logic ---
 
-// --- Ensure these DOM elements/NodeLists are defined globally at the top of your script ---
-// const activeRecordIdInput = document.getElementById('activeRecordIdInput');
-// const activeRecordCollectionInput = document.getElementById('activeRecordCollectionInput');
-// const activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect');
-// const newRecordTypeSelectorGroup = document.getElementById('newRecordTypeSelectorGroup'); // Or however you select this group
-// const recordTitleInput = document.getElementById('recordTitleInput');
-// const recordDescriptionTextarea = document.getElementById('recordDescriptionTextarea');
-// const recordThemeInput = document.getElementById('recordThemeInput');
-// const themeFields = document.querySelectorAll('.theme-fields'); // Example: div for theme input & label
-// const imageStatusSelect = document.getElementById('imageStatusSelect');
-// const imageStatusFields = document.querySelectorAll('.image-status-fields'); // Example: div for image status select & label
-// const cefrInput = document.getElementById('cefrInput');
-// const cefrFields = document.querySelectorAll('.cefr-fields'); // Example: div for CEFR input & label
-// const meaningOriginInput = document.getElementById('meaningOriginInput');
-// const meaningOriginFields = document.querySelectorAll('.meaning-origin-fields'); // Example: div for Meaning Origin input & label
-// const saveRecordBtn = document.getElementById('saveRecordBtn');
-// const deleteRecordBtn = document.getElementById('deleteRecordBtn');
-// --- And of course, currentActiveRecord (object) and moduleTypes (object) global variables ---
 
 
 function loadRecordIntoEditor(recordData, collectionName = null) {
@@ -1058,22 +1048,6 @@ saveRecordBtn.addEventListener('click', saveRecord);
 deleteRecordBtn.addEventListener('click', deleteRecord);
 
 
-// --- MODIFIED: DOMContentLoaded listener ---
-document.addEventListener('DOMContentLoaded', async () => {
-    // Assuming your common.js handles auth state and admin checks first
-
-    // 1. Fetch all top-level modules into our master list
-    await fetchAndPopulateTopLevelNavigation();
-
-    // 2. Populate the new module type filter dropdown
-    populateModuleTypeFilter();
-
-    // 3. Apply the default filter (e.g., 'ALL') and load the first record based on that
-    await applyModuleTypeFilter();
-
-    // Your existing call to loadAllAvailableModules() (keep this as it is)
-    await loadAllAvailableModules();
-});
 // ... (at the bottom of ModuleContent.js, outside any other function) ...
 
 activeRecordTypeSelect.addEventListener('change', () => {
