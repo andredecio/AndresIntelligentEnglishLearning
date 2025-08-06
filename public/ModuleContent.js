@@ -470,7 +470,6 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
 
     // --- 3. Media Container (Direct child of <li>) ---
     // Make sure your moduleData actually has IMAGEURL and audioUrl properties from Firestore
-    // **DEBUGGING ADDITION**: Log moduleData's image and audio URLs here.
     console.log(`DEBUG (renderModuleListItem): Module ID: ${moduleData.id}, Title: "${moduleData.TITLE || moduleData.name}"`);
     console.log(`  IMAGEURL: ${moduleData.IMAGEURL}, audioUrl: ${moduleData.audioUrl}`);
 
@@ -483,7 +482,15 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
             img.classList.add('thumbnail');
             img.src = moduleData.IMAGEURL; // Direct use of the URL from Firestore
             img.alt = `Thumbnail for ${moduleData.TITLE || 'module'}`;
-            mediaContainer.appendChild(img);
+
+            // **FIX: Wrap the image in an anchor tag to make it clickable**
+            const imgLink = document.createElement('a');
+            imgLink.href = moduleData.IMAGEURL; // Link to the full image URL
+            imgLink.target = "_blank"; // Open in a new tab
+            imgLink.rel = "noopener noreferrer"; // Recommended for security
+            imgLink.appendChild(img); // Put the image inside the link
+
+            mediaContainer.appendChild(imgLink); // Append the link to the media container
         }
 
         if (moduleData.audioUrl) {
@@ -500,10 +507,7 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
     }
 
     // --- 4. Expand/Collapse Toggle (Direct child of <li>) ---
-    // **CRITICAL CHANGE: Add event listener for the drill-down arrow**
     // Determine if this module type can have children that are listed
-    // For now, let's assume if it's a COURSE or a learningContent item (that isn't a leaf).
-    // You'll need to define how you determine if a module *can* have children.
     // A module can have children if its type is in PARENT_MODULE_TYPES or if it explicitly has MODULEID_ARRAY.
     const canHaveChildren = PARENT_MODULE_TYPES.includes(moduleData.MODULETYPE) || (moduleData.MODULEID_ARRAY && moduleData.MODULEID_ARRAY.length > 0);
 
@@ -533,8 +537,6 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
             if (isExpanded) {
                 // If expanded, fetch and render children
                 const childIds = moduleData.MODULEID_ARRAY || [];
-                // You'll need to decide what `selectedModuleIds` means in the context of
-                // the `fetchAndRenderChildren` call here. For now, empty array.
                 await fetchAndRenderChildren(moduleData.id, childIds, level + 1, li, []);
             }
         });
