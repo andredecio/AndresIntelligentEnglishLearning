@@ -12,7 +12,41 @@ const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_G
 // List of module types that are "leaf" nodes or part of a parent, not independently selectable for inclusion
 const NON_SELECTABLE_LEAF_MODULE_TYPES = ['PHONEME'];
 
+// --- Crucial Global State Variables ---
+let topLevelModuleNavigationList = []; // Stores ALL top-level modules for main navigation
+let filteredNavigationList = [];      // Stores the currently filtered list for Prev/Next buttons
+let currentTopLevelModuleIndex = 0;   // Current index within filteredNavigationList
+let currentActiveRecord = null;       // Stores the data of the module currently loaded in the editor
+
+// For the larger list of *all* selectable modules (for linking as children)
+let allAvailableModules = [];
+
+// --- Global State Variables ---
+let moduleTypes = { // Define module types and their corresponding collections (simplified for now)
+    'COURSE': 'COURSE',
+    'LESSON': 'LESSON',
+    'SEMANTIC_GROUP': 'learningContent',
+    'VOCABULARY_GROUP': 'learningContent',
+    'VOCABULARY': 'learningContent',
+    'SYLLABLE': 'syllables',
+    'PHONEME': 'phonemes',
+    'GRAMMAR': 'learningContent',
+    'CONVERSATION': 'learningContent',
+    'READING-WRITING': 'learningContent',
+    'LISTENINGSPEAkING': 'learningContent',
+
+};
+
+
 // --- Global DOM Element References ---
+
+let largerListView , activeRecordIdInput, activeRecordCollectionInput, activeRecordTypeSelect
+, newRecordTypeSelectorGroup, recordTitleInput, recordDescriptionTextarea, recordThemeInput
+, themeFields, imageStatusSelect, imageStatusFields, cefrInput, cefrFields, meaningOriginInput
+ , meaningOriginFields, prevRecordBtn,  newRecordBtn, nextRecordBtn,  saveRecordBtndeleteRecordBtn, currentChildrenDisplay, 
+ moduleTypeFilterSelect,  filterModuleTypeSelect, searchModulesInputavailableModulesList
+  statusAlert, statusMessageSpan, loadingSpinner, singleRecordView;
+  
 // --- MODIFIED: DOMContentLoaded listener ---
 document.addEventListener('DOMContentLoaded', async () => {
     // Assuming your common.js handles auth state and admin checks first
@@ -80,30 +114,6 @@ const statusMessageSpan = document.getElementById('statusMessage');
 const loadingSpinner = availableModulesList.querySelector('.spinner'); // Spinner specifically for the available modules list
 });
 
-// --- Crucial Global State Variables ---
-let topLevelModuleNavigationList = []; // Stores ALL top-level modules for main navigation
-let filteredNavigationList = [];      // Stores the currently filtered list for Prev/Next buttons
-let currentTopLevelModuleIndex = 0;   // Current index within filteredNavigationList
-let currentActiveRecord = null;       // Stores the data of the module currently loaded in the editor
-
-// For the larger list of *all* selectable modules (for linking as children)
-let allAvailableModules = [];
-
-// --- Global State Variables ---
-let moduleTypes = { // Define module types and their corresponding collections (simplified for now)
-    'COURSE': 'COURSE',
-    'LESSON': 'LESSON',
-    'SEMANTIC_GROUP': 'learningContent',
-    'VOCABULARY_GROUP': 'learningContent',
-    'VOCABULARY': 'learningContent',
-    'SYLLABLE': 'syllables',
-    'PHONEME': 'phonemes',
-    'GRAMMAR': 'learningContent',
-    'CONVERSATION': 'learningContent',
-    'READING-WRITING': 'learningContent',
-    'LISTENINGSPEAkING': 'learningContent',
-
-};
 
 // --- (Your functions will follow after these declarations) ---
 // --- Utility Functions ---
