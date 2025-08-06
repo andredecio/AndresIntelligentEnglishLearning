@@ -65,53 +65,53 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 // Main layout and view containers
-const singleRecordView = document.querySelector('.single-record-view');
-const largerListView = document.querySelector('.larger-list-view');
+ singleRecordView = document.querySelector('.single-record-view');
+ largerListView = document.querySelector('.larger-list-view');
 
 // Single Record Editor Form Fields
-const activeRecordIdInput = document.getElementById('activeRecordId');
-const activeRecordCollectionInput = document.getElementById('activeRecordCollection');
-const activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect'); // The selector for record type
-const newRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group'); // The container for the record type selector
+ activeRecordIdInput = document.getElementById('activeRecordId');
+ activeRecordCollectionInput = document.getElementById('activeRecordCollection');
+ activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect'); // The selector for record type
+ newRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group'); // The container for the record type selector
 
-const recordTitleInput = document.getElementById('recordTitle');
-const recordDescriptionTextarea = document.getElementById('recordDescription');
+ recordTitleInput = document.getElementById('recordTitle');
+ recordDescriptionTextarea = document.getElementById('recordDescription');
 
-const recordThemeInput = document.getElementById('recordTheme'); // Input for Theme
-const themeFields = document.querySelectorAll('.theme-fields'); // Container for Theme input/label (used for show/hide)
+ recordThemeInput = document.getElementById('recordTheme'); // Input for Theme
+ themeFields = document.querySelectorAll('.theme-fields'); // Container for Theme input/label (used for show/hide)
 
-const imageStatusSelect = document.getElementById('imageStatus'); // Select for Image Status
-const imageStatusFields = document.querySelectorAll('.image-status-fields'); // Container for Image Status select/label (used for show/hide)
+ imageStatusSelect = document.getElementById('imageStatus'); // Select for Image Status
+ imageStatusFields = document.querySelectorAll('.image-status-fields'); // Container for Image Status select/label (used for show/hide)
 
-const cefrInput = document.getElementById('cefrInput'); // Input for CEFR Level
-const cefrFields = document.querySelectorAll('.cefr-fields'); // Container for CEFR input/label (used for show/hide)
+ cefrInput = document.getElementById('cefrInput'); // Input for CEFR Level
+ cefrFields = document.querySelectorAll('.cefr-fields'); // Container for CEFR input/label (used for show/hide)
 
-const meaningOriginInput = document.getElementById('meaningOriginInput'); // Input for Meaning Origin
-const meaningOriginFields = document.querySelectorAll('.meaning-origin-fields'); // Container for Meaning Origin input/label (used for show/hide)
+ meaningOriginInput = document.getElementById('meaningOriginInput'); // Input for Meaning Origin
+ meaningOriginFields = document.querySelectorAll('.meaning-origin-fields'); // Container for Meaning Origin input/label (used for show/hide)
 
 
 // Navigation Buttons (Prev, New, Next)
-const prevRecordBtn = document.getElementById('prevRecordBtn');
-const newRecordBtn = document.getElementById('newRecordBtn');
-const nextRecordBtn = document.getElementById('nextRecordBtn');
+ prevRecordBtn = document.getElementById('prevRecordBtn');
+ newRecordBtn = document.getElementById('newRecordBtn');
+ nextRecordBtn = document.getElementById('nextRecordBtn');
 
 // Action Buttons (Save, Delete)
-const saveRecordBtn = document.getElementById('saveRecordBtn');
-const deleteRecordBtn = document.getElementById('deleteRecordBtn');
+ saveRecordBtn = document.getElementById('saveRecordBtn');
+ deleteRecordBtn = document.getElementById('deleteRecordBtn');
 
 // Current Children Display
-const currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
+ currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
 
 // Larger Module List View (for selecting children) - Filter & Search
-const moduleTypeFilterSelect = document.getElementById('moduleTypeFilter'); // The NEW main filter for top-level navigation
-const filterModuleTypeSelect = document.getElementById('filterModuleType'); // The filter within the larger 'children' list
-const searchModulesInput = document.getElementById('searchModules'); // Search input for the larger list
-const availableModulesList = document.getElementById('availableModulesList'); // The UL/container for the larger list
+ moduleTypeFilterSelect = document.getElementById('moduleTypeFilter'); // The NEW main filter for top-level navigation
+ filterModuleTypeSelect = document.getElementById('filterModuleType'); // The filter within the larger 'children' list
+ searchModulesInput = document.getElementById('searchModules'); // Search input for the larger list
+ availableModulesList = document.getElementById('availableModulesList'); // The UL/container for the larger list
 
 // Status/Alerts
-const statusAlert = document.getElementById('statusAlert');
-const statusMessageSpan = document.getElementById('statusMessage');
-const loadingSpinner = availableModulesList.querySelector('.spinner'); // Spinner specifically for the available modules list
+ statusAlert = document.getElementById('statusAlert');
+ statusMessageSpan = document.getElementById('statusMessage');
+ loadingSpinner = availableModulesList.querySelector('.spinner'); // Spinner specifically for the available modules list
 });
 
 
@@ -595,7 +595,7 @@ function removeModuleFromActiveRecordSelection(moduleId) {
 
 // --- Event Listeners for Filters/Search ---
 filterModuleTypeSelect.addEventListener('change', displayFilteredModules);
-searchModulesInput.addEventListener('input', displayFilteredModules);
+
 
 
 // End of Part 2
