@@ -1,5 +1,5 @@
 // ModuleContent.js
-    // Modified today 04/08/25 code deployed: v1.006s
+    // Modified today 04/08/25 code deployed: v1.006t
 
 // Firebase SDK global variables (initialized by /__/firebase/init.js)
 // We are using Firebase v8 syntax based on your provided common.js and AdminSystem.js
@@ -37,7 +37,6 @@ const moduleTypes = { // Define module types and their corresponding collections
 };
 
 // --- Global DOM Element References ---
-// **CHANGE:** Initialize all these variables to 'null' for clarity and to avoid 'undefined' issues
 let largerListView = null;
 let activeRecordIdInput = null;
 let activeRecordCollectionInput = null;
@@ -59,8 +58,8 @@ let nextRecordBtn = null;
 let saveRecordBtn = null;
 let deleteRecordBtn = null;
 let currentChildrenDisplay = null;
-let moduleTypeFilterSelect = null; // This is the main filter for top-level navigation
-let filterModuleTypeSelect = null; // This is the filter within the larger 'children' list
+let moduleTypeFilterSelect = null;
+let filterModuleTypeSelect = null;
 let searchModulesInput = null;
 let availableModulesList = null;
 let statusAlert = null;
@@ -123,6 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (availableModulesList) {
         loadingSpinner = availableModulesList.querySelector('.spinner'); // Spinner specifically for the available modules list
     }
+
     // **CRUCIAL CHANGE: Move ALL event listeners here, AFTER elements are assigned.**
     // --- Event Listeners for Filters/Search ---
     // This one was at line 597 and causing the addEventListener error.
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-	
+
     if (saveRecordBtn) {
         saveRecordBtn.addEventListener('click', saveRecord);
     }
@@ -255,6 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Your existing call to loadAllAvailableModules() (keep this as it is)
     await loadAllAvailableModules();
 });
+
 
 // --- (Your functions will follow after these declarations) ---
 // --- Utility Functions ---
@@ -366,14 +367,14 @@ function renderAudioPlayer(gsUrl) {
     button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg> Play';
     button.onclick = async () => {
         try {
-            // Get download URL from Storage
-            const audioRef = storage.refFromURL(gsUrl);
-            const downloadURL = await audioRef.getDownloadURL();
-            const audio = new Audio(downloadURL);
+            // If gsUrl is truly an HTTPS URL from storage, this might be redundant.
+            // If it's a gs:// path, then getDownloadURL is needed.
+            // Assuming for now it's an HTTPS URL as per your clarification.
+            const audio = new Audio(gsUrl); // Directly use gsUrl (which should be https://)
             audio.play();
         } catch (error) {
             console.error("Error playing audio:", error);
-            showAlert("Could not play audio. Check file permissions.", true);
+            showAlert("Could not play audio. Check file permissions or URL.", true);
         }
     };
     return button;
@@ -468,6 +469,8 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
 
     // --- 3. Media Container (Direct child of <li>) ---
     // Make sure your moduleData actually has imageUrl and audioUrl properties from Firestore
+    // **DEBUGGING TIP**: Add console.log(moduleData.imageUrl, moduleData.audioUrl) here
+    // to verify the URLs are indeed present when this function runs.
     if (moduleData.imageUrl || moduleData.audioUrl) {
         const mediaContainer = document.createElement('div');
         mediaContainer.classList.add('module-media');
@@ -475,7 +478,7 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
         if (moduleData.imageUrl) {
             const img = document.createElement('img');
             img.classList.add('thumbnail');
-            img.src = moduleData.imageUrl;
+            img.src = moduleData.imageUrl; // Direct use of the URL from Firestore
             img.alt = `Thumbnail for ${moduleData.TITLE || 'module'}`;
             mediaContainer.appendChild(img);
         }
@@ -485,7 +488,7 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
             audioBtn.classList.add('audio-player-btn');
             audioBtn.textContent = 'Play Audio'; // You could use an icon here too
             audioBtn.onclick = () => {
-                const audio = new Audio(moduleData.audioUrl);
+                const audio = new Audio(moduleData.audioUrl); // Direct use of the URL from Firestore
                 audio.play().catch(e => console.error("Audio playback failed:", e));
             };
             mediaContainer.appendChild(audioBtn);
@@ -494,15 +497,51 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
     }
 
     // --- 4. Expand/Collapse Toggle (Direct child of <li>) ---
-    // This assumes you have logic elsewhere to track children and expand/collapse.
-    // If you don't have children or expand/collapse functionality, you can remove this.
-    // Example: Only show toggle if there are children to expand
-    // if (moduleData.CHILDREN && moduleData.CHILDREN.length > 0) {
-        const expandToggle = document.createElement('span');
-        expandToggle.classList.add('expand-toggle');
-        expandToggle.textContent = '▶'; // Right-pointing triangle unicode character
-        li.appendChild(expandToggle);
-    // }
+    // **CRITICAL CHANGE: Add event listener for the drill-down arrow**
+    // Determine if this module type can have children that are listed
+    // For now, let's assume if it's a COURSE or a learningContent item (that isn't a leaf).
+    // You'll need to define how you determine if a module *can* have children.
+    const canHaveChildren = PARENT_MODULE_TYPES.includes(moduleData.MODULETYPE) || moduleData.MODULEID_ARRAY?.length > 0;
+
+    const expandToggle = document.createElement('span');
+    expandToggle.classList.add('expand-toggle');
+    expandToggle.textContent = '▶'; // Right-pointing triangle unicode character
+    li.appendChild(expandToggle);
+
+    // Add event listener only if the module potentially has children
+    if (canHaveChildren) {
+        expandToggle.style.cursor = 'pointer'; // Indicate it's clickable
+        expandToggle.addEventListener('click', async () => {
+            const isExpanded = li.classList.toggle('expanded'); // Toggle expanded class on the list item
+            expandToggle.textContent = isExpanded ? '▼' : '▶'; // Change arrow direction
+
+            // Logic to remove previously rendered children
+            let nextSibling = li.nextElementSibling;
+            while (nextSibling && nextSibling.classList.contains('module-item') && parseInt(nextSibling.dataset.level) === (level + 1)) {
+                const tempSibling = nextSibling;
+                nextSibling = tempSibling.nextElementSibling;
+                tempSibling.remove();
+            }
+            // Also remove "No content" messages if they were from previous expansion attempt
+            if (nextSibling && nextSibling.classList.contains('no-content-message')) {
+                const tempSibling = nextSibling;
+                nextSibling = tempSibling.nextElementSibling;
+                tempSibling.remove();
+            }
+
+
+            if (isExpanded) {
+                // If expanded, fetch and render children
+                const childIds = moduleData.MODULEID_ARRAY || [];
+                // You'll need to decide what `selectedModuleIds` means in the context of
+                // the `fetchAndRenderChildren` call here. For now, empty array.
+                await fetchAndRenderChildren(moduleData.id, childIds, level + 1, li, []);
+            }
+            // If not expanded, the `while` loop above handled removal of children.
+        });
+    } else {
+        expandToggle.classList.add('hidden'); // Hide arrow if no children expected
+    }
 
     return li;
 }
@@ -537,6 +576,8 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
             docSnap = await db.collection('learningContent').doc(childId).get();
             if (docSnap.exists) {
                 console.log(`DEBUG: Found child ${childId} in 'learningContent' collection.`);
+                // **DEBUGGING TIP**: Add console.log(docSnap.data().imageUrl, docSnap.data().audioUrl) here
+                // to see if the URLs are being retrieved from Firestore for the children.
                 return { id: docSnap.id, ...docSnap.data(), collection: 'learningContent' };
             }
 
@@ -621,13 +662,19 @@ async function loadAllAvailableModules() {
     try {
         const allFetchedModules = [];
 
-        // 1. Fetch all LESSONs
+        // 1. Fetch all COURSEs
+        const coursesSnapshot = await db.collection('COURSE').get();
+        coursesSnapshot.forEach(doc => {
+            allFetchedModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'COURSE' });
+        });
+
+        // 2. Fetch all LESSONs
         const lessonsSnapshot = await db.collection('LESSON').get();
         lessonsSnapshot.forEach(doc => {
             allFetchedModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'LESSON' });
         });
 
-        // 2. Fetch all selectable items from learningContent (SEMANTIC_GROUP, VOCABULARY_GROUP, etc.)
+        // 3. Fetch all selectable items from learningContent (SEMANTIC_GROUP, VOCABULARY_GROUP, etc.)
         // This is where your new module types (GRAMMAR, CONVERSATION, etc.) will be picked up,
         // as they reside in 'learningContent' and are not in NON_SELECTABLE_LEAF_MODULE_TYPES.
         const learningContentSnapshot = await db.collection('learningContent').get();
@@ -984,6 +1031,12 @@ async function saveRecord() {
         if (imageStatusSelect) dataToSave.imageStatus = imageStatusSelect.value; // Safety check
     }
 
+    // IMPORTANT: As per your clarification, imageUrl and audioUrl are NOT user-editable
+    // and thus not part of dataToSave being gathered from form inputs.
+    // They are assumed to exist in the Firestore document if needed for display.
+    // If they were edited or provided by the user in hidden inputs etc.,
+    // you would add them here. For now, they are omitted as per your instructions.
+
     try {
         if (recordId) {
             // --- Update Existing Record ---
@@ -993,7 +1046,13 @@ async function saveRecord() {
             console.log("Updated record:", recordId, dataToSave);
 
             // Update currentActiveRecord global state to reflect the latest changes
-            currentActiveRecord = { ...currentActiveRecord, ...dataToSave };
+            // **Crucial**: When updating currentActiveRecord, ensure to carry over properties
+            // like imageUrl and audioUrl if they exist and are not part of dataToSave.
+            // This ensures they persist in your local model even if not updated.
+            currentActiveRecord = {
+                ...currentActiveRecord, // Keep existing properties (like imageUrl, audioUrl)
+                ...dataToSave           // Overlay with updated properties
+            };
 
             // Refresh the top-level navigation list and update current index
             await fetchAndPopulateTopLevelNavigation();
@@ -1012,6 +1071,7 @@ async function saveRecord() {
             if (activeRecordIdInput) activeRecordIdInput.value = newRecordId; // Safety check
 
             // Update currentActiveRecord global state for the newly created record
+            // For a new record, these are the initial properties.
             currentActiveRecord = { id: newRecordId, ...dataToSave, collection: recordCollection };
             showAlert('Module created successfully!');
             console.log("Created new record with ID:", newRecordId, dataToSave);
@@ -1166,7 +1226,7 @@ async function fetchAndPopulateTopLevelNavigation() {
         });
 
         // 3. Fetch top-level types from learningContent
-        // These are modules that can act as independent top-level entries, not just children.
+        // These are modules that can act as independent top-level entities, not just children.
         const topLevelLearningContentTypes = [
             'SEMANTIC_GROUP', 'VOCABULARY', 'VOCABULARY_GROUP', 'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Corrected typo here
             // Add other learningContent types here if they can be edited as top-level entities
@@ -1226,4 +1286,5 @@ saveRecordBtn.addEventListener('click', saveRecord);
 deleteRecordBtn.addEventListener('click', deleteRecord);
 activeRecordTypeSelect.addEventListener('change', () => { ... });
 */
+
 
