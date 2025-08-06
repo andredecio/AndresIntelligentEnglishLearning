@@ -44,7 +44,7 @@ let largerListView , activeRecordIdInput, activeRecordCollectionInput, activeRec
 , newRecordTypeSelectorGroup, recordTitleInput, recordDescriptionTextarea, recordThemeInput
 , themeFields, imageStatusSelect, imageStatusFields, cefrInput, cefrFields, meaningOriginInput
  , meaningOriginFields, prevRecordBtn,  newRecordBtn, nextRecordBtn,  saveRecordBtndeleteRecordBtn, currentChildrenDisplay, 
- moduleTypeFilterSelect,  filterModuleTypeSelect, searchModulesInputavailableModulesList
+ moduleTypeFilterSelect,  filterModuleTypeSelect, searchModulesInputavailableModulesList,
   statusAlert, statusMessageSpan, loadingSpinner, singleRecordView;
   
 // --- MODIFIED: DOMContentLoaded listener ---
