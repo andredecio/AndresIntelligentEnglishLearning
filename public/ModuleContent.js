@@ -22,7 +22,7 @@ let currentActiveRecord = null;       // Stores the data of the module currently
 let allAvailableModules = [];
 
 // --- Global State Variables ---
-let moduleTypes = { // Define module types and their corresponding collections (simplified for now)
+const moduleTypes = { // Define module types and their corresponding collections (simplified for now)
     'COURSE': 'COURSE',
     'LESSON': 'LESSON',
     'SEMANTIC_GROUP': 'learningContent',
@@ -33,87 +33,228 @@ let moduleTypes = { // Define module types and their corresponding collections (
     'GRAMMAR': 'learningContent',
     'CONVERSATION': 'learningContent',
     'READING-WRITING': 'learningContent',
-    'LISTENINGSPEAkING': 'learningContent',
-
+    'LISTENINGSPEAKING': 'learningContent', // Corrected typo here, 'LISTENINGSPEAING' -> 'LISTENINGSPEAKING'
 };
 
-
 // --- Global DOM Element References ---
+// **CHANGE:** Initialize all these variables to 'null' for clarity and to avoid 'undefined' issues
+let largerListView = null;
+let activeRecordIdInput = null;
+let activeRecordCollectionInput = null;
+let activeRecordTypeSelect = null;
+let newRecordTypeSelectorGroup = null;
+let recordTitleInput = null;
+let recordDescriptionTextarea = null;
+let recordThemeInput = null;
+let themeFields = null;
+let imageStatusSelect = null;
+let imageStatusFields = null;
+let cefrInput = null;
+let cefrFields = null;
+let meaningOriginInput = null;
+let meaningOriginFields = null;
+let prevRecordBtn = null;
+let newRecordBtn = null;
+let nextRecordBtn = null;
+let saveRecordBtn = null;
+let deleteRecordBtn = null;
+let currentChildrenDisplay = null;
+let moduleTypeFilterSelect = null; // This is the main filter for top-level navigation
+let filterModuleTypeSelect = null; // This is the filter within the larger 'children' list
+let searchModulesInput = null;
+let availableModulesList = null;
+let statusAlert = null;
+let statusMessageSpan = null;
+let loadingSpinner = null;
+let singleRecordView = null;
 
-let largerListView , activeRecordIdInput, activeRecordCollectionInput, activeRecordTypeSelect
-, newRecordTypeSelectorGroup, recordTitleInput, recordDescriptionTextarea, recordThemeInput
-, themeFields, imageStatusSelect, imageStatusFields, cefrInput, cefrFields, meaningOriginInput
- , meaningOriginFields, prevRecordBtn,  newRecordBtn, nextRecordBtn,  saveRecordBtndeleteRecordBtn, currentChildrenDisplay, 
- moduleTypeFilterSelect,  filterModuleTypeSelect, searchModulesInputavailableModulesList,
-  statusAlert, statusMessageSpan, loadingSpinner, singleRecordView;
-  
 // --- MODIFIED: DOMContentLoaded listener ---
 document.addEventListener('DOMContentLoaded', async () => {
     // Assuming your common.js handles auth state and admin checks first
+
+    // Main layout and view containers
+    singleRecordView = document.querySelector('.single-record-view');
+    largerListView = document.querySelector('.larger-list-view');
+
+    // Single Record Editor Form Fields
+    activeRecordIdInput = document.getElementById('activeRecordId');
+    activeRecordCollectionInput = document.getElementById('activeRecordCollection');
+    activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect'); // The selector for record type
+    newRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group'); // The container for the record type selector
+
+    recordTitleInput = document.getElementById('recordTitle');
+    recordDescriptionTextarea = document.getElementById('recordDescription');
+
+    recordThemeInput = document.getElementById('recordTheme'); // Input for Theme
+    themeFields = document.querySelectorAll('.theme-fields'); // Container for Theme input/label (used for show/hide)
+
+    imageStatusSelect = document.getElementById('imageStatus'); // Select for Image Status
+    imageStatusFields = document.querySelectorAll('.image-status-fields'); // Container for Image Status select/label (used for show/hide)
+
+    cefrInput = document.getElementById('cefrInput'); // Input for CEFR Level
+    cefrFields = document.querySelectorAll('.cefr-fields'); // Container for CEFR input/label (used for show/hide)
+
+    meaningOriginInput = document.getElementById('meaningOriginInput'); // Input for Meaning Origin
+    meaningOriginFields = document.querySelectorAll('.meaning-origin-fields'); // Container for Meaning Origin input/label (used for show/hide)
+
+
+    // Navigation Buttons (Prev, New, Next)
+    prevRecordBtn = document.getElementById('prevRecordBtn');
+    newRecordBtn = document.getElementById('newRecordBtn');
+    nextRecordBtn = document.getElementById('nextRecordBtn');
+
+    // Action Buttons (Save, Delete)
+    saveRecordBtn = document.getElementById('saveRecordBtn');
+    deleteRecordBtn = document.getElementById('deleteRecordBtn');
+
+    // Current Children Display
+    currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
+
+    // Larger Module List View (for selecting children) - Filter & Search
+    moduleTypeFilterSelect = document.getElementById('moduleTypeFilter'); // The NEW main filter for top-level navigation
+    filterModuleTypeSelect = document.getElementById('filterModuleType'); // The filter within the larger 'children' list
+    searchModulesInput = document.getElementById('searchModules'); // Search input for the larger list
+    availableModulesList = document.getElementById('availableModulesList'); // The UL/container for the larger list
+
+    // Status/Alerts
+    statusAlert = document.getElementById('statusAlert');
+    statusMessageSpan = document.getElementById('statusMessage');
+    // **NOTE**: `loadingSpinner` needs to be queried *after* `availableModulesList` is assigned.
+    if (availableModulesList) {
+        loadingSpinner = availableModulesList.querySelector('.spinner'); // Spinner specifically for the available modules list
+    }
+    // **CRUCIAL CHANGE: Move ALL event listeners here, AFTER elements are assigned.**
+    // --- Event Listeners for Filters/Search ---
+    // This one was at line 597 and causing the addEventListener error.
+    if (filterModuleTypeSelect) { // Safety check
+        filterModuleTypeSelect.addEventListener('change', displayFilteredModules);
+    }
+    // This listener is for the main filter for top-level navigation.
+    // It's also defined at the end of populateModuleTypeFilter, so you have a potential duplicate.
+    // Given populateModuleTypeFilter() adds this listener, we don't need a duplicate here.
+    // The previous error for filterModuleTypeSelect was because it was outside DOMContentLoaded.
+
+    if (searchModulesInput) { // Assuming you want a search event listener
+        searchModulesInput.addEventListener('input', displayFilteredModules); // Or 'change' if you prefer
+    }
+
+    // --- Event Listeners for Single Record View Buttons ---
+    if (newRecordBtn) {
+        newRecordBtn.addEventListener('click', () => {
+            loadRecordIntoEditor(null); // Load a blank form for new record
+            currentTopLevelModuleIndex = -1; // Indicate no course is active in navigation
+            updateNavigationButtons();
+        });
+    }
+
+    if (prevRecordBtn) {
+        prevRecordBtn.addEventListener('click', async () => {
+            // Now, we operate on the 'filteredNavigationList'
+            if (currentTopLevelModuleIndex > 0) {
+                currentTopLevelModuleIndex--;
+                const selectedModule = filteredNavigationList[currentTopLevelModuleIndex];
+                const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
+                if (moduleSnap.exists) {
+                    loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
+                } else {
+                    showAlert("Selected module not found, refreshing navigation.", true);
+                    // If an item is missing, re-fetch all data and re-apply the filter
+                    await fetchAndPopulateTopLevelNavigation();
+                    await applyModuleTypeFilter(); // This will reload the first item of the now-refreshed filtered list
+                }
+                updateNavigationButtons();
+            }
+        });
+    }
+
+    if (nextRecordBtn) {
+        nextRecordBtn.addEventListener('click', async () => {
+            // Now, we operate on the 'filteredNavigationList'
+            if (currentTopLevelModuleIndex < filteredNavigationList.length - 1) {
+                currentTopLevelModuleIndex++;
+                const selectedModule = filteredNavigationList[currentTopLevelModuleIndex];
+                const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
+                if (moduleSnap.exists) {
+                    loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
+                } else {
+                    showAlert("Selected module not found, refreshing navigation.", true);
+                    // If an item is missing, re-fetch all data and re-apply the filter
+                    await fetchAndPopulateTopLevelNavigation();
+                    await applyModuleTypeFilter(); // This will reload the first item of the now-refreshed filtered list
+                }
+                updateNavigationButtons();
+            }
+        });
+    }
+	
+    if (saveRecordBtn) {
+        saveRecordBtn.addEventListener('click', saveRecord);
+    }
+    if (deleteRecordBtn) {
+        deleteRecordBtn.addEventListener('click', deleteRecord);
+    }
+
+    // This listener for activeRecordTypeSelect was at the very bottom. Move it here.
+    if (activeRecordTypeSelect) {
+        activeRecordTypeSelect.addEventListener('change', () => {
+            // This listener should only act when the select is enabled (i.e., for new records)
+            if (!activeRecordTypeSelect.disabled) {
+                const selectedType = activeRecordTypeSelect.value;
+
+                // Update the hidden collection input based on the selected module type
+                if (activeRecordCollectionInput && moduleTypes[selectedType]) { // Added safety check
+                    activeRecordCollectionInput.value = moduleTypes[selectedType];
+                }
+
+
+                // Adjust visibility of Theme and Image Status fields based on the newly selected type
+                // Theme field logic
+                const typesWithTheme = [ // This array should probably be a global constant to avoid duplication
+                    'COURSE', 'LESSON', 'VOCABULARY_GROUP', 'VOCABULARY'
+                ];
+                const isThemeRelevant = typesWithTheme.includes(selectedType);
+                if (themeFields) { // Safety check
+                    if (isThemeRelevant) {
+                        themeFields.forEach(el => el.classList.remove('hidden'));
+                    } else {
+                        themeFields.forEach(el => el.classList.add('hidden'));
+                    }
+                }
+
+
+                // Image Status field logic
+                const typesWithImageStatus = [ // This array should probably be a global constant to avoid duplication
+                    'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
+                    'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Corrected typo here
+                ];
+                const isImageStatusRelevant = typesWithImageStatus.includes(selectedType);
+                if (imageStatusFields) { // Safety check
+                    if (isImageStatusRelevant) {
+                        imageStatusFields.forEach(el => el.classList.remove('hidden'));
+                    } else {
+                        imageStatusFields.forEach(el => el.classList.add('hidden'));
+                    }
+                }
+                // Also add CEFR and Meaning Origin fields' visibility logic here if needed for new records.
+                // It looks like this logic is in loadRecordIntoEditor, but if you want it on type change for new record,
+                // you'll need to duplicate that here or refactor.
+            }
+        });
+    }
+
 
     // 1. Fetch all top-level modules into our master list
     await fetchAndPopulateTopLevelNavigation();
 
     // 2. Populate the new module type filter dropdown
-    populateModuleTypeFilter();
+    populateModuleTypeFilter(); // This function adds an event listener to moduleTypeFilterSelect
 
     // 3. Apply the default filter (e.g., 'ALL') and load the first record based on that
     await applyModuleTypeFilter();
 
     // Your existing call to loadAllAvailableModules() (keep this as it is)
     await loadAllAvailableModules();
-
-
-// Main layout and view containers
- singleRecordView = document.querySelector('.single-record-view');
- largerListView = document.querySelector('.larger-list-view');
-
-// Single Record Editor Form Fields
- activeRecordIdInput = document.getElementById('activeRecordId');
- activeRecordCollectionInput = document.getElementById('activeRecordCollection');
- activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect'); // The selector for record type
- newRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group'); // The container for the record type selector
-
- recordTitleInput = document.getElementById('recordTitle');
- recordDescriptionTextarea = document.getElementById('recordDescription');
-
- recordThemeInput = document.getElementById('recordTheme'); // Input for Theme
- themeFields = document.querySelectorAll('.theme-fields'); // Container for Theme input/label (used for show/hide)
-
- imageStatusSelect = document.getElementById('imageStatus'); // Select for Image Status
- imageStatusFields = document.querySelectorAll('.image-status-fields'); // Container for Image Status select/label (used for show/hide)
-
- cefrInput = document.getElementById('cefrInput'); // Input for CEFR Level
- cefrFields = document.querySelectorAll('.cefr-fields'); // Container for CEFR input/label (used for show/hide)
-
- meaningOriginInput = document.getElementById('meaningOriginInput'); // Input for Meaning Origin
- meaningOriginFields = document.querySelectorAll('.meaning-origin-fields'); // Container for Meaning Origin input/label (used for show/hide)
-
-
-// Navigation Buttons (Prev, New, Next)
- prevRecordBtn = document.getElementById('prevRecordBtn');
- newRecordBtn = document.getElementById('newRecordBtn');
- nextRecordBtn = document.getElementById('nextRecordBtn');
-
-// Action Buttons (Save, Delete)
- saveRecordBtn = document.getElementById('saveRecordBtn');
- deleteRecordBtn = document.getElementById('deleteRecordBtn');
-
-// Current Children Display
- currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
-
-// Larger Module List View (for selecting children) - Filter & Search
- moduleTypeFilterSelect = document.getElementById('moduleTypeFilter'); // The NEW main filter for top-level navigation
- filterModuleTypeSelect = document.getElementById('filterModuleType'); // The filter within the larger 'children' list
- searchModulesInput = document.getElementById('searchModules'); // Search input for the larger list
- availableModulesList = document.getElementById('availableModulesList'); // The UL/container for the larger list
-
-// Status/Alerts
- statusAlert = document.getElementById('statusAlert');
- statusMessageSpan = document.getElementById('statusMessage');
- loadingSpinner = availableModulesList.querySelector('.spinner'); // Spinner specifically for the available modules list
 });
-
 
 // --- (Your functions will follow after these declarations) ---
 // --- Utility Functions ---
@@ -124,38 +265,63 @@ document.addEventListener('DOMContentLoaded', async () => {
  * @param {boolean} isError If true, styles as an error. Defaults to success.
  */
 function showAlert(message, isError = false) {
-    statusMessageSpan.textContent = message;
-    statusAlert.classList.remove('hidden');
-    // Assuming your .error-alert is green by default (from style.css comment)
-    // If you want red for error, you'll need a new CSS class like .error-alert.error
-    if (isError) {
-        statusAlert.style.backgroundColor = '#dc3545'; // Red for errors
-        statusAlert.querySelector('.error-button').style.backgroundColor = '#dc3545';
-        statusAlert.querySelector('.error-button').style.boxShadow = '0 6px #a71d2a, 0 2px 4px rgba(0,0,0,0.3)';
+    // **CRUCIAL CHANGE: Add safety checks for statusAlert and statusMessageSpan**
+    if (statusMessageSpan) {
+        statusMessageSpan.textContent = message;
     } else {
-        statusAlert.style.backgroundColor = '#218b5f'; // Green for success (your default)
-        statusAlert.querySelector('.error-button').style.backgroundColor = '#218b5f';
-        statusAlert.querySelector('.error-button').style.boxShadow = '0 6px #0056b3, 0 2px 4px rgba(0,0,0,0.3)';
+        console.error("Alert message span not found! Message:", message);
+        return; // Cannot display alert if the element is missing
     }
 
-    // Auto-hide after 5 seconds unless dismissed
-    setTimeout(() => {
-        statusAlert.classList.add('hidden');
-    }, 5000);
+    if (statusAlert) {
+        statusAlert.classList.remove('hidden');
+        // Get button dynamically to ensure it exists before trying to access properties
+        const errorButton = statusAlert.querySelector('.error-button');
+
+        if (isError) {
+            statusAlert.style.backgroundColor = '#dc3545'; // Red for errors
+            if (errorButton) { // Safety check for the button
+                errorButton.style.backgroundColor = '#dc3545';
+                errorButton.style.boxShadow = '0 6px #a71d2a, 0 2px 4px rgba(0,0,0,0.3)';
+            }
+        } else {
+            statusAlert.style.backgroundColor = '#218b5f'; // Green for success (your default)
+            if (errorButton) { // Safety check for the button
+                errorButton.style.backgroundColor = '#218b5f';
+                errorButton.style.boxShadow = '0 6px #0056b3, 0 2px 4px rgba(0,0,0,0.3)';
+            }
+        }
+
+        // Auto-hide after 5 seconds unless dismissed
+        setTimeout(() => {
+            statusAlert.classList.add('hidden');
+        }, 5000);
+    } else {
+        console.error("Alert container not found! Displaying message to console:", message);
+    }
 }
 
 function showSpinner(targetElement) {
     if (targetElement) {
         targetElement.innerHTML = `<li class="loading-placeholder">Loading... <span class="spinner"></span></li>`;
-        targetElement.querySelector('.spinner').classList.remove('hidden');
+        // **CRUCIAL CHANGE: Check if spinner exists before accessing its classList**
+        const spinnerElement = targetElement.querySelector('.spinner');
+        if (spinnerElement) {
+            spinnerElement.classList.remove('hidden');
+        }
     }
 }
 
 function hideSpinner(targetElement) {
-    if (targetElement && targetElement.querySelector('.spinner')) {
-        targetElement.querySelector('.spinner').classList.add('hidden');
+    if (targetElement) {
+        // **CRUCIAL CHANGE: Check if spinner exists before accessing its classList**
+        const spinnerElement = targetElement.querySelector('.spinner');
+        if (spinnerElement) {
+            spinnerElement.classList.add('hidden');
+        }
         // Clear the loading message if it's still there
-        if (targetElement.querySelector('.loading-placeholder')) {
+        const loadingPlaceholder = targetElement.querySelector('.loading-placeholder');
+        if (loadingPlaceholder) { // Check if the placeholder exists before clearing
              targetElement.innerHTML = ''; // Clear placeholder once content is ready
         }
     }
@@ -439,16 +605,18 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
             currentNodeToInsertAfter = childElement;
         });  console.log(`DEBUG: Children rendered for parent ${parentId}.`);
 	}
-
 }
-/**
+
 /**
  * Loads all relevant modules for the larger list view.
  * This includes LESSONs (for COURSE building) and all selectable items from learningContent.
  */
 async function loadAllAvailableModules() {
     showSpinner(availableModulesList);
-    availableModulesList.innerHTML = ''; // Clear previous content
+    if (availableModulesList) { // Safety check before clearing innerHTML
+        availableModulesList.innerHTML = ''; // Clear previous content
+    }
+
 
     try {
         const allFetchedModules = [];
@@ -490,9 +658,13 @@ async function loadAllAvailableModules() {
  * It uses the 'allAvailableModules' global array.
  */
 function displayFilteredModules() {
-    availableModulesList.innerHTML = ''; // Clear current display
-    const filterType = filterModuleTypeSelect.value;
-    const searchTerm = searchModulesInput.value.toLowerCase();
+    if (availableModulesList) { // Safety check before clearing innerHTML
+        availableModulesList.innerHTML = ''; // Clear current display
+    }
+
+    const filterType = filterModuleTypeSelect ? filterModuleTypeSelect.value : 'all'; // Safety check
+    const searchTerm = searchModulesInput ? searchModulesInput.value.toLowerCase() : ''; // Safety check
+
 
     // Get the ID of the currently active record. If no record is active, this will be null.
     const activeRecordId = currentActiveRecord ? currentActiveRecord.id : null;
@@ -507,17 +679,21 @@ function displayFilteredModules() {
     if (currentActiveRecord && currentActiveRecord.MODULETYPE === 'COURSE') {
         modulesToShow = modulesToShow.filter(module => module.MODULETYPE === 'LESSON');
         // Optionally, reset the filter dropdown and disable it to guide the user
-        filterModuleTypeSelect.value = 'LESSON';
-        filterModuleTypeSelect.disabled = true;
+        if (filterModuleTypeSelect) { // Safety check
+            filterModuleTypeSelect.value = 'LESSON';
+            filterModuleTypeSelect.disabled = true;
+        }
     } else {
         // If not a COURSE, ensure the filter dropdown is enabled
-        filterModuleTypeSelect.disabled = false;
-        // If the current filter is 'LESSON' from a previous COURSE context, reset it to 'all'
-        // unless the user has explicitly selected 'LESSON'
-        // This logic might need further refinement based on how you manage parent-child relationships
-        // for other module types. For now, keeping it as is.
-        if (filterModuleTypeSelect.value === 'LESSON' && !currentActiveRecord) { // Or based on other parent types
-            filterModuleTypeSelect.value = 'all'; // Reset to show all selectable types
+        if (filterModuleTypeSelect) { // Safety check
+            filterModuleTypeSelect.disabled = false;
+            // If the current filter is 'LESSON' from a previous COURSE context, reset it to 'all'
+            // unless the user has explicitly selected 'LESSON'
+            // This logic might need further refinement based on how you manage parent-child relationships
+            // for other module types. For now, keeping it as is.
+            if (filterModuleTypeSelect.value === 'LESSON' && !currentActiveRecord) { // Or based on other parent types
+                filterModuleTypeSelect.value = 'all'; // Reset to show all selectable types
+            }
         }
     }
 
@@ -536,7 +712,9 @@ function displayFilteredModules() {
 
     if (filtered.length === 0) {
         // Updated message for clarity
-        availableModulesList.innerHTML = `<li class="loading-placeholder">No modules found matching criteria or available for selection.</li>`;
+        if (availableModulesList) { // Safety check
+            availableModulesList.innerHTML = `<li class="loading-placeholder">No modules found matching criteria or available for selection.</li>`;
+        }
         return;
     }
 
@@ -544,7 +722,10 @@ function displayFilteredModules() {
         // This is where renderModuleListItem comes in, it will likely render
         // the actual selectable items including the checkbox.
         const li = renderModuleListItem(moduleData, 0, currentModuleIds); // Level 0 for top-level modules
-        availableModulesList.appendChild(li);
+        if (availableModulesList) { // Safety check before appending
+            availableModulesList.appendChild(li);
+        }
+
 
         // Add event listener for checkbox changes
         const checkbox = li.querySelector('input[type="checkbox"]');
@@ -593,34 +774,26 @@ function removeModuleFromActiveRecordSelection(moduleId) {
     }
 }
 
-// --- Event Listeners for Filters/Search ---
-filterModuleTypeSelect.addEventListener('change', displayFilteredModules);
-
-
-
-// End of Part 2
-// ModuleContent.js (Continued from Part 2)
-
 // --- Single Record View Logic ---
-
-
 
 function loadRecordIntoEditor(recordData, collectionName = null) {
     currentActiveRecord = recordData; // Set the global currentActiveRecord
 
     if (recordData) {
         // --- Populating fields for an existing record ---
-        activeRecordIdInput.value = recordData.id || '';
-        activeRecordCollectionInput.value = collectionName || ''; // Set the collection name for the active record
+        if (activeRecordIdInput) activeRecordIdInput.value = recordData.id || ''; // Safety check
+        if (activeRecordCollectionInput) activeRecordCollectionInput.value = collectionName || ''; // Set the collection name for the active record // Safety check
 
         // Module Type selection
-        activeRecordTypeSelect.value = recordData.MODULETYPE || '';
-        activeRecordTypeSelect.disabled = true; // Disable editing type for existing records
-        newRecordTypeSelectorGroup.classList.remove('hidden'); // Ensure visible for existing records too, just disabled
+        if (activeRecordTypeSelect) { // Safety check
+            activeRecordTypeSelect.value = recordData.MODULETYPE || '';
+            activeRecordTypeSelect.disabled = true; // Disable editing type for existing records
+        }
+        if (newRecordTypeSelectorGroup) newRecordTypeSelectorGroup.classList.remove('hidden'); // Ensure visible for existing records too, just disabled // Safety check
 
         // Basic fields
-        recordTitleInput.value = recordData.TITLE || recordData.name || '';
-        recordDescriptionTextarea.value = recordData.DESCRIPTION || '';
+        if (recordTitleInput) recordTitleInput.value = recordData.TITLE || recordData.name || ''; // Safety check
+        if (recordDescriptionTextarea) recordDescriptionTextarea.value = recordData.DESCRIPTION || ''; // Safety check
 
         // Conditional fields and their visibility:
 
@@ -628,86 +801,91 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
         const typesWithTheme = [
             'COURSE',
             'LESSON',
-            'VOCABULARY_GROUP', // Included as requested
-            'VOCABULARY'        // Included as requested
+            'VOCABULARY_GROUP',
+            'VOCABULARY'
         ];
         if (recordData.MODULETYPE && typesWithTheme.includes(recordData.MODULETYPE)) {
-            recordThemeInput.value = recordData.THEME || '';
-            themeFields.forEach(el => el.classList.remove('hidden')); // Show theme fields
+            if (recordThemeInput) recordThemeInput.value = recordData.THEME || ''; // Safety check
+            if (themeFields) themeFields.forEach(el => el.classList.remove('hidden')); // Show theme fields // Safety check
         } else {
-            recordThemeInput.value = ''; // Clear value if not applicable
-            themeFields.forEach(el => el.classList.add('hidden')); // Hide theme fields
+            if (recordThemeInput) recordThemeInput.value = ''; // Clear value if not applicable // Safety check
+            if (themeFields) themeFields.forEach(el => el.classList.add('hidden')); // Hide theme fields // Safety check
         }
 
         // 2. Image Status field
         const typesWithImageStatus = [
             'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
-            'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING'
+            'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Corrected typo here
         ];
         if (recordData.MODULETYPE && typesWithImageStatus.includes(recordData.MODULETYPE)) {
-            imageStatusSelect.value = recordData.imageStatus || 'needs_review';
-            imageStatusFields.forEach(el => el.classList.remove('hidden')); // Show image status fields
+            if (imageStatusSelect) imageStatusSelect.value = recordData.imageStatus || 'needs_review'; // Safety check
+            if (imageStatusFields) imageStatusFields.forEach(el => el.classList.remove('hidden')); // Show image status fields // Safety check
         } else {
-            imageStatusSelect.value = ''; // Clear value if not applicable
-            imageStatusFields.forEach(el => el.classList.add('hidden')); // Hide image status fields
+            if (imageStatusSelect) imageStatusSelect.value = ''; // Clear value if not applicable // Safety check
+            if (imageStatusFields) imageStatusFields.forEach(el => el.classList.add('hidden')); // Hide image status fields // Safety check
         }
 
         // 3. CEFR field
         const typesWithCEFR = [
             'LESSON', 'SEMANTIC_GROUP', 'GRAMMAR', 'CONVERSATION',
-            'READING-WRITING', 'LISTENINGSPEAKING', 'VOCABULARY_GROUP', 'VOCABULARY' // Included as requested
+            'READING-WRITING', 'LISTENINGSPEAKING', 'VOCABULARY_GROUP', 'VOCABULARY'
         ];
         if (recordData.MODULETYPE && typesWithCEFR.includes(recordData.MODULETYPE)) {
-            cefrInput.value = recordData.CEFR || '';
-            cefrFields.forEach(el => el.classList.remove('hidden')); // Show CEFR fields
+            if (cefrInput) cefrInput.value = recordData.CEFR || ''; // Safety check
+            if (cefrFields) cefrFields.forEach(el => el.classList.remove('hidden')); // Show CEFR fields // Safety check
         } else {
-            cefrInput.value = ''; // Clear value if not applicable
-            cefrFields.forEach(el => el.classList.add('hidden')); // Hide CEFR fields
+            if (cefrInput) cefrInput.value = ''; // Clear value if not applicable // Safety check
+            if (cefrFields) cefrFields.forEach(el => el.classList.add('hidden')); // Hide CEFR fields // Safety check
         }
 
         // 4. MEANING_ORIGIN field
         const typesWithMeaningOrigin = ['VOCABULARY_GROUP', 'VOCABULARY']; // Define where MEANING_ORIGIN applies
         if (recordData.MODULETYPE && typesWithMeaningOrigin.includes(recordData.MODULETYPE)) {
-            meaningOriginInput.value = recordData.MEANING_ORIGIN || '';
-            meaningOriginFields.forEach(el => el.classList.remove('hidden')); // Show Meaning Origin fields
+            if (meaningOriginInput) meaningOriginInput.value = recordData.MEANING_ORIGIN || ''; // Safety check
+            if (meaningOriginFields) meaningOriginFields.forEach(el => el.classList.remove('hidden')); // Show Meaning Origin fields // Safety check
         } else {
-            meaningOriginInput.value = ''; // Clear value if not applicable
-            meaningOriginFields.forEach(el => el.classList.add('hidden')); // Hide Meaning Origin fields
+            if (meaningOriginInput) meaningOriginInput.value = ''; // Clear value if not applicable // Safety check
+            if (meaningOriginFields) meaningOriginFields.forEach(el => el.classList.add('hidden')); // Hide Meaning Origin fields // Safety check
         }
 
         // Button text and visibility for existing record
-        saveRecordBtn.textContent = 'Update Module';
-        deleteRecordBtn.style.display = 'inline-block';
+        if (saveRecordBtn) saveRecordBtn.textContent = 'Update Module'; // Safety check
+        if (deleteRecordBtn) deleteRecordBtn.style.display = 'inline-block'; // Safety check
 
     } else {
         // --- Clearing and setting defaults for a new record ---
-        activeRecordIdInput.value = ''; // Clear ID for new record
+        if (activeRecordIdInput) activeRecordIdInput.value = ''; // Clear ID for new record // Safety check
 
         // For new records, enable the type select and default to COURSE
-        activeRecordTypeSelect.value = 'COURSE'; // Default new record to COURSE
-        activeRecordTypeSelect.disabled = false; // Enable type selection
-        newRecordTypeSelectorGroup.classList.remove('hidden'); // Ensure visible for new records
+        if (activeRecordTypeSelect) { // Safety check
+            activeRecordTypeSelect.value = 'COURSE'; // Default new record to COURSE
+            activeRecordTypeSelect.disabled = false; // Enable type selection
+        }
+        if (newRecordTypeSelectorGroup) newRecordTypeSelectorGroup.classList.remove('hidden'); // Ensure visible for new records // Safety check
 
         // Set the hidden collection input based on the default selected type (COURSE)
-        activeRecordCollectionInput.value = moduleTypes[activeRecordTypeSelect.value];
+        if (activeRecordCollectionInput && activeRecordTypeSelect && moduleTypes[activeRecordTypeSelect.value]) { // More robust safety check
+             activeRecordCollectionInput.value = moduleTypes[activeRecordTypeSelect.value];
+        }
+
 
         // Clear all input fields
-        recordTitleInput.value = '';
-        recordDescriptionTextarea.value = '';
-        recordThemeInput.value = '';
-        imageStatusSelect.value = '';
-        cefrInput.value = '';
-        meaningOriginInput.value = '';
+        if (recordTitleInput) recordTitleInput.value = ''; // Safety check
+        if (recordDescriptionTextarea) recordDescriptionTextarea.value = ''; // Safety check
+        if (recordThemeInput) recordThemeInput.value = ''; // Safety check
+        if (imageStatusSelect) imageStatusSelect.value = ''; // Safety check
+        if (cefrInput) cefrInput.value = ''; // Safety check
+        if (meaningOriginInput) meaningOriginInput.value = ''; // Safety check
 
         // Set initial visibility for conditional fields based on default 'COURSE' type
-        themeFields.forEach(el => el.classList.remove('hidden')); // COURSE has theme
-        imageStatusFields.forEach(el => el.classList.add('hidden')); // COURSE does not have image status
-        cefrFields.forEach(el => el.classList.add('hidden')); // COURSE does not have CEFR
-        meaningOriginFields.forEach(el => el.classList.add('hidden')); // COURSE does not have Meaning Origin
+        if (themeFields) themeFields.forEach(el => el.classList.remove('hidden')); // COURSE has theme // Safety check
+        if (imageStatusFields) imageStatusFields.forEach(el => el.classList.add('hidden')); // COURSE does not have image status // Safety check
+        if (cefrFields) cefrFields.forEach(el => el.classList.add('hidden')); // COURSE does not have CEFR // Safety check
+        if (meaningOriginFields) meaningOriginFields.forEach(el => el.classList.add('hidden')); // COURSE does not have Meaning Origin // Safety check
 
         // Button text and visibility for new record
-        saveRecordBtn.textContent = 'Create Module';
-        deleteRecordBtn.style.display = 'none';
+        if (saveRecordBtn) saveRecordBtn.textContent = 'Create Module'; // Safety check
+        if (deleteRecordBtn) deleteRecordBtn.style.display = 'none'; // Safety check
     }
 
     // Always update these after record data is loaded/cleared
@@ -719,9 +897,14 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
  * Updates the 'Currently Included Modules' list based on currentActiveRecord.MODULEID_ARRAY.
  */
 async function updateCurrentChildrenDisplay() {
-    currentChildrenDisplay.innerHTML = '';
+    if (currentChildrenDisplay) { // Safety check before clearing innerHTML
+        currentChildrenDisplay.innerHTML = '';
+    }
+
     if (!currentActiveRecord || !currentActiveRecord.MODULEID_ARRAY || currentActiveRecord.MODULEID_ARRAY.length === 0) {
-        currentChildrenDisplay.innerHTML = `<li>No modules included yet.</li>`;
+        if (currentChildrenDisplay) { // Safety check
+            currentChildrenDisplay.innerHTML = `<li>No modules included yet.</li>`;
+        }
         return;
     }
 
@@ -750,24 +933,23 @@ async function updateCurrentChildrenDisplay() {
     childrenDetails.forEach(child => {
         const li = document.createElement('li');
         li.textContent = `${child.title} (${child.type})`;
-        currentChildrenDisplay.appendChild(li);
+        if (currentChildrenDisplay) { // Safety check before appending
+            currentChildrenDisplay.appendChild(li);
+        }
     });
 }
 
-/**
 /**
  * Saves (creates or updates) the active record in Firestore.
  */
 async function saveRecord() {
     // Retrieve values from the form elements
-    const recordId = activeRecordIdInput.value;
-    // recordCollection is now set dynamically by the activeRecordTypeSelect's change listener
-    const recordCollection = activeRecordCollectionInput.value;
-    // Get the module type directly from the visible select element
-    const recordType = activeRecordTypeSelect.value;
-    const title = recordTitleInput.value.trim();
-    const theme = recordThemeInput.value.trim(); // Trim theme as well
-    const description = recordDescriptionTextarea.value.trim(); // Trim description as well
+    const recordId = activeRecordIdInput ? activeRecordIdInput.value : null; // Safety check
+    const recordCollection = activeRecordCollectionInput ? activeRecordCollectionInput.value : null; // Safety check
+    const recordType = activeRecordTypeSelect ? activeRecordTypeSelect.value : null; // Safety check
+    const title = recordTitleInput ? recordTitleInput.value.trim() : ''; // Safety check
+    const theme = recordThemeInput ? recordThemeInput.value.trim() : ''; // Safety check
+    const description = recordDescriptionTextarea ? recordDescriptionTextarea.value.trim() : ''; // Safety check
 
     // Basic validation
     if (!title) {
@@ -796,10 +978,10 @@ async function saveRecord() {
     // Conditionally add imageStatus if the module type supports it
     const typesWithImageStatus = [
         'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
-        'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAING'
+        'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Corrected typo here
     ];
     if (typesWithImageStatus.includes(recordType)) {
-        dataToSave.imageStatus = imageStatusSelect.value;
+        if (imageStatusSelect) dataToSave.imageStatus = imageStatusSelect.value; // Safety check
     }
 
     try {
@@ -827,7 +1009,7 @@ async function saveRecord() {
             const newRecordId = docRef.id;
 
             // Update form fields with the new ID
-            activeRecordIdInput.value = newRecordId;
+            if (activeRecordIdInput) activeRecordIdInput.value = newRecordId; // Safety check
 
             // Update currentActiveRecord global state for the newly created record
             currentActiveRecord = { id: newRecordId, ...dataToSave, collection: recordCollection };
@@ -869,14 +1051,25 @@ async function deleteRecord() {
         console.log("Deleted record:", currentActiveRecord.id);
 
         // After deletion, load the "new record" state or the next available record
-        await fetchAndPopulateCourseNavigation(); // Refresh navigation list
+        // **NOTE**: Changed fetchAndPopulateCourseNavigation to fetchAndPopulateTopLevelNavigation
+        // as per your current structure
+        await fetchAndPopulateTopLevelNavigation(); // Refresh navigation list
         if (topLevelModuleNavigationList.length > 0) {
             currentTopLevelModuleIndex = Math.min(currentTopLevelModuleIndex, topLevelModuleNavigationList.length - 1);
-            const nextCourse = topLevelModuleNavigationList[currentTopLevelModuleIndex];
-            const nextCourseSnap = await db.collection('COURSE').doc(nextCourse.id).get();
-            loadRecordIntoEditor({ id: nextCourseSnap.id, ...nextCourseSnap.data() }, 'COURSE');
+            const nextModule = filteredNavigationList[currentTopLevelModuleIndex]; // Use filteredNavigationList here
+            // Ensure nextModule is valid before trying to load
+            if (nextModule) {
+                 const nextModuleSnap = await db.collection(nextModule.collection).doc(nextModule.id).get();
+                 if (nextModuleSnap.exists) {
+                    loadRecordIntoEditor({ id: nextModuleSnap.id, ...nextModuleSnap.data() }, nextModule.collection);
+                 } else {
+                    loadRecordIntoEditor(null); // Fallback if next module doesn't exist
+                 }
+            } else {
+                 loadRecordIntoEditor(null); // No next module, show new record form
+            }
         } else {
-            loadRecordIntoEditor(null); // No COURSE left, show new record form
+            loadRecordIntoEditor(null); // No modules left, show new record form
         }
         updateNavigationButtons();
 
@@ -890,32 +1083,34 @@ async function deleteRecord() {
 // --- NEW FUNCTION: Populate the filter dropdown with unique module types ---
 function populateModuleTypeFilter() {
     // Clear existing options except 'ALL'
-    moduleTypeFilterSelect.innerHTML = '<option value="ALL">All Module Types</option>';
+    if (moduleTypeFilterSelect) { // Safety check
+        moduleTypeFilterSelect.innerHTML = '<option value="ALL">All Module Types</option>';
 
-    const uniqueModuleTypes = new Set();
-    topLevelModuleNavigationList.forEach(module => {
-        uniqueModuleTypes.add(module.MODULETYPE);
-    });
+        const uniqueModuleTypes = new Set();
+        topLevelModuleNavigationList.forEach(module => {
+            uniqueModuleTypes.add(module.MODULETYPE);
+        });
 
-    // Sort the types alphabetically for a cleaner dropdown
-    const sortedTypes = Array.from(uniqueModuleTypes).sort();
+        // Sort the types alphabetically for a cleaner dropdown
+        const sortedTypes = Array.from(uniqueModuleTypes).sort();
 
-    sortedTypes.forEach(type => {
-        const option = document.createElement('option');
-        option.value = type;
-        // Make the text more readable (e.g., SEMANTIC_GROUP becomes Semantic Group)
-        option.textContent = type.replace(/_/g, ' ');
-        moduleTypeFilterSelect.appendChild(option);
-    });
+        sortedTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            // Make the text more readable (e.g., SEMANTIC_GROUP becomes Semantic Group)
+            option.textContent = type.replace(/_/g, ' ');
+            moduleTypeFilterSelect.appendChild(option);
+        });
 
-    // Add event listener so that when the selection changes, we apply the filter
-    moduleTypeFilterSelect.addEventListener('change', applyModuleTypeFilter);
+        // Add event listener so that when the selection changes, we apply the filter
+        moduleTypeFilterSelect.addEventListener('change', applyModuleTypeFilter);
+    }
 }
 
 
 // --- NEW FUNCTION: Apply the selected filter and update the navigation ---
 async function applyModuleTypeFilter() {
-    const selectedFilterType = moduleTypeFilterSelect.value;
+    const selectedFilterType = moduleTypeFilterSelect ? moduleTypeFilterSelect.value : 'ALL'; // Safety check
 
     if (selectedFilterType === 'ALL') {
         // If 'ALL' is selected, the filtered list is a copy of the master list
@@ -952,7 +1147,9 @@ async function applyModuleTypeFilter() {
 
     // Finally, update the state of the Prev/Next buttons
     updateNavigationButtons();
-}async function fetchAndPopulateTopLevelNavigation() {
+}
+
+async function fetchAndPopulateTopLevelNavigation() {
     try {
         const allTopLevelModules = [];
 
@@ -971,7 +1168,7 @@ async function applyModuleTypeFilter() {
         // 3. Fetch top-level types from learningContent
         // These are modules that can act as independent top-level entries, not just children.
         const topLevelLearningContentTypes = [
-            'SEMANTIC_GROUP', 'VOCABULARY', 'VOCABULARY_GROUP', 'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING'
+            'SEMANTIC_GROUP', 'VOCABULARY', 'VOCABULARY_GROUP', 'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Corrected typo here
             // Add other learningContent types here if they can be edited as top-level entities
         ];
         const learningContentSnapshot = await db.collection('learningContent').get();
@@ -999,95 +1196,34 @@ async function applyModuleTypeFilter() {
 // --- MODIFIED: updateNavigationButtons function ---
 // This function now uses 'filteredNavigationList' to determine button states
 function updateNavigationButtons() {
-    prevRecordBtn.disabled = currentTopLevelModuleIndex <= 0;
-    nextRecordBtn.disabled = currentTopLevelModuleIndex >= filteredNavigationList.length - 1;
+    // **CRUCIAL CHANGE: Add safety checks for prevRecordBtn and nextRecordBtn**
+    if (prevRecordBtn) {
+        prevRecordBtn.disabled = currentTopLevelModuleIndex <= 0;
+    } else {
+        console.warn("Prev button (prevRecordBtn) not found for updateNavigationButtons.");
+    }
+
+    if (nextRecordBtn) {
+        nextRecordBtn.disabled = currentTopLevelModuleIndex >= filteredNavigationList.length - 1;
+    } else {
+        console.warn("Next button (nextRecordBtn) not found for updateNavigationButtons.");
+    }
+
     // Also disable if the filtered list is empty
     if (filteredNavigationList.length === 0) {
-        prevRecordBtn.disabled = true;
-        nextRecordBtn.disabled = true;
+        if (prevRecordBtn) prevRecordBtn.disabled = true;
+        if (nextRecordBtn) nextRecordBtn.disabled = true;
     }
 }
 
+// **REMOVED ALL THESE EVENT LISTENER BLOCKS (They have been moved into the DOMContentLoaded block at the beginning):**
+/*
 // --- Event Listeners for Single Record View Buttons ---
-
-newRecordBtn.addEventListener('click', () => {
-    loadRecordIntoEditor(null); // Load a blank form for new record
-    currentTopLevelModuleIndex = -1; // Indicate no course is active in navigation
-    updateNavigationButtons();
-});
-
-// --- MODIFIED: prevRecordBtn event listener ---
-prevRecordBtn.addEventListener('click', async () => {
-    // Now, we operate on the 'filteredNavigationList'
-    if (currentTopLevelModuleIndex > 0) {
-        currentTopLevelModuleIndex--;
-        const selectedModule = filteredNavigationList[currentTopLevelModuleIndex];
-        const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
-        if (moduleSnap.exists) {
-            loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
-        } else {
-            showAlert("Selected module not found, refreshing navigation.", true);
-            // If an item is missing, re-fetch all data and re-apply the filter
-            await fetchAndPopulateTopLevelNavigation();
-            await applyModuleTypeFilter(); // This will reload the first item of the now-refreshed filtered list
-        }
-        updateNavigationButtons();
-    }
-});
-
-// --- MODIFIED: nextRecordBtn event listener ---
-nextRecordBtn.addEventListener('click', async () => {
-    // Now, we operate on the 'filteredNavigationList'
-    if (currentTopLevelModuleIndex < filteredNavigationList.length - 1) {
-        currentTopLevelModuleIndex++;
-        const selectedModule = filteredNavigationList[currentTopLevelModuleIndex];
-        const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
-        if (moduleSnap.exists) {
-            loadRecordIntoEditor({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
-        } else {
-            showAlert("Selected module not found, refreshing navigation.", true);
-            // If an item is missing, re-fetch all data and re-apply the filter
-            await fetchAndPopulateTopLevelNavigation();
-            await applyModuleTypeFilter(); // This will reload the first item of the now-refreshed filtered list
-        }
-        updateNavigationButtons();
-    }
-});
-
+newRecordBtn.addEventListener('click', () => { ... });
+prevRecordBtn.addEventListener('click', async () => { ... });
+nextRecordBtn.addEventListener('click', async () => { ... });
 saveRecordBtn.addEventListener('click', saveRecord);
 deleteRecordBtn.addEventListener('click', deleteRecord);
-
-
-// ... (at the bottom of ModuleContent.js, outside any other function) ...
-
-activeRecordTypeSelect.addEventListener('change', () => {
-    // This listener should only act when the select is enabled (i.e., for new records)
-    if (!activeRecordTypeSelect.disabled) {
-        const selectedType = activeRecordTypeSelect.value;
-
-        // Update the hidden collection input based on the selected module type
-        activeRecordCollectionInput.value = moduleTypes[selectedType];
-
-        // Adjust visibility of Theme and Image Status fields based on the newly selected type
-        // Theme field logic
-        const isThemeRelevant = (selectedType === 'COURSE' || selectedType === 'LESSON');
-        if (isThemeRelevant) {
-            themeFields.forEach(el => el.classList.remove('hidden'));
-        } else {
-            themeFields.forEach(el => el.classList.add('hidden'));
-        }
-
-        // Image Status field logic
-        const typesWithImageStatus = [
-            'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
-            'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAING'
-        ];
-        const isImageStatusRelevant = typesWithImageStatus.includes(selectedType);
-        if (isImageStatusRelevant) {
-            imageStatusFields.forEach(el => el.classList.remove('hidden'));
-        } else {
-            imageStatusFields.forEach(el => el.classList.add('hidden'));
-        }
-    }
-});
+activeRecordTypeSelect.addEventListener('change', () => { ... });
+*/
 
