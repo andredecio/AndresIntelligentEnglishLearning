@@ -469,19 +469,19 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
     }
 
     // --- 3. Media Container (Direct child of <li>) ---
-    // Make sure your moduleData actually has imageUrl and audioUrl properties from Firestore
+    // Make sure your moduleData actually has IMAGEURL and audioUrl properties from Firestore
     // **DEBUGGING ADDITION**: Log moduleData's image and audio URLs here.
     console.log(`DEBUG (renderModuleListItem): Module ID: ${moduleData.id}, Title: "${moduleData.TITLE || moduleData.name}"`);
-    console.log(`  imageUrl: ${moduleData.imageUrl}, audioUrl: ${moduleData.audioUrl}`);
+    console.log(`  IMAGEURL: ${moduleData.IMAGEURL}, audioUrl: ${moduleData.audioUrl}`);
 
-    if (moduleData.imageUrl || moduleData.audioUrl) {
+    if (moduleData.IMAGEURL || moduleData.audioUrl) {
         const mediaContainer = document.createElement('div');
         mediaContainer.classList.add('module-media');
 
-        if (moduleData.imageUrl) {
+        if (moduleData.IMAGEURL) {
             const img = document.createElement('img');
             img.classList.add('thumbnail');
-            img.src = moduleData.imageUrl; // Direct use of the URL from Firestore
+            img.src = moduleData.IMAGEURL; // Direct use of the URL from Firestore
             img.alt = `Thumbnail for ${moduleData.TITLE || 'module'}`;
             mediaContainer.appendChild(img);
         }
@@ -574,21 +574,21 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
             // According to our refined model, LESSON children are from `learningContent`
             docSnap = await db.collection('learningContent').doc(childId).get();
             if (docSnap.exists) {
-                console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from 'learningContent'. Image: ${docSnap.data().imageUrl}, Audio: ${docSnap.data().audioUrl}`);
+                console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from 'learningContent'. Image: ${docSnap.data().IMAGEURL}, Audio: ${docSnap.data().audioUrl}`);
                 return { id: docSnap.id, ...docSnap.data(), collection: 'learningContent' };
             }
 
             // Check 'syllables' collection (children of VOCABULARY items from learningContent)
             docSnap = await db.collection('syllables').doc(childId).get();
             if (docSnap.exists) {
-                console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from 'syllables'. Image: ${docSnap.data().imageUrl}, Audio: ${docSnap.data().audioUrl}`);
+                console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from 'syllables'. Image: ${docSnap.data().IMAGEURL}, Audio: ${docSnap.data().audioUrl}`);
                 return { id: docSnap.id, ...docSnap.data(), collection: 'syllables' };
             }
 
             // Check 'phonemes' collection (children of SYLLABLE items from syllables)
             docSnap = await db.collection('phonemes').doc(childId).get();
             if (docSnap.exists) {
-                console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from 'phonemes'. Image: ${docSnap.data().imageUrl}, Audio: ${docSnap.data().audioUrl}`);
+                console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from 'phonemes'. Image: ${docSnap.data().IMAGEURL}, Audio: ${docSnap.data().audioUrl}`);
                 return { id: docSnap.id, ...docSnap.data(), collection: 'phonemes' };
             }
 
@@ -662,14 +662,14 @@ async function loadAllAvailableModules() {
         // 1. Fetch all COURSEs
         const coursesSnapshot = await db.collection('COURSE').get();
         coursesSnapshot.forEach(doc => {
-            console.log(`DEBUG (loadAllAvailableModules - COURSE): ID: ${doc.id}, Image: ${doc.data().imageUrl}, Audio: ${doc.data().audioUrl}`);
+            console.log(`DEBUG (loadAllAvailableModules - COURSE): ID: ${doc.id}, Image: ${doc.data().IMAGEURL}, Audio: ${doc.data().audioUrl}`);
             allFetchedModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'COURSE' });
         });
 
         // 2. Fetch all LESSONs
         const lessonsSnapshot = await db.collection('LESSON').get();
         lessonsSnapshot.forEach(doc => {
-            console.log(`DEBUG (loadAllAvailableModules - LESSON): ID: ${doc.id}, Image: ${doc.data().imageUrl}, Audio: ${doc.data().audioUrl}`);
+            console.log(`DEBUG (loadAllAvailableModules - LESSON): ID: ${doc.id}, Image: ${doc.data().IMAGEURL}, Audio: ${doc.data().audioUrl}`);
             allFetchedModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'LESSON' });
         });
 
@@ -681,7 +681,7 @@ async function loadAllAvailableModules() {
              // Only include if it's a known parent type or a specific item type
             const data = doc.data();
             if (data.MODULETYPE && !NON_SELECTABLE_LEAF_MODULE_TYPES.includes(data.MODULETYPE)) {
-                 console.log(`DEBUG (loadAllAvailableModules - learningContent): ID: ${doc.id}, Type: ${data.MODULETYPE}, Image: ${data.imageUrl}, Audio: ${data.audioUrl}`);
+                 console.log(`DEBUG (loadAllAvailableModules - learningContent): ID: ${doc.id}, Type: ${data.MODULETYPE}, Image: ${data.IMAGEURL}, Audio: ${data.audioUrl}`);
                  allFetchedModules.push({ id: doc.id, ...data });
             }
         });
@@ -1031,7 +1031,7 @@ async function saveRecord() {
         if (imageStatusSelect) dataToSave.imageStatus = imageStatusSelect.value; // Safety check
     }
 
-    // IMPORTANT: As per your clarification, imageUrl and audioUrl are NOT user-editable
+    // IMPORTANT: As per your clarification, IMAGEURL and audioUrl are NOT user-editable
     // and thus not part of dataToSave being gathered from form inputs.
     // They are assumed to exist in the Firestore document if needed for display.
     // If they were edited or provided by the user in hidden inputs etc.,
@@ -1047,10 +1047,10 @@ async function saveRecord() {
 
             // Update currentActiveRecord global state to reflect the latest changes
             // **Crucial**: When updating currentActiveRecord, ensure to carry over properties
-            // like imageUrl and audioUrl if they exist and are not part of dataToSave.
+            // like IMAGEURL and audioUrl if they exist and are not part of dataToSave.
             // This ensures they persist in your local model even if not updated.
             currentActiveRecord = {
-                ...currentActiveRecord, // Keep existing properties (like imageUrl, audioUrl)
+                ...currentActiveRecord, // Keep existing properties (like IMAGEURL, audioUrl)
                 ...dataToSave           // Overlay with updated properties
             };
 
@@ -1216,14 +1216,14 @@ async function fetchAndPopulateTopLevelNavigation() {
         // 1. Fetch all COURSEs
         const coursesSnapshot = await db.collection('COURSE').get();
         coursesSnapshot.forEach(doc => {
-            console.log(`DEBUG (fetchAndPopulateTopLevelNavigation - COURSE): ID: ${doc.id}, Image: ${doc.data().imageUrl}, Audio: ${doc.data().audioUrl}`);
+            console.log(`DEBUG (fetchAndPopulateTopLevelNavigation - COURSE): ID: ${doc.id}, Image: ${doc.data().IMAGEURL}, Audio: ${doc.data().audioUrl}`);
             allTopLevelModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'COURSE', collection: 'COURSE' });
         });
 
         // 2. Fetch all LESSONs
         const lessonsSnapshot = await db.collection('LESSON').get();
         lessonsSnapshot.forEach(doc => {
-            console.log(`DEBUG (fetchAndPopulateTopLevelNavigation - LESSON): ID: ${doc.id}, Image: ${doc.data().imageUrl}, Audio: ${doc.data().audioUrl}`);
+            console.log(`DEBUG (fetchAndPopulateTopLevelNavigation - LESSON): ID: ${doc.id}, Image: ${doc.data().IMAGEURL}, Audio: ${doc.data().audioUrl}`);
             allTopLevelModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'LESSON', collection: 'LESSON' });
         });
 
@@ -1237,8 +1237,8 @@ async function fetchAndPopulateTopLevelNavigation() {
         learningContentSnapshot.forEach(doc => {
             const data = doc.data();
             if (topLevelLearningContentTypes.includes(data.MODULETYPE)) {
-                console.log(`DEBUG (fetchAndPopulateTopLevelNavigation - learningContent): ID: ${doc.id}, Type: ${data.MODULETYPE}, Image: ${data.imageUrl}, Audio: ${data.audioUrl}`);
-                allTopLevelModules.push({ id: doc.id, TITLE: data.TITLE || data.name || 'Untitled Content', MODULETYPE: data.MODULETYPE, collection: 'learningContent' });
+                console.log(`DEBUG (fetchAndPopulateTopLevelNavigation - learningContent): ID: ${doc.id}, Type: ${data.MODULETYPE}, Image: ${data.IMAGEURL}, Audio: ${data.audioUrl}`);
+                allTopLevelModules.push({ id: doc.id, ...data, collection: 'learningContent' });
             }
         });
 
