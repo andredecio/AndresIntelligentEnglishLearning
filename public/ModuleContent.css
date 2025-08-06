@@ -339,8 +339,8 @@ body {
 }
 
 .module-media img.thumbnail {
-     width: clamp(60px, 8vw, 100px);
-    height: clamp(60px, 8vw, 100px); /* Keep height same as width for square thumbnails */
+    width: 50px;
+    height: 50px;
     object-fit: cover;
     border-radius: 4px;
     border: 1px solid #ddd;
