@@ -1,5 +1,5 @@
 // ModuleContent.js
-    // Modified today 04/08/25 code deployed: v1.006t
+    // Modified today 04/08/25 code deployed: v1.006s
 
 // Firebase SDK global variables (initialized by /__/firebase/init.js)
 // We are using Firebase v8 syntax based on your provided common.js and AdminSystem.js
@@ -66,6 +66,7 @@ let statusAlert = null;
 let statusMessageSpan = null;
 let loadingSpinner = null;
 let singleRecordView = null;
+
 
 // --- MODIFIED: DOMContentLoaded listener ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -160,7 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     showAlert("Selected module not found, refreshing navigation.", true);
                     // If an item is missing, re-fetch all data and re-apply the filter
                     await fetchAndPopulateTopLevelNavigation();
-                    await applyModuleTypeFilter(); // This will reload the first item of the now-refreshed filtered list
+                    await applyModuleTypeFilter(); // This will reload the first item of the now-refr  eshed filtered list
                 }
                 updateNavigationButtons();
             }
@@ -255,7 +256,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Your existing call to loadAllAvailableModules() (keep this as it is)
     await loadAllAvailableModules();
 });
-
 
 // --- (Your functions will follow after these declarations) ---
 // --- Utility Functions ---
@@ -390,6 +390,7 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
     // Add level class for indentation (if your data has a 'level' property for nesting)
     if (level > 0) {
         li.classList.add(`level-${level}`);
+        li.dataset.level = level; // Set data-level attribute for easy lookup during collapse
     }
 
     // --- 1. Checkbox (Direct child of <li>) ---
@@ -469,8 +470,10 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
 
     // --- 3. Media Container (Direct child of <li>) ---
     // Make sure your moduleData actually has imageUrl and audioUrl properties from Firestore
-    // **DEBUGGING TIP**: Add console.log(moduleData.imageUrl, moduleData.audioUrl) here
-    // to verify the URLs are indeed present when this function runs.
+    // **DEBUGGING ADDITION**: Log moduleData's image and audio URLs here.
+    console.log(`DEBUG (renderModuleListItem): Module ID: ${moduleData.id}, Title: "${moduleData.TITLE || moduleData.name}"`);
+    console.log(`  imageUrl: ${moduleData.imageUrl}, audioUrl: ${moduleData.audioUrl}`);
+
     if (moduleData.imageUrl || moduleData.audioUrl) {
         const mediaContainer = document.createElement('div');
         mediaContainer.classList.add('module-media');
@@ -501,7 +504,8 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
     // Determine if this module type can have children that are listed
     // For now, let's assume if it's a COURSE or a learningContent item (that isn't a leaf).
     // You'll need to define how you determine if a module *can* have children.
-    const canHaveChildren = PARENT_MODULE_TYPES.includes(moduleData.MODULETYPE) || moduleData.MODULEID_ARRAY?.length > 0;
+    // A module can have children if its type is in PARENT_MODULE_TYPES or if it explicitly has MODULEID_ARRAY.
+    const canHaveChildren = PARENT_MODULE_TYPES.includes(moduleData.MODULETYPE) || (moduleData.MODULEID_ARRAY && moduleData.MODULEID_ARRAY.length > 0);
 
     const expandToggle = document.createElement('span');
     expandToggle.classList.add('expand-toggle');
@@ -515,18 +519,14 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
             const isExpanded = li.classList.toggle('expanded'); // Toggle expanded class on the list item
             expandToggle.textContent = isExpanded ? '▼' : '▶'; // Change arrow direction
 
-            // Logic to remove previously rendered children
-            let nextSibling = li.nextElementSibling;
-            while (nextSibling && nextSibling.classList.contains('module-item') && parseInt(nextSibling.dataset.level) === (level + 1)) {
-                const tempSibling = nextSibling;
-                nextSibling = tempSibling.nextElementSibling;
-                tempSibling.remove();
-            }
-            // Also remove "No content" messages if they were from previous expansion attempt
-            if (nextSibling && nextSibling.classList.contains('no-content-message')) {
-                const tempSibling = nextSibling;
-                nextSibling = tempSibling.nextElementSibling;
-                tempSibling.remove();
+            // **CRITICAL FIX: More comprehensive child removal for collapse**
+            if (!isExpanded) { // If we are collapsing, remove all nested children
+                let nextSibling = li.nextElementSibling;
+                while (nextSibling && parseInt(nextSibling.dataset.level) > level) {
+                    const tempSibling = nextSibling;
+                    nextSibling = tempSibling.nextElementSibling;
+                    tempSibling.remove();
+                }
             }
 
 
@@ -537,7 +537,6 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
                 // the `fetchAndRenderChildren` call here. For now, empty array.
                 await fetchAndRenderChildren(moduleData.id, childIds, level + 1, li, []);
             }
-            // If not expanded, the `while` loop above handled removal of children.
         });
     } else {
         expandToggle.classList.add('hidden'); // Hide arrow if no children expected
@@ -575,23 +574,21 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
             // According to our refined model, LESSON children are from `learningContent`
             docSnap = await db.collection('learningContent').doc(childId).get();
             if (docSnap.exists) {
-                console.log(`DEBUG: Found child ${childId} in 'learningContent' collection.`);
-                // **DEBUGGING TIP**: Add console.log(docSnap.data().imageUrl, docSnap.data().audioUrl) here
-                // to see if the URLs are being retrieved from Firestore for the children.
+                console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from 'learningContent'. Image: ${docSnap.data().imageUrl}, Audio: ${docSnap.data().audioUrl}`);
                 return { id: docSnap.id, ...docSnap.data(), collection: 'learningContent' };
             }
 
             // Check 'syllables' collection (children of VOCABULARY items from learningContent)
             docSnap = await db.collection('syllables').doc(childId).get();
             if (docSnap.exists) {
-                console.log(`DEBUG: Found child ${childId} in 'syllables' collection.`);
+                console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from 'syllables'. Image: ${docSnap.data().imageUrl}, Audio: ${docSnap.data().audioUrl}`);
                 return { id: docSnap.id, ...docSnap.data(), collection: 'syllables' };
             }
 
             // Check 'phonemes' collection (children of SYLLABLE items from syllables)
             docSnap = await db.collection('phonemes').doc(childId).get();
             if (docSnap.exists) {
-                console.log(`DEBUG: Found child ${childId} in 'phonemes' collection.`);
+                console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from 'phonemes'. Image: ${docSnap.data().imageUrl}, Audio: ${docSnap.data().audioUrl}`);
                 return { id: docSnap.id, ...docSnap.data(), collection: 'phonemes' };
             }
 
@@ -665,12 +662,14 @@ async function loadAllAvailableModules() {
         // 1. Fetch all COURSEs
         const coursesSnapshot = await db.collection('COURSE').get();
         coursesSnapshot.forEach(doc => {
+            console.log(`DEBUG (loadAllAvailableModules - COURSE): ID: ${doc.id}, Image: ${doc.data().imageUrl}, Audio: ${doc.data().audioUrl}`);
             allFetchedModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'COURSE' });
         });
 
         // 2. Fetch all LESSONs
         const lessonsSnapshot = await db.collection('LESSON').get();
         lessonsSnapshot.forEach(doc => {
+            console.log(`DEBUG (loadAllAvailableModules - LESSON): ID: ${doc.id}, Image: ${doc.data().imageUrl}, Audio: ${doc.data().audioUrl}`);
             allFetchedModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'LESSON' });
         });
 
@@ -682,6 +681,7 @@ async function loadAllAvailableModules() {
              // Only include if it's a known parent type or a specific item type
             const data = doc.data();
             if (data.MODULETYPE && !NON_SELECTABLE_LEAF_MODULE_TYPES.includes(data.MODULETYPE)) {
+                 console.log(`DEBUG (loadAllAvailableModules - learningContent): ID: ${doc.id}, Type: ${data.MODULETYPE}, Image: ${data.imageUrl}, Audio: ${data.audioUrl}`);
                  allFetchedModules.push({ id: doc.id, ...data });
             }
         });
@@ -1216,13 +1216,15 @@ async function fetchAndPopulateTopLevelNavigation() {
         // 1. Fetch all COURSEs
         const coursesSnapshot = await db.collection('COURSE').get();
         coursesSnapshot.forEach(doc => {
-            allTopLevelModules.push({ id: doc.id, TITLE: doc.data().TITLE || 'Untitled Course', MODULETYPE: 'COURSE', collection: 'COURSE' });
+            console.log(`DEBUG (fetchAndPopulateTopLevelNavigation - COURSE): ID: ${doc.id}, Image: ${doc.data().imageUrl}, Audio: ${doc.data().audioUrl}`);
+            allTopLevelModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'COURSE', collection: 'COURSE' });
         });
 
         // 2. Fetch all LESSONs
         const lessonsSnapshot = await db.collection('LESSON').get();
         lessonsSnapshot.forEach(doc => {
-            allTopLevelModules.push({ id: doc.id, TITLE: doc.data().TITLE || 'Untitled Lesson', MODULETYPE: 'LESSON', collection: 'LESSON' });
+            console.log(`DEBUG (fetchAndPopulateTopLevelNavigation - LESSON): ID: ${doc.id}, Image: ${doc.data().imageUrl}, Audio: ${doc.data().audioUrl}`);
+            allTopLevelModules.push({ id: doc.id, ...doc.data(), MODULETYPE: 'LESSON', collection: 'LESSON' });
         });
 
         // 3. Fetch top-level types from learningContent
@@ -1235,6 +1237,7 @@ async function fetchAndPopulateTopLevelNavigation() {
         learningContentSnapshot.forEach(doc => {
             const data = doc.data();
             if (topLevelLearningContentTypes.includes(data.MODULETYPE)) {
+                console.log(`DEBUG (fetchAndPopulateTopLevelNavigation - learningContent): ID: ${doc.id}, Type: ${data.MODULETYPE}, Image: ${data.imageUrl}, Audio: ${data.audioUrl}`);
                 allTopLevelModules.push({ id: doc.id, TITLE: data.TITLE || data.name || 'Untitled Content', MODULETYPE: data.MODULETYPE, collection: 'learningContent' });
             }
         });
@@ -1286,5 +1289,3 @@ saveRecordBtn.addEventListener('click', saveRecord);
 deleteRecordBtn.addEventListener('click', deleteRecord);
 activeRecordTypeSelect.addEventListener('change', () => { ... });
 */
-
-
