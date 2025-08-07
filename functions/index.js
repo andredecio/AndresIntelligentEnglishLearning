@@ -8,7 +8,7 @@ const admin = require('firebase-admin'); // Firebase Admin SDK
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); 
 const textToSpeechClient = new TextToSpeechClient();
 
-functions.logger.info('Firebase Functions code deployed: v1.006r');  //Version add ListeningSpeaking function 
+functions.logger.info('Firebase Functions code deployed: v1.006u');  //revise syllabification
 
 
 // Direct initialization of Firebase Admin SDK. This is the most robust way. ---

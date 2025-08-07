@@ -17,7 +17,7 @@ const batchGenerateModuleImages = functions.region('asia-southeast1').runWith({ 
         // --- CHANGE: Limit increased to 100 . ---
         const pendingModuleSnapshot = await firestore.collection('learningContent')
             .where('imageStatus', '==', 'pending')
-			.where('MODULETYPE', 'in', ['VOCABULARY', 'GRAMMAR', 'CONVERSATION'])
+			.where('MODULETYPE', 'in', ['VOCABULARY', 'GRAMMAR', 'CONVERSATION', 'SEMANTIC_GROUP', 'LISTENINGSPEAKING', 'READING-WRITING'])
             .where('imagePrompt', '!=', '')
             .limit(100) // Process a manageable batch at a time
             .get();
