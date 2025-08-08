@@ -1119,7 +1119,7 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
     // LATEST FIX 7/8/5: Update the Classroom button state after loading/clearing a record
     updateClassroomButtonState();
 }
-}
+
 
 /**
  * Updates the 'Currently Included Modules' list based on currentActiveRecord.MODULEID_ARRAY.
