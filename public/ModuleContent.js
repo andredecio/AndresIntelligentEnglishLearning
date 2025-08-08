@@ -1,17 +1,23 @@
 // ModuleContent.js
     // Modified today 04/08/25 code deployed: v1.006v
+import firebase from "firebase/compat/app"; // Needed for firebase.app()
+import "firebase/compat/auth";             // Needed for firebase.auth()
+import "firebase/compat/functions";         // Needed for app.functions() and httpsCallable
 
 // Firebase SDK global variables (initialized by /__/firebase/init.js)
 // We are using Firebase v8 syntax based on your provided common.js and AdminSystem.js
+
+const app = firebase.app(); 
 const auth = firebase.auth();
+const functions = app.functions('asia-southeast1'); // <-- This is the correct v8 way
+
 const db = firebase.firestore(); // Get Firestore instance
 const storage = firebase.storage(); // Get Storage instance
-
 // --- NEW: Google OAuth 2.0 Configuration (add these constants near your Firebase config) ---
 const GOOGLE_CLIENT_ID = "190391960875-o8digh9sqso6hrju89o8nmuullvbh2b4.apps.googleusercontent.com"; // <<< REPLACE THIS with the Client ID you just created!
 // Example: 190391960875-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
 
-const generateCourseForClassroomCloudFunction = httpsCallable(functions, 'generateCourseForClassroom');
+const generateCourseForClassroomCloudFunction = functions.httpsCallable('generateCourseForClassroom');
 
 const GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses',
