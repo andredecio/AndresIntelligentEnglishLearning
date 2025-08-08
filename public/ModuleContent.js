@@ -132,13 +132,13 @@ document.addEventListener('DOMContentLoaded', async () => {
  generateClassroomBtn = document.getElementById('generateClassroomBtn');
 
     // LATEST FIX 7/8/5: Add event listener for the Generate to Classroom button
-    if (generateClassroomBtn) {
-        generateClassroomBtn.addEventListener('click', () => {
+   // if (generateClassroomBtn) {
+//generateClassroomBtn.addEventListener('click', () => {
             // Placeholder for the actual Cloud Function call
-            const recordId = activeRecordIdInput.value;
-            const recordTitle = recordTitleInput.value;
-            showAlert(`Attempting to generate Course: "${recordTitle}" (ID: ${recordId}) to Google Classroom...`, false);
-            console.log(`Initiating Google Classroom generation for Course ID: ${recordId}`);
+   //         const recordId = activeRecordIdInput.value;
+   //         const recordTitle = recordTitleInput.value;
+   //         showAlert(`Attempting to generate Course: "${recordTitle}" (ID: ${recordId}) to Google Classroom...`, false);
+   //         console.log(`Initiating Google Classroom generation for Course ID: ${recordId}`);
             // In a real scenario, you'd make an API call to a Cloud Function here.
             // Example:
             // firebase.functions().httpsCallable('generateClassroomCourse')({ courseId: recordId, courseTitle: recordTitle })
@@ -150,8 +150,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             //         showAlert(`Error generating to Classroom: ${error.message}`, true);
             //         console.error('Error calling Cloud Function:', error);
             //     });
-        });
-    }
+       // });
+    //}
     // Current Children Display
     currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
 
@@ -351,9 +351,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	 // --- NEW: Logic for the "Generate to Classroom" button ---
     // Add this entire block inside your existing DOMContentLoaded listener
-    const generateButton = document.getElementById('generateToClassroomButton');
-    if (generateButton) {
-        generateButton.addEventListener('click', async () => {
+        if (generateClassroomBtn) {
+        generateClassroomBtn.addEventListener('click', () => {
+
             const currentUser = auth.currentUser;
 
             if (!currentUser) {
@@ -361,12 +361,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // !!! IMPORTANT: Replace this with how you get the currently selected COURSE ID from your UI !!!
-            const selectedCourseId = "example_course_id_from_your_ui"; 
-            if (!selectedCourseId || selectedCourseId === "example_course_id_from_your_ui") {
-                alert("Please select a valid COURSE record to generate.");
-                return;
-            }
+       // Use the value from your existing input elements
+        let selectedCourseId = '';
+        let selectedCourseTitle = '';
+
+        // Ensure the input elements exist and have values
+        if (activeRecordIdInput && activeRecordIdInput.value) {
+            selectedCourseId = activeRecordIdInput.value;
+        }
+        if (recordTitleInput && recordTitleInput.value) {
+            selectedCourseTitle = recordTitleInput.value;
+        }
+
+        if (!selectedCourseId) { // Check if a valid ID was found
+            alert("Please select a valid COURSE record to generate (ID not found).");
+            return;
+        }
 
             // Step 1: Initiate Google OAuth 2.0 flow
             try {
@@ -387,7 +397,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         // Step 2: Call your Cloud Function to exchange the code for tokens and proceed
                         try {
                             generateButton.disabled = true; // Disable button while processing
-
+							showAlert(`Attempting to generate Course: "${selectedCourseTitle || selectedCourseId}" to Google Classroom...`, false);
                             const result = await generateCourseForClassroomCloudFunction({
                                 courseId: selectedCourseId,
                                 authorizationCode: authorizationCode,
@@ -395,7 +405,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             });
 
                             console.log('Cloud Function response:', result.data);
-                            alert(result.data.message);
+                        showAlert(result.data.message, false); // Show success message from the Cloud Function
                         } catch (cfError) {
                             console.error('Error calling Cloud Function:', cfError.code, cfError.message, cfError.details);
                             alert(`Failed to integrate with Google Classroom: ${cfError.message}`);
