@@ -1,8 +1,8 @@
 // ModuleContent.js
     // Modified today 04/08/25 code deployed: v1.006v
-import firebase from "firebase/compat/app"; // Needed for firebase.app()
-import "firebase/compat/auth";             // Needed for firebase.auth()
-import "firebase/compat/functions";         // Needed for app.functions() and httpsCallable
+//import firebase from "firebase/compat/app"; // Needed for firebase.app()
+//import "firebase/compat/auth";             // Needed for firebase.auth()
+//import "firebase/compat/functions";         // Needed for app.functions() and httpsCallable
 
 // Firebase SDK global variables (initialized by /__/firebase/init.js)
 // We are using Firebase v8 syntax based on your provided common.js and AdminSystem.js
