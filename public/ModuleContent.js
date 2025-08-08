@@ -1,11 +1,25 @@
 // ModuleContent.js
-    // Modified today 04/08/25 code deployed: v1.006t
+    // Modified today 04/08/25 code deployed: v1.006v
 
 // Firebase SDK global variables (initialized by /__/firebase/init.js)
 // We are using Firebase v8 syntax based on your provided common.js and AdminSystem.js
 const auth = firebase.auth();
 const db = firebase.firestore(); // Get Firestore instance
 const storage = firebase.storage(); // Get Storage instance
+
+// --- NEW: Google OAuth 2.0 Configuration (add these constants near your Firebase config) ---
+const GOOGLE_CLIENT_ID = "190391960875-o8digh9sqso6hrju89o8nmuullvbh2b4.apps.googleusercontent.com"; // <<< REPLACE THIS with the Client ID you just created!
+// Example: 190391960875-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
+
+const generateCourseForClassroomCloudFunction = httpsCallable(functions, 'generateCourseForClassroom');
+
+const GOOGLE_SCOPES = [
+    'https://www.googleapis.com/auth/classroom.courses',
+    'https://www.googleapis.com/auth/classroom.coursework.students',
+    'https://www.googleapis.com/auth/classroom.rosters', // Only if you selected this scope. If not, remove this line.
+    'https://www.googleapis.com/auth/classroom.topics'    // Only if you selected this scope. If not, remove this line.
+].join(' '); // Join with spaces for the request
+
 
 // List of module types that can be 'parent' containers and thus selectable for inclusion
 const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY', 'SYLLABLE'];
@@ -66,9 +80,12 @@ let statusAlert = null;
 let statusMessageSpan = null;
 let loadingSpinner = null;
 let singleRecordView = null;
-
+let generateClassroomBtn = null;
 
 // --- MODIFIED: DOMContentLoaded listener ---
+
+
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Assuming your common.js handles auth state and admin checks first
 
@@ -106,7 +123,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Action Buttons (Save, Delete)
     saveRecordBtn = document.getElementById('saveRecordBtn');
     deleteRecordBtn = document.getElementById('deleteRecordBtn');
+ generateClassroomBtn = document.getElementById('generateClassroomBtn');
 
+    // LATEST FIX 7/8/5: Add event listener for the Generate to Classroom button
+    if (generateClassroomBtn) {
+        generateClassroomBtn.addEventListener('click', () => {
+            // Placeholder for the actual Cloud Function call
+            const recordId = activeRecordIdInput.value;
+            const recordTitle = recordTitleInput.value;
+            showAlert(`Attempting to generate Course: "${recordTitle}" (ID: ${recordId}) to Google Classroom...`, false);
+            console.log(`Initiating Google Classroom generation for Course ID: ${recordId}`);
+            // In a real scenario, you'd make an API call to a Cloud Function here.
+            // Example:
+            // firebase.functions().httpsCallable('generateClassroomCourse')({ courseId: recordId, courseTitle: recordTitle })
+            //     .then(result => {
+            //         showAlert('Course successfully sent to Google Classroom!', false);
+            //         console.log('Cloud Function response:', result.data);
+            //     })
+            //     .catch(error => {
+            //         showAlert(`Error generating to Classroom: ${error.message}`, true);
+            //         console.error('Error calling Cloud Function:', error);
+            //     });
+        });
+    }
     // Current Children Display
     currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
 
@@ -198,6 +237,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     // This listener for activeRecordTypeSelect was at the very bottom. Move it here.
     if (activeRecordTypeSelect) {
         activeRecordTypeSelect.addEventListener('change', () => {
+			    if (activeRecordTypeSelect) {
+        activeRecordTypeSelect.addEventListener('change', () => {
+            // This listener should only act when the select is enabled (i.e., for new records)
+            if (!activeRecordTypeSelect.disabled) {
+                const selectedType = activeRecordTypeSelect.value;
+
+                // Update the hidden collection input based on the selected module type
+                if (activeRecordCollectionInput && moduleTypes[selectedType]) { // Added safety check
+                    activeRecordCollectionInput.value = moduleTypes[selectedType];
+                }
+
+                // Adjust visibility of Theme and Image Status fields based on the newly selected type
+                // Theme field logic
+                const typesWithTheme = [ // This array should probably be a global constant to avoid duplication
+                    'COURSE', 'LESSON', 'VOCABULARY_GROUP', 'VOCABULARY'
+                ];
+                const isThemeRelevant = typesWithTheme.includes(selectedType);
+                if (themeFields) { // Safety check
+                    if (isThemeRelevant) {
+                        themeFields.forEach(el => el.classList.remove('hidden'));
+                    } else {
+                        themeFields.forEach(el => el.classList.add('hidden'));
+                    }
+                }
+
+                // Image Status field logic
+                const typesWithImageStatus = [ // This array should probably be a global constant to avoid duplication
+                    'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY',
+                    'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING' // Corrected typo here
+                ];
+                const isImageStatusRelevant = typesWithImageStatus.includes(selectedType);
+                if (imageStatusFields) { // Safety check
+                    if (isImageStatusRelevant) {
+                        imageStatusFields.forEach(el => el.classList.remove('hidden'));
+                    } else {
+                        imageStatusFields.forEach(el => el.classList.add('hidden'));
+                    }
+                }
+                // Also add CEFR and Meaning Origin fields' visibility logic here if needed for new records.
+                // It looks like this logic is in loadRecordIntoEditor, but if you want it on type change for new record,
+                // you'll need to duplicate that here or refactor. // <--- Insert new line AFTER this comment
+				// LATEST FIX 7/8/5: Update the Classroom button state when module type changes for new records
+                updateClassroomButtonState();
+			}
+        });
+    }
+
             // This listener should only act when the select is enabled (i.e., for new records)
             if (!activeRecordTypeSelect.disabled) {
                 const selectedType = activeRecordTypeSelect.value;
@@ -255,10 +341,100 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Your existing call to loadAllAvailableModules() (keep this as it is)
     await loadAllAvailableModules();
+
+
+	 // --- NEW: Logic for the "Generate to Classroom" button ---
+    // Add this entire block inside your existing DOMContentLoaded listener
+    const generateButton = document.getElementById('generateToClassroomButton');
+    if (generateButton) {
+        generateButton.addEventListener('click', async () => {
+            const currentUser = auth.currentUser;
+
+            if (!currentUser) {
+                alert("You must be signed in to generate content to Classroom.");
+                return;
+            }
+
+            // !!! IMPORTANT: Replace this with how you get the currently selected COURSE ID from your UI !!!
+            const selectedCourseId = "example_course_id_from_your_ui"; 
+            if (!selectedCourseId || selectedCourseId === "example_course_id_from_your_ui") {
+                alert("Please select a valid COURSE record to generate.");
+                return;
+            }
+
+            // Step 1: Initiate Google OAuth 2.0 flow
+            try {
+                const client = google.accounts.oauth2.initCodeClient({
+                    client_id: GOOGLE_CLIENT_ID,
+                    scope: GOOGLE_SCOPES,
+                    ux_mode: 'popup',
+                    callback: async (response) => {
+                        if (response.error) {
+                            console.error('OAuth Error:', response.error);
+                            alert('Google OAuth permission denied or error: ' + response.error);
+                            return;
+                        }
+
+                        const authorizationCode = response.code;
+                        console.log('Received Google authorization code:', authorizationCode);
+
+                        // Step 2: Call your Cloud Function to exchange the code for tokens and proceed
+                        try {
+                            generateButton.disabled = true; // Disable button while processing
+
+                            const result = await generateCourseForClassroomCloudFunction({
+                                courseId: selectedCourseId,
+                                authorizationCode: authorizationCode,
+                                firebaseAuthUid: currentUser.uid
+                            });
+
+                            console.log('Cloud Function response:', result.data);
+                            alert(result.data.message);
+                        } catch (cfError) {
+                            console.error('Error calling Cloud Function:', cfError.code, cfError.message, cfError.details);
+                            alert(`Failed to integrate with Google Classroom: ${cfError.message}`);
+                        } finally {
+                            generateButton.disabled = false; // Re-enable button
+                        }
+                    },
+                });
+                client.requestCode();
+            } catch (oauthInitError) {
+                console.error('Error initiating OAuth client:', oauthInitError);
+                alert('Could not start Google OAuth process. Check console for details.');
+            }
+        });
+    }
 });
+	
+	
+	
+
+
+
+	
+
 
 // --- (Your functions will follow after these declarations) ---
 // --- Utility Functions ---
+// LATEST FIX 7/8/5: Function to manage the visibility and enabled state of the Google Classroom button
+function updateClassroomButtonState() {
+    // Ensure both the activeRecordTypeSelect and generateClassroomBtn elements exist
+    if (!activeRecordTypeSelect || !generateClassroomBtn) {
+        console.warn("Required DOM elements for Classroom button state not found.");
+        return;
+    }
+
+    const currentModuleType = activeRecordTypeSelect.value;
+
+    if (currentModuleType === 'COURSE') {
+        generateClassroomBtn.style.display = 'inline-block'; // Make it visible
+        generateClassroomBtn.disabled = false; // Enable it
+    } else {
+        generateClassroomBtn.style.display = 'none'; // Hide it
+        generateClassroomBtn.disabled = true; // Disable it
+    }
+}
 
 /**
  * Shows a temporary alert message.
@@ -940,6 +1116,9 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
     // Always update these after record data is loaded/cleared
     updateCurrentChildrenDisplay();
     displayFilteredModules();
+    // LATEST FIX 7/8/5: Update the Classroom button state after loading/clearing a record
+    updateClassroomButtonState();
+}
 }
 
 /**
