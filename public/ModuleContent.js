@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                         // Step 2: Call your Cloud Function to exchange the code for tokens and proceed
                         try {
-                            generateButton.disabled = true; // Disable button while processing
+                            generateClassroomBtn.disabled = true; // Disable button while processing
 							showAlert(`Attempting to generate Course: "${selectedCourseTitle || selectedCourseId}" to Google Classroom...`, false);
                             const result = await generateCourseForClassroomCloudFunction({
                                 courseId: selectedCourseId,
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             console.error('Error calling Cloud Function:', cfError.code, cfError.message, cfError.details);
                             alert(`Failed to integrate with Google Classroom: ${cfError.message}`);
                         } finally {
-                            generateButton.disabled = false; // Re-enable button
+                            generateClassroomBtn.disabled = false; // Re-enable button
                         }
                     },
                 });
