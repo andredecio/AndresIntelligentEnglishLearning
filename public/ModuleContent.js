@@ -1,5 +1,5 @@
 // ModuleContent.js
-    // Modified today 04/08/25 code deployed: v1.006v
+    // Modified today 09/08/25 code deployed: v1.006v
 //import firebase from "firebase/compat/app"; // Needed for firebase.app()
 //import "firebase/compat/auth";             // Needed for firebase.auth()
 //import "firebase/compat/functions";         // Needed for app.functions() and httpsCallable
@@ -21,6 +21,8 @@ const generateCourseForClassroomCloudFunction = functions.httpsCallable('generat
 
 const GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses',
+	'https://www.googleapis.com/auth/classroom.topics', // <-- ADD THIS
+    'https://www.googleapis.com/auth/classroom.coursework.materials', // <-- ADD THIS
     'https://www.googleapis.com/auth/classroom.coursework.students',
     'https://www.googleapis.com/auth/classroom.rosters', // Only if you selected this scope. If not, remove this line.
     'https://www.googleapis.com/auth/classroom.topics'    // Only if you selected this scope. If not, remove this line.
