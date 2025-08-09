@@ -22,6 +22,7 @@ const generateCourseForClassroomCloudFunction = functions.httpsCallable('generat
 const GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses',
 	'https://www.googleapis.com/auth/classroom.topics', // <-- ADD THIS
+    'https://www.googleapis.com/auth/classroom.courseworkmaterials', // <-- ADD THIS
     'https://www.googleapis.com/auth/classroom.coursework.students',
     'https://www.googleapis.com/auth/classroom.rosters', // Only if you selected this scope. If not, remove this line.
 ].join(' '); // Join with spaces for the request
