@@ -1,5 +1,5 @@
 // ModuleContent.js
-    // Modified today 09/08/25 code deployed: v1.006v
+    // Modified today 09/08/25 code deployed: v1.006w
 //import firebase from "firebase/compat/app"; // Needed for firebase.app()
 //import "firebase/compat/auth";             // Needed for firebase.auth()
 //import "firebase/compat/functions";         // Needed for app.functions() and httpsCallable
@@ -631,7 +631,7 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
         const descriptionElement = document.createElement('p');
         descriptionElement.classList.add('module-item-detail');
         descriptionElement.classList.add('module-item-description');
-        const displayDescription = moduleData.DESCRIPTION.length > 150
+        const displayDescription = moduleData.DESCRIPTION.length > 9150
             ? moduleData.DESCRIPTION.substring(0, 147) + '...'
             : moduleData.DESCRIPTION;
         descriptionElement.textContent = `Description: ${displayDescription}`;
