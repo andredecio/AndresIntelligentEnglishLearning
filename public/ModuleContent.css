@@ -290,12 +290,17 @@ body {
 }
 
 .module-item-description {
-    max-height: 200px; 
-    overflow-y: auto;
-    /*text-overflow: ellipsis; /* Add ellipsis for truncated text */
-    /* Ensure it handles long words gracefully */
-    word-wrap: break-word;
-    white-space: pre-wrap;
+   max-height: 200px; /* Adjust this height as needed to show a few lines before scrolling */
+    overflow-y: auto; /* This enables the vertical scrollbar when content overflows */
+    white-space: pre-wrap; /* Ensures that text wraps and preserves line breaks from your data */
+    word-wrap: break-word; /* Prevents long words from overflowing the container */
+    
+    /* Additional properties you *might* need, depending on your layout: */
+    display: block; /* Ensure it's a block-level element that respects height/width */
+    width: 100%; /* Make sure it takes up available width to trigger wrapping */
+    box-sizing: border-box; /* To ensure padding and border are included in the element's total width/height */
+    padding: 10px; /* Give it a little internal space so text isn't stuck to edges */
+    border: 1px solid #ccc; /* Helps you visualize the container's boundaries for debugging */
 }
 
 .module-item-cefr {
