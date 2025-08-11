@@ -290,7 +290,7 @@ body {
 }
 
 .module-item-description {
-   max-height: 200px; /* Adjust this height as needed to show a few lines before scrolling */
+   max-height: 50px; /* Adjust this height as needed to show a few lines before scrolling */
     overflow-y: auto; /* This enables the vertical scrollbar when content overflows */
     white-space: pre-wrap; /* Ensures that text wraps and preserves line breaks from your data */
     word-wrap: break-word; /* Prevents long words from overflowing the container */
