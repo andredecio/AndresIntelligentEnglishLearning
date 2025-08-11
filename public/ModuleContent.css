@@ -290,8 +290,7 @@ body {
 }
 
 .module-item-description {
-    max-height: 14.0
-	em; /* Limit description to about 3 lines (1.4 * 3) */
+    max-height: 4.2em; /* Limit description to about 3 lines (1.4 * 3) */
     overflow-y: auto;
     /*text-overflow: ellipsis; /* Add ellipsis for truncated text */
     /* Ensure it handles long words gracefully */
