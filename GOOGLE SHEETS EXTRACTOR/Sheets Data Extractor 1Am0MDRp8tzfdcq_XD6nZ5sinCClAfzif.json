@@ -1,0 +1,608 @@
+[
+  {
+    "No.": "1",
+    "Student ID": "2025JB00067",
+    "Student Name": "KOH JING TING",
+    "Gender": "F",
+    "Nationality": "MALAYSIAN",
+    "Email": "wtf_jingting@outlook.com",
+    "Visa": "MALAYSIA",
+    "Remark": "N"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025JB00072",
+    "Student Name": "KOH JING LUN",
+    "Gender": "M",
+    "Nationality": "MALAYSIAN",
+    "Visa": "MALAYSIA",
+    "Remark": "N"
+  },
+  {
+    "No.": "3"
+  },
+  {
+    "No.": "4"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2025JB00007",
+    "Student Name": "YANG JINGRAN",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "jingransq_yang@163.com",
+    "Visa": "UTM / UG",
+    "Remark": "Rina informed only will join 29/7"
+  },
+  {
+    "Student ID": "NOT CONTINUING"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2025JB00013",
+    "Student Name": "WANG LIQI",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "15110150290@163.com",
+    "Visa": "UTM / UG\n2508",
+    "Remark": "R2\n(05&06)"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025JB00068",
+    "Student Name": "KOH JING RONG",
+    "Gender": "F",
+    "Nationality": "MALAYSIAN",
+    "Email": "im_janicekoh@outlook.com",
+    "Visa": "MALAYSIA",
+    "Remark": "N"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025JB00075",
+    "Student Name": "ZHAO DONGYAN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "621069661@qq.com",
+    "Visa": "SOCIAL",
+    "Remark": "N"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025JB00076",
+    "Student Name": "ZHENG XUANXIAO",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "394640391@qq.com",
+    "Visa": "SOCIAL",
+    "Remark": "N"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2025JB00078",
+    "Student Name": "CHEN JUNYI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "9390476@qq.com",
+    "Visa": "SOCIAL",
+    "Remark": "N"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2025JB00080",
+    "Student Name": "JIN HAINING",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "838237817@qq.com",
+    "Visa": "SOCIAL",
+    "Remark": "N"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8"
+  },
+  {
+    "Student ID": "NOT CONTINUING"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2025JB00021",
+    "Student Name": "WANG CHUYAN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "wangchuyan_2025@163.com",
+    "Visa": "UTM / PG",
+    "Remark": "R"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025JB00050",
+    "Student Name": "LI YINQI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "1091402903@qq.com",
+    "Visa": "UTM / PG\n2507-2509"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025JB00056",
+    "Student Name": "YAN ZIHENG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "yzh161860@gmail.com",
+    "Visa": "UTM / PG"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025JB00077",
+    "Student Name": "WU SIDI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "1065374132@qq.com",
+    "Visa": "SOCIAL",
+    "Remark": "N"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2025JB00079",
+    "Student Name": "FENG NANYUE",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "fny18523291801@qq.com",
+    "Visa": "SOCIAL",
+    "Remark": "N"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2025JB00081",
+    "Student Name": "CHEN JIACHENG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "lllstacy@163.com",
+    "Visa": "SOCIAL",
+    "Remark": "N"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2025JB00086",
+    "Student Name": "XU QIANQIAN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "xuqianqian@graduate.utm.my",
+    "Visa": "UTM / PG",
+    "Remark": "N"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8"
+  },
+  {
+    "Student ID": "NOT CONTINUING"
+  },
+  {
+    "Student ID": "2025JB00012",
+    "Student Name": "WANG BOWEN",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "wangbowen@chinastudent.com.my",
+    "Visa": "UTM / UG\n2506-2508",
+    "Remark": "R2"
+  },
+  {
+    "Student ID": "2025JB00070",
+    "Student Name": "REN BINGYAO",
+    "Nationality": "M",
+    "Email": "CHINA",
+    "Visa": "renbingyao81@gmail.com",
+    "Remark": "SOCIAL"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2025JB00009",
+    "Student Name": "LI AOFAN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "3273252094@qq.com",
+    "Visa": "UTM/UG\n2506-2508",
+    "Remark": "R3"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025JB00030",
+    "Student Name": "LI JIAQI",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "yueying050104@163.com",
+    "Visa": "UTM / UG\n2506-2508"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025JB00039",
+    "Student Name": "LIANG YANBI",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "liangyanbi040725@163.com",
+    "Visa": "UTM / UG\n2506-2508",
+    "Remark": "R2 (MIA SS)"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025JB00053",
+    "Student Name": "WEGDAN AHMED QAID YAHYA",
+    "Gender": "F",
+    "Nationality": "YEMEN",
+    "Email": "wgdnhelnatmy1@gmail.com",
+    "Visa": "UTM / UG\n2507-2509"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8"
+  },
+  {
+    "Student ID": "NOT CONTINUING"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2025JB00002",
+    "Student Name": "SUN WENJIE",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "sunwenjie202410@163.com",
+    "Visa": "UTM / PG\n2506-2509",
+    "Remark": "R1"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025JB00034",
+    "Student Name": "HU LINHEWA",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "hulinhewa@graduate.utm.my",
+    "Visa": "UTM / UG\n2506-2508"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025JB00054",
+    "Student Name": "LEE WEN CI",
+    "Gender": "F",
+    "Nationality": "MALAYSIAN",
+    "Email": "cileewen2109@gmail.com",
+    "Visa": "MALAYSIA"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025JB00055",
+    "Student Name": "WANG YUANHAO",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "wangyuanhao@graduate.utm.my",
+    "Visa": "UTM / UG"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2025JB00062",
+    "Student Name": "GUO WENBO",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "bo2048750830@163.com",
+    "Visa": "UTM / PG\n2507-2509"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2025JB00073",
+    "Student Name": "ZHANG XINYU",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "397066049@qq.com",
+    "Visa": "SOCIAL",
+    "Remark": "N"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8"
+  },
+  {
+    "Student ID": "NOT CONTINUING"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2024JB00143",
+    "Student Name": "ABDULAZIZ SALAH SAAD BOAIRAN",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "azo0oz.salah.s@gmail.com",
+    "Visa": "UTM/UG"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025JB00019",
+    "Student Name": "WANG CANJING",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "can0_9@outlook.com",
+    "Visa": "UTM / UG\n2506-2508"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025JB00025",
+    "Student Name": "HAN YUNFU",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2739196275@qq.com",
+    "Visa": "UTM / PG\n2506-2508",
+    "Remark": "R2"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025JB00074",
+    "Student Name": "XIONG KELE",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "18659102@qq.com",
+    "Visa": "SOCIAL",
+    "Remark": "N"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2025SJ00006",
+    "Student Name": "LIU YISHAN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "1114684481@qq.com",
+    "Visa": "UTM / PG\n2506-2508",
+    "Remark": "R1"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2024KL00241",
+    "Student Name": "ALWARD MUNEER WASIM ALI",
+    "Gender": "M",
+    "Nationality": "YEMEN",
+    "Email": "algwal1146@gmail.com",
+    "Visa": "ELS VISA\n22/10/25"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8"
+  },
+  {
+    "Student ID": "NOT CONTINUING"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2025JB00011",
+    "Student Name": "LI RUIQING",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "liruiqing@chinastudent.com.my",
+    "Visa": "UTM / PG\n2506-2508"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025JB00029",
+    "Student Name": "MA WENLU",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "mwllulu020405@163.com",
+    "Visa": "UTM / PG"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025JB00040",
+    "Student Name": "WANG KANGXIN",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "wkx7590@163.com",
+    "Visa": "UTM / PG"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025SJ00100",
+    "Student Name": "LONG ZHIXIANG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2939772008@qq.com",
+    "Visa": "UTM / UG"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2024JB00072",
+    "Student Name": "MOHANNAD AHMED HUSSIEN BELAL",
+    "Gender": "M",
+    "Nationality": "SUDAN",
+    "Email": "blalmhnd303@gmail.com",
+    "Visa": "UTM/UG",
+    "Remark": "f/up payment"
+  },
+  {
+    "Student ID": "NOT CONTINUING"
+  },
+  {
+    "Student ID": "2024KL00265",
+    "Student Name": "HE YUPENG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "hyupeng804@gmail.com",
+    "Visa": "UTM / UG"
+  },
+  {
+    "Student ID": "2024JB00147",
+    "Student Name": "WANG JUNDA",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "wangjunda@graduate.utm.my",
+    "Visa": "UTM / PG",
+    "Remark": "ACHIEVED TOEFL"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2024JB00088",
+    "Student Name": "JING HAORAN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "jing97570227@163.com",
+    "Visa": "UTM / PG",
+    "Remark": "COMPLETED L109 202502"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2024JB00130",
+    "Student Name": "ZHANG XIN",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "zhangx@graduate.utm.my",
+    "Visa": "UTM / PG"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025JB00017",
+    "Student Name": "CHEN MINGHONG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "chenminghong12456@163.com",
+    "Visa": "UTM / PG\n2506-2508"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025JB00018",
+    "Student Name": "HE JIAXUN",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2253172383@qq.com",
+    "Visa": "UTM / PG\n2506-2508"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2025JB00047",
+    "Student Name": "MAI HAOLIANG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "mhl12347890@163.com",
+    "Visa": "UTM / PG\n2507-2508"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2025SJ00008",
+    "Student Name": "ZHANG JINHAO",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2658785101@qq.com",
+    "Visa": "UTM / PG"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 1:00 PM GMT+8"
+  },
+  {
+    "Student ID": "NOT CONTINUING"
+  }
+]

@@ -8,7 +8,7 @@ const admin = require('firebase-admin'); // Firebase Admin SDK
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); 
 const textToSpeechClient = new TextToSpeechClient();
 
-functions.logger.info('Firebase Functions code deployed: v1.006u');  //revise syllabification
+functions.logger.info('Firebase Functions code deployed: v1.006v');  //Export to Google Classroom
 
 
 // Direct initialization of Firebase Admin SDK. This is the most robust way. ---
@@ -59,6 +59,12 @@ exports.batchGenerateModuleImages = batchGenerateModuleImages;
 //For multi-module generation and bundling into a LESSON called from AdminSystem
 const { createLesson } = require('./logic/createLesson');
 exports.createLesson = createLesson;
+
+
+
+//For Export of Courses into Google Classroom
+const { generateCourseForClassroom } = require('./Classroom/generateCourseForClassroom');
+exports.generateCourseForClassroom = generateCourseForClassroom;
 
 
 

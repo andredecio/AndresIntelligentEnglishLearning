@@ -6,6 +6,10 @@ input_dir = r"C:\Users\ACER\AI TEACHING SYSTEM\GOOGLE SHEETS EXTRACTOR"
 
 # List of filenames to merge (make sure .json extension is included)
 filenames = [
+    "Sheets Data Extractor 12dMe7FqJI3X6ks11AEmtECREIvT3yvBaeBcDVNmyjW0.json",
+    "Sheets Data Extractor 1-HeX-CGd7xRSuNsOPB-WHl5LltBjGpk3hjn3eRCb5BQ.json",
+    "Sheets Data Extractor 17gaMRKsseZkG6nszSePtis-geWss5X1vxUBDcU2LPjY.json",
+    "Sheets Data Extractor 1Am0MDRp8tzfdcq_XD6nZ5sinCClAfzif.json",
     "Sheets Data Extractor 1AVzn2svdlySagC6srQsGtapb-UNIzOonkuiCBKSHWQA.json",
     "Sheets Data Extractor 1xlwlodM49AQC_S1O7r-pp4pyIDsq8w6W.json",
     "Sheets Data Extractor 1DERy3f717PPpqFlcT7rJa39kNb2ggNCP1kFoQh9HFCU.json",
@@ -54,7 +58,7 @@ for filename in filenames:
         print(f"⚠️ Could not read {filename}: {e}")
 
 # Output path for the merged file
-output_path = os.path.join(input_dir, "ALL THE STUDENTS.json")
+output_path = os.path.join(input_dir, "ALL THE STUDENTS 11-08-2025.json")
 with open(output_path, "w", encoding="utf-8") as f_out:
     json.dump(merged_data, f_out, ensure_ascii=False, indent=2)
 

@@ -1,0 +1,529 @@
+[
+  {
+    "No.": "1",
+    "Student ID": "2025SJ00058",
+    "Student Name": "ALOTHAIM, ABDULLAH ALI A",
+    "Gender": "M",
+    "Nationality": "SAUDI",
+    "Email": "abdallah.2001.ot@gmail.com",
+    "Visa": "ELS",
+    "Current Location": "MY(SJ)"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025SJ00145",
+    "Student Name": "CHEN JIATIAN (JASON)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "13600408849@163.com",
+    "Visa": "O.COLLEGE",
+    "Current Location": "MY(SJ)"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025SJ00187",
+    "Student Name": "JEGAJEEVAN RAJAN",
+    "Gender": "M",
+    "Nationality": "MALAYSIA",
+    "Email": "jegapes1870@gmail.com",
+    "Current Location": "MY(PJ)"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025SJ00197",
+    "Student Name": "WANG CHEN-HONG",
+    "Gender": "M",
+    "Nationality": "TAIWAN",
+    "Email": "j110089@tcsh.hlc.edu.tw",
+    "Visa": "MM2H",
+    "Current Location": "MY(Shah Alam)"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2025SJ00207",
+    "Student Name": "YE HENGRUN (Frank)",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "790678201@qq.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2025SJ00219",
+    "Student Name": "RENA INUZUKA",
+    "Gender": "F",
+    "Nationality": "JAPAN",
+    "Email": "fr.2321@icloud.com",
+    "Visa": "DEPENDANT",
+    "Current Location": "MY(SJ)",
+    "Remark": "N/SICO"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2025SJ00193",
+    "Student Name": "LEE SZE ING (CATHY)",
+    "Gender": "F",
+    "Nationality": "MALAYSIA",
+    "Email": "soluii0412@gmail.com",
+    "Current Location": "MY(Shah Alam)",
+    "Remark": "Defer to Sept session due to work issue"
+  },
+  {
+    "Student ID": "202501",
+    "Student Name": "ELSSJ-103A",
+    "Current Location": "1",
+    "Remark": "PRESENT"
+  },
+  {
+    "Student ID": "SSP :",
+    "Gender": "1.30 - 3.20",
+    "Current Location": "0",
+    "Remark": "ABSENT"
+  },
+  {
+    "Student ID": "RW :",
+    "Gender": "8:30 - 10:20",
+    "Current Location": "1",
+    "Remark": "LATE"
+  },
+  {
+    "Student ID": "CLS :",
+    "Gender": "11.40 - 12.30",
+    "Current Location": "1",
+    "Remark": "N/E",
+    "PASS / REPEAT": "IMPORTANT!"
+  },
+  {
+    "Student ID": "CLASSROOM:"
+  },
+  {
+    "Student ID": "ADMIN :"
+  },
+  {
+    "No.": "No.",
+    "Student ID": "Student ID",
+    "Student Name": "Student Name",
+    "Gender": "Gender",
+    "Nationality": "Nationality",
+    "Email": "Email",
+    "Visa": "Visa",
+    "Current Location": "Current Location",
+    "Remark": "Remark",
+    "PASS / REPEAT": "PASS / REPEAT"
+  },
+  {
+    "No.": "1"
+  },
+  {
+    "No.": "2"
+  },
+  {
+    "No.": "3"
+  },
+  {
+    "No.": "4"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2024SJ00325",
+    "Student Name": "LI HUAJING (BECKY)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "390853152@QQ.COM",
+    "Visa": "DEPENDANT",
+    "Current Location": "MY(SUNWAY)",
+    "Remark": "REPEAT"
+  },
+  {
+    "Student ID": "2024SJ00392",
+    "Student Name": "TURKI KHALID S ALREHAILI",
+    "Gender": "M",
+    "Nationality": "SAUDI",
+    "Email": "trook123k@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(SJ)"
+  },
+  {
+    "Student ID": "2024SJ00485",
+    "Student Name": "FATEMA LATIF",
+    "Gender": "PT",
+    "Nationality": "SICO (SSP & LTC) Prefer AM class"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2025SJ00190",
+    "Student Name": "LI ZHIHUI",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "2996689427@qq.com",
+    "Visa": "ELS",
+    "Current Location": "MY(Shah Alam)",
+    "Remark": "N"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025SJ00202",
+    "Student Name": "KIMURA TAIYO",
+    "Gender": "M",
+    "Nationality": "JAPAN",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025SJ00205",
+    "Student Name": "YANG JIZHONG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Visa": "SOCIAL",
+    "Current Location": "MY (SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025SJ00215",
+    "Student Name": "LIU ZIMO",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "13352921112@qq.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY (SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2025SJ00216",
+    "Student Name": "ABDULRAHMAN NAZAL A ALSHAMMARI",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(KJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "202501",
+    "Student Name": "ELSSJ-103A",
+    "Current Location": "1",
+    "Remark": "PRESENT"
+  },
+  {
+    "Student ID": "SSP :",
+    "Gender": "1.30 - 3.20",
+    "Current Location": "0",
+    "Remark": "ABSENT"
+  },
+  {
+    "Student ID": "RW :",
+    "Gender": "8:30 - 10:20",
+    "Current Location": "1",
+    "Remark": "LATE"
+  },
+  {
+    "Student ID": "CLS :",
+    "Gender": "11.40 - 12.30",
+    "Current Location": "1",
+    "Remark": "N/E",
+    "PASS / REPEAT": "IMPORTANT!"
+  },
+  {
+    "Student ID": "CLASSROOM:"
+  },
+  {
+    "Student ID": "ADMIN :"
+  },
+  {
+    "No.": "No.",
+    "Student ID": "Student ID",
+    "Student Name": "Student Name",
+    "Gender": "Gender",
+    "Nationality": "Nationality",
+    "Email": "Email",
+    "Visa": "Visa",
+    "Current Location": "Current Location",
+    "Remark": "Remark",
+    "PASS / REPEAT": "PASS / REPEAT"
+  },
+  {
+    "No.": "1"
+  },
+  {
+    "No.": "2"
+  },
+  {
+    "No.": "3"
+  },
+  {
+    "No.": "4"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2024SJ00325",
+    "Student Name": "LI HUAJING (BECKY)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "390853152@QQ.COM",
+    "Visa": "DEPENDANT",
+    "Current Location": "MY(SUNWAY)",
+    "Remark": "REPEAT"
+  },
+  {
+    "Student ID": "2024SJ00392",
+    "Student Name": "TURKI KHALID S ALREHAILI",
+    "Gender": "M",
+    "Nationality": "SAUDI",
+    "Email": "trook123k@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(SJ)"
+  },
+  {
+    "Student ID": "2024SJ00485",
+    "Student Name": "FATEMA LATIF",
+    "Gender": "PT",
+    "Nationality": "SICO (SSP & LTC) Prefer AM class"
+  },
+  {
+    "No.": "1",
+    "Student ID": "2025KL00108",
+    "Student Name": "FAHAD HASEN H ALQURASHI",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Email": "fahadalqurashi7@gmail.com",
+    "Visa": "ELS",
+    "Current Location": "MY(SJ)"
+  },
+  {
+    "No.": "2",
+    "Student ID": "2025SJ00150",
+    "Student Name": "YAP JUNE SEAN",
+    "Gender": "M",
+    "Nationality": "MALAYSIA",
+    "Email": "yapjunesean@gmail.com",
+    "Current Location": "MY(SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "3",
+    "Student ID": "2025SJ00176",
+    "Student Name": "WANG NA",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "naw92333@gmail.com",
+    "Visa": "DEPENDANT",
+    "Current Location": "MY(Shah Alam)",
+    "Remark": "SISS"
+  },
+  {
+    "No.": "4",
+    "Student ID": "2025SJ00206",
+    "Student Name": "YANG JUNBO",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "5",
+    "Student ID": "2025SJ00209",
+    "Student Name": "SAKUYAMA DAIA",
+    "Gender": "M",
+    "Nationality": "JAPAN",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "6",
+    "Student ID": "2025SJ00211",
+    "Student Name": "CHIA ZHEN YING",
+    "Gender": "F",
+    "Nationality": "M'SIA",
+    "Email": "ying420720@gmail.com",
+    "Visa": "-",
+    "Current Location": "MY(SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "7",
+    "Student ID": "2025SJ00213",
+    "Student Name": "ZHANG JIAPENG",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Email": "2214153848@qq.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "8",
+    "Student ID": "2025SJ00214",
+    "Student Name": "MIAO ZHUN",
+    "Gender": "M",
+    "Nationality": "CHINA",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(SJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "9",
+    "Student ID": "2025SJ00217",
+    "Student Name": "AWADH NAZAL A ALSHAMMARI",
+    "Gender": "M",
+    "Nationality": "SAUDI ARABIA",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(KJ)",
+    "Remark": "N"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "202501",
+    "Student Name": "ELSSJ-103A",
+    "Current Location": "1",
+    "Remark": "PRESENT"
+  },
+  {
+    "Student ID": "SSP :",
+    "Gender": "1.30 - 3.20",
+    "Current Location": "0",
+    "Remark": "ABSENT"
+  },
+  {
+    "Student ID": "RW :",
+    "Gender": "8:30 - 10:20",
+    "Current Location": "1",
+    "Remark": "LATE"
+  },
+  {
+    "Student ID": "CLS :",
+    "Gender": "11.40 - 12.30",
+    "Current Location": "1",
+    "Remark": "N/E",
+    "PASS / REPEAT": "IMPORTANT!"
+  },
+  {
+    "Student ID": "CLASSROOM:"
+  },
+  {
+    "Student ID": "ADMIN :"
+  },
+  {
+    "No.": "No.",
+    "Student ID": "Student ID",
+    "Student Name": "Student Name",
+    "Gender": "Gender",
+    "Nationality": "Nationality",
+    "Email": "Email",
+    "Visa": "Visa",
+    "Current Location": "Current Location",
+    "Remark": "Remark",
+    "PASS / REPEAT": "PASS / REPEAT"
+  },
+  {
+    "No.": "1"
+  },
+  {
+    "No.": "2"
+  },
+  {
+    "No.": "3"
+  },
+  {
+    "No.": "4"
+  },
+  {
+    "No.": "5"
+  },
+  {
+    "No.": "6"
+  },
+  {
+    "No.": "7"
+  },
+  {
+    "No.": "8"
+  },
+  {
+    "No.": "9"
+  },
+  {
+    "No.": "10"
+  },
+  {
+    "No.": "NOTE : PLEASE KEY IN ATTENDANCE BEFORE 6:00 PM GMT+8"
+  },
+  {
+    "Student ID": "2024SJ00325",
+    "Student Name": "LI HUAJING (BECKY)",
+    "Gender": "F",
+    "Nationality": "CHINA",
+    "Email": "390853152@QQ.COM",
+    "Visa": "DEPENDANT",
+    "Current Location": "MY(SUNWAY)",
+    "Remark": "REPEAT"
+  },
+  {
+    "Student ID": "2024SJ00392",
+    "Student Name": "TURKI KHALID S ALREHAILI",
+    "Gender": "M",
+    "Nationality": "SAUDI",
+    "Email": "trook123k@gmail.com",
+    "Visa": "SOCIAL",
+    "Current Location": "MY(SJ)"
+  },
+  {
+    "Student ID": "2024SJ00485",
+    "Student Name": "FATEMA LATIF",
+    "Gender": "PT",
+    "Nationality": "SICO (SSP & LTC) Prefer AM class"
+  }
+]
