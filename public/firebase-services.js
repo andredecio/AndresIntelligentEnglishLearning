@@ -1,20 +1,22 @@
 // firebase-services.js
 
-// Import the functions you need from the Firebase SDKs.
-// We're keeping `initializeApp` and `getAuth` as modular imports.
+// 1. Import the core Firebase App module (modular SDK)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+
+// 2. Import the Firebase App 'compat' module.
+//    This is crucial! It patches the 'app' object with methods like .firestore()
+import "https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"; // <--- NEW AND IMPORTANT!
+
+// 3. Import the specific service 'compat' modules you need.
+//    These register the services so app.firestore() can return a working instance.
+import "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js";
 import {
-  getAuth,
+  getAuth, // We can still use modular getAuth for consistency if we want
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
-// **IMPORTANT CHANGE FOR FIRESTORE:**
-// We import the 'firebase-firestore-compat.js' module for its side effect.
-// This adds the `.firestore()` method to our `app` instance, allowing us
-// to use the older `db.collection()` syntax that your existing code expects.
-import "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"; // <--- THIS IS THE KEY IMPORT!
 
 // Your web app's Firebase configuration.
 // IMPORTANT: Replace 'YOUR_API_KEY', 'YOUR_MESSAGING_SENDER_ID', and 'YOUR_APP_ID'
@@ -32,11 +34,12 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app); // Get the Authentication service instance
 
-// **IMPORTANT CHANGE FOR FIRESTORE INITIALIZATION:**
+// Get the Authentication service instance (can still use modular getAuth)
+const auth = getAuth(app);
+
 // Get the Cloud Firestore service instance using the compat method on the app object
-const db = app.firestore(); // <--- THIS IS HOW YOU GET THE DB INSTANCE IN COMPAT MODE!
+const db = app.firestore(); // <--- THIS SHOULD FINALLY WORK!
 
 // --- Exported Firebase Service Instances ---
 export { auth, db };
