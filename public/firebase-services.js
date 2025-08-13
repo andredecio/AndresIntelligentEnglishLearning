@@ -1,42 +1,28 @@
 // firebase-services.js
 
 // Import the functions you need from the Firebase SDKs.
-// We're using the modular SDK (v9+) here, which is great for tree-shaking!
-// For web apps without a bundling tool (like Webpack, Rollup, Parcel),
-// you can directly import from the CDN URLs. Make sure these versions
-// match any other Firebase SDK versions you might be using elsewhere.
+// We are now specifically importing the 'compat' version for Firestore
+// to ensure db.collection() still works with your existing code.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
-  // Add other auth methods here as needed, e.g., createUserWithEmailAndPassword, sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  // Add other firestore methods as needed, e.g., setDoc, addDoc, updateDoc, deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"; // <--- CHANGED THIS LINE!
+
+// IMPORTANT: With compat, you no longer *need* to import doc, collection, etc.
+// directly from firebase-firestore.js for methods like db.collection() and docRef.collection()
+// They become methods on the 'db' object itself, or on document references.
+// If you are using 'collection(db, "name")' or 'doc(db, "name", "id")', you'd still need to import those:
+// import { collection, doc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+// But for now, let's assume you want the old syntax to work, so we remove these imports for clarity,
+// as they're implicitly available through the 'db' object.
+// If your onboarding.js or other files *also* explicitly imported these, you might need to adjust those too.
 
 // Your web app's Firebase configuration.
-// IMPORTANT: Replace 'YOUR_API_KEY', 'YOUR_MESSAGING_SENDER_ID', and 'YOUR_APP_ID'
-// with the actual values from your Firebase Project settings -> Project Overview -> Your Web App.
-// You can find these in the Firebase Console: Project settings -> General -> Your apps -> Web app.
-const firebaseConfig = {
-  apiKey: "AIzaSyDkV052ef1mAWGnlNqJ7L8L3EE0KdnZHZw",
-  authDomain: "enduring-victor-460703-a2.firebaseapp.com",
-  projectId: "enduring-victor-460703-a2",
-  storageBucket: "enduring-victor-460703-a2.firebasestorage.app",
-  messagingSenderId: "190391960875",
-  appId: "1:190391960875:web:0585d07fcb53f52755316e",
-  measurementId: "G-5ECFS9Z747"
-};
+// ... (your firebaseConfig object remains the same) ...
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -44,51 +30,15 @@ const auth = getAuth(app); // Get the Authentication service instance
 const db = getFirestore(app); // Get the Cloud Firestore service instance
 
 // --- Exported Firebase Service Instances ---
-// You can export these directly if other modules need full access to Auth or Firestore.
-export { auth, db };
+export { auth, db }; // Still export 'db'
 
 // --- Common Firebase Authentication Helper Functions ---
-
-/**
- * Attaches an observer to the authentication state.
- * @param {function(firebase.User | null)} callback - Function to call when auth state changes.
- */
-export const observeAuthState = (callback) => {
-  return onAuthStateChanged(auth, callback);
-};
-
-/**
- * Signs in a user with email and password.
- * @param {string} email - User's email.
- * @param {string} password - User's password.
- * @returns {Promise<firebase.User | null>} - The signed-in user or null if an error occurs.
- */
-export const signInUserWithEmailAndPassword = async (email, password) => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log("Successfully signed in user:", userCredential.user.email);
-    return userCredential.user;
-  } catch (error) {
-    console.error("Error signing in:", error.message);
-    throw error; // Re-throw to allow calling code to handle the error
-  }
-};
-
-/**
- * Signs out the current user.
- * @returns {Promise<void>}
- */
-export const signOutCurrentUser = async () => {
-  try {
-    await signOut(auth);
-    console.log("User signed out successfully.");
-  } catch (error) {
-    console.error("Error signing out:", error.message);
-    throw error;
-  }
-};
+// ... (these remain unchanged) ...
 
 // --- Common Cloud Firestore Helper Functions ---
+// IMPORTANT: These helper functions will also need to revert to the old syntax
+// if you want them to be consistent with db.collection()
+// Let's modify these to use the older syntax now as well.
 
 /**
  * Gets a single document from a collection.
@@ -97,10 +47,11 @@ export const signOutCurrentUser = async () => {
  * @returns {Promise<object | null>} - The document data or null if not found.
  */
 export const getDocument = async (collectionName, docId) => {
-  const docRef = doc(db, collectionName, docId);
+  // OLD SYNTAX using compat:
+  const docRef = db.collection(collectionName).doc(docId); // <--- OLD SYNTAX
   try {
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
+    const docSnap = await docRef.get(); // <--- OLD SYNTAX for get()
+    if (docSnap.exists) { // <--- OLD SYNTAX property 'exists'
       console.log(`Document '${docId}' from '${collectionName}' data:`, docSnap.data());
       return docSnap.data();
     } else {
@@ -119,9 +70,10 @@ export const getDocument = async (collectionName, docId) => {
  * @returns {Promise<Array<object>>} - An array of document data.
  */
 export const getCollectionDocs = async (collectionName) => {
-  const q = query(collection(db, collectionName));
+  // OLD SYNTAX using compat:
+  const collectionRef = db.collection(collectionName); // <--- OLD SYNTAX
   try {
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await collectionRef.get(); // <--- OLD SYNTAX for get()
     const docs = [];
     querySnapshot.forEach((doc) => {
       docs.push({ id: doc.id, ...doc.data() });
@@ -142,15 +94,14 @@ export const getCollectionDocs = async (collectionName) => {
  * @returns {Promise<Array<object>>} - An array of matching document data.
  */
 export const getLearningContentByCriteria = async (moduleType, imageStatus) => {
-  const learningContentRef = collection(db, "learningContent");
-  const q = query(
-    learningContentRef,
-    where("MODULETYPE", "==", moduleType),
-    where("imageStatus", "==", imageStatus)
-  );
+  // OLD SYNTAX using compat:
+  const learningContentRef = db.collection("learningContent"); // <--- OLD SYNTAX
+  const q = learningContentRef
+    .where("MODULETYPE", "==", moduleType) // <--- OLD SYNTAX
+    .where("imageStatus", "==", imageStatus); // <--- OLD SYNTAX
 
   try {
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await q.get(); // <--- OLD SYNTAX for get()
     const content = [];
     querySnapshot.forEach((doc) => {
       content.push({ id: doc.id, ...doc.data() });
@@ -162,7 +113,3 @@ export const getLearningContentByCriteria = async (moduleType, imageStatus) => {
     throw error;
   }
 };
-
-
-// You can add more specific functions here for your COURSE, LESSON, syllables, phonemes collections
-// based on what your app needs to do with them.
