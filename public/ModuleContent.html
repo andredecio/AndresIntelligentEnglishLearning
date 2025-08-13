@@ -9,18 +9,7 @@
     <!-- Link to the specific styles for this page -->
     <link rel="stylesheet" href="ModuleContent.css">
     <!-- Firebase SDKs - These are loaded via the Firebase Hosting reserved URL -->
-	<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
-	<script src="/__/firebase/init.js"></script>
 	<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-    <!-- Link to your existing common JavaScript -->
-    <!--<script src="common.js" defer></script> -->
-    <!-- Link to the JavaScript for this page -->
-    <script src="ModuleContent.js" defer></script>
 </head>
 <body>
     <h1>Module Content Management</h1>
@@ -142,5 +131,25 @@
         <span id="statusMessage"></span>
         <button class="error-button" onclick="document.getElementById('statusAlert').classList.add('hidden');">Dismiss</button>
     </div>
+	    <!-- Firebase SDKs and auto-init script -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
+
+    <!-- Your NEW custom modular JavaScript files -->
+    <script type="module" src="js/firebase-services.js"></script>
+    <script type="module" src="js/ui-utilities.js"></script>
+    <script type="module" src="js/AdminSystem_Auth.js"></script> <!-- If this page requires admin auth state -->
+
+    <!-- Load the sub-modules first, as the main orchestrator imports from them -->
+    <script type="module" src="js/ModuleContent_Classroom.js"></script>
+    <script type="module" src="js/ModuleContent_Editor.js"></script>
+    <script type="module" src="js/ModuleContent_ListView.js"></script>
+
+    <!-- The main orchestrator script for this page -->
+    <script type="module" src="js/ModuleContent.js"></script>
 </body>
 </html>

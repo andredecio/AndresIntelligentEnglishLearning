@@ -24,20 +24,20 @@
         <button id="send-button">&#x27A4;</button> <!-- Send icon -->
     </div>
 
-    <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
+   <!-- Firebase SDKs and auto-init script (as detailed in Step 1) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script> 
-    <!-- Optional: Firebase Analytics SDK (Compat version - uncomment if needed and configured) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
-	
-    <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
-    <script src="common.js"></script>
 
-    <!-- Page-Specific JavaScript for main.html - MUST LOAD AFTER common.js -->
-    <script src="conversation.js"></script>
+    <!-- Your NEW custom modular JavaScript files -->
+    <script type="module" src="js/firebase-services.js"></script>
+    <script type="module" src="js/ui-utilities.js"></script> 
+    <script type="module" src="js/common.js"></script> 
 
+    <!-- Page-specific JavaScript for conversation.html -->
+    <script type="module" src="js/conversation.js"></script>
 </body>
 </html>

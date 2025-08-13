@@ -1,10 +1,16 @@
-// This file will now directly use the global 'firebase' object
-// No need for 'import { app } from './firebase-config.js';'
+// js/conversation.js
+// This file will now directly use the imported Firebase services.
+// No need for 'import { app } from './firebase-config.js';' (as per your original comment).
 
-// Get references to Firebase services from the global 'firebase' object
-const auth = firebase.auth();
-const functions = firebase.functions(); // Now available due to firebase-functions-compat.js
+// Import necessary Firebase services from our centralized setup.
+import { auth, functions } from './firebase-services.js';
+
+
+// Get references to Firebase services from the global 'firebase' object (now imported)
+// const auth = firebase.auth(); // Now imported
+// const functions = firebase.functions(); // Now imported
 const chatWithGemini = functions.httpsCallable('chatWithGemini'); // Get your Callable Function
+
 
 const chatContainer = document.getElementById('chat-container');
 const messageInput = document.getElementById('message-input');
@@ -13,9 +19,11 @@ const micButton = document.getElementById('mic-button');
 const loadingIndicator = document.getElementById('loading-indicator');
 const errorMessageDiv = document.getElementById('error-message');
 
+
 let isRecording = false;
 let recognition; // For Web Speech API SpeechRecognition
 const synth = window.speechSynthesis; // For Web Speech API SpeechSynthesis
+
 
 auth.onAuthStateChanged((user) => {
     if (!user) {

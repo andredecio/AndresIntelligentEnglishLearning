@@ -1,40 +1,24 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Modified today 12/8/25 code deployed: v1.006x
-    // Firebase is initialized by /__/firebase/init.js via AdminSystem.html
-    // So we can directly get references to the Firebase services here.
-    const auth = firebase.auth(); // Get Auth instance
+// js/AdminSystem_Generator.js
+// Handles content generation forms and Cloud Function calls for the Admin System.
 
-    // Explicitly get the default Firebase App instance
-    const app = firebase.app(); 
-    // IMPORTANT: Ensure firebase.app() and firebase.functions() are correctly imported and available.
-    // If you're using modular SDK (v9+), this part would look different (e.g., getFunctions(app)).
-    // Given your use of 'firebase.auth()', 'firebase.app()', and 'app.functions()', this appears to be v8 syntax.
+// Import necessary Firebase services from our centralized setup.
+import { app, functions } from './firebase-services.js'; // 'app' is imported for context, 'functions' for callable functions.
 
-    const functions = app.functions('asia-southeast1'); // <-- This is the correct v8 way
-
-    // --- References to HTML Elements ---
-    // Auth Section elements
-    const authSection = document.getElementById('authSection');
-    const loginForm = document.getElementById('loginForm');
-    const loginEmailInput = document.getElementById('loginEmail');
-    const loginPasswordInput = document.getElementById('loginPassword');
-    const loginErrorDiv = document.getElementById('loginError');
-	const loadingSpinner = document.getElementById('loadingSpinner');
-    // Generator Section elements
-    const generatorSection = document.getElementById('generatorSection');
-    const logoutButton = document.getElementById('logoutButton');
+document.addEventListener('DOMContentLoaded', () => { // Retained from original AdminSystem.js.
+    // --- References to HTML Elements (Content Generator) ---
     const contentGeneratorForm = document.getElementById('contentGeneratorForm');
     const cefrLevelSelect = document.getElementById('cefrLevel');
     const numVItemsInput = document.getElementById('numVItems');
-	const numGItemsInput = document.getElementById('numGItems');
- 	const numCItemsInput = document.getElementById('numCItems');
-	const numLSItemsInput = document.getElementById('numLSItems');
- 	const numRWItemsInput = document = document.getElementById('numRWItems'); // Corrected typo here
-	const themeInput = document.getElementById('theme');
-    const ModuleTypeSelect = document.getElementById('ModuleType');	
+    const numGItemsInput = document.getElementById('numGItems');
+    const numCItemsInput = document.getElementById('numCItems');
+    const numLSItemsInput = document.getElementById('numLSItems');
+    const numRWItemsInput = document.getElementById('numRWItems'); // Corrected typo here
+    const themeInput = document.getElementById('theme');
+    const ModuleTypeSelect = document.getElementById('ModuleType');
     const responseDiv = document.getElementById('response');
-    const loadingDiv = document.getElementById('loading');
-	const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
+    const loadingDiv = document.getElementById('loading'); // For content generation process
+    const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
+    const loadingSpinner = document.getElementById('loadingSpinner'); // Spinner is on the page, shared with auth.
 
     // --- Firebase Callable Cloud Function References ---
     // Make sure createLesson is also referenced here!
@@ -45,83 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateReadingWritingContent = functions.httpsCallable('generateReadingWritingContent');
     const generateListeningSpeakingContent = functions.httpsCallable('generateListeningSpeakingContent');
 
-
-    // --- Firebase Authentication State Listener ---
-    // (Your existing authentication logic)
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            try {
-                const idTokenResult = await user.getIdTokenResult();
-                if (idTokenResult.claims.admin) {
-                    authSection.style.display = 'none';
-                    generatorSection.style.display = 'block';
-                    loginErrorDiv.textContent = '';
-                    console.log("Admin user logged in and authorized.");
-                } else {
-                    console.warn("User logged in but is not authorized as admin. Logging out.");
-                    loginErrorDiv.textContent = 'You do not have administrative access. Logging out.';
-                    await auth.signOut();
-                }
-            } catch (error) {
-                console.error("Error checking custom claims:", error);
-                loginErrorDiv.textContent = `Error during authorization check: ${error.message}`;
-                await auth.signOut();
-            }
-        } else {
-            responseDiv.textContent = ''; 
-            skippedWordsDisplay.textContent = '';
-			authSection.style.display = 'block';
-            generatorSection.style.display = 'none';
-			loadingSpinner.classList.add('hidden');
-            console.log("User signed out or no user found.");
-        }
-    });
-
-
-    // --- Login Form Submission Handler ---
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const email = loginEmailInput.value;
-        const password = loginPasswordInput.value;
-        loginErrorDiv.textContent = '';
-
-        try {
-            await auth.signInWithEmailAndPassword(email, password);
-            console.log("Login successful.");
-        } catch (error) {
-            console.error("Login Error:", error);
-            loginErrorDiv.textContent = `Login failed: ${error.message}`;
-        }
-    });
-
-
-    // --- Logout Button Handler ---
-    logoutButton.addEventListener('click', async () => {
-        try {
-            await auth.signOut();
-            console.log("User logged out successfully.");
-        } catch (error) {
-            console.error("Logout Error:", error);
-        }
-    });
-	
- // NEW: Event listener for the "Manage Module Content" button
-    if (manageContentBtn) {
-        manageContentBtn.addEventListener('click', () => {
-            window.location.href = 'ModuleContent.html'; // Navigate to the new page
-        });
-    }
-
     // --- Content Generator Form Submission Handler (Your original logic, now secured) ---
     contentGeneratorForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-		// Declare all number variables with `let`
-		let numVItems, numGItems, numCItems, numRWItems, numLSItems; 
+        // Declare all number variables with `let`
+        let numVItems, numGItems, numCItems, numRWItems, numLSItems;
 
-        const ModuleType = ModuleTypeSelect.value; 
-        const cefrLevel = cefrLevelSelect.value; 
-		
+        const ModuleType = ModuleTypeSelect.value;
+        const cefrLevel = cefrLevelSelect.value;
+
         // --- MODIFIED VALIDATION: Allow 0 for all counts ---
         numVItems = parseInt(numVItemsInput.value, 10);
         if (isNaN(numVItems) || numVItems < 0 || numVItems > 100) {
@@ -149,23 +65,23 @@ document.addEventListener('DOMContentLoaded', () => {
             skippedWordsDisplay.textContent = ''; return;
         }
         // --- END MODIFIED VALIDATION ---
-		
+
         const theme = themeInput.value;
 
         responseDiv.textContent = '';
         loadingDiv.style.display = 'block';
         responseDiv.style.color = 'initial';
-		skippedWordsDisplay.textContent = '';
-		loadingSpinner.classList.remove('hidden');
-       
-	    try {
+        skippedWordsDisplay.textContent = '';
+        loadingSpinner.classList.remove('hidden');
+
+        try {
             console.log("cefrLevel:", cefrLevel);
 
             let lessonModuleId = null; // Variable to store the MODULEID from the LESSON document
 
             if (ModuleType === 'LESSON') {
                 const excount = numVItems + numGItems + numCItems + numLSItems + numRWItems;
-                
+
                 // Only create the LESSON document if there's at least one module expected
                 if (excount === 0) {
                     alert("Cannot create a LESSON with 0 expected modules. Please specify at least one module count greater than 0.");
@@ -174,8 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                const lessonCreationData = { 
-                    title: `Lesson - ${theme} - ${cefrLevel}`, 
+                const lessonCreationData = {
+                    title: `Lesson - ${theme} - ${cefrLevel}`,
                     theme: theme,
                     cefr: cefrLevel,
                     expectedModuleCount: excount
@@ -190,13 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (success) {
                         console.log("Lesson created successfully! MODULEID:", MODULEID);
-                        lessonModuleId = MODULEID; 
+                        lessonModuleId = MODULEID;
                     } else {
                         console.error("Failed to create LESSON document:", error);
                         alert(`Error creating LESSON document: ${error}`);
-                        loadingDiv.style.display = 'none'; 
+                        loadingDiv.style.display = 'none';
                         loadingSpinner.classList.add('hidden');
-                        return; 
+                        return;
                     }
                 } catch (error) {
                     console.error("Error calling createLesson Cloud Function:", error);
@@ -206,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
             }
-            
+
             // Define the module generators.
             // They will now conditionally include lessonModuleId in their payload.
             const moduleGenerators = {
@@ -269,10 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         console.log(`Skipping ${type} modules as count is zero.`);
                         // Provide a consistent placeholder result for skipped modules
-                        result[type] = { data: { message: `Skipped: count was 0` } }; 
+                        result[type] = { data: { message: `Skipped: count was 0` } };
                     }
                 }
-            } else if (moduleGenerators[ModuleType]) {
+            } else if (Object.prototype.hasOwnProperty.call(moduleGenerators, ModuleType)) { // More robust check
                 // If a specific module type is selected (not LESSON)
                 const selectedModuleData = moduleGenerators[ModuleType];
                 if (selectedModuleData.count > 0) { // Also check count for single module type generation
@@ -296,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 responseDiv.textContent = 'Success!\n' + (result?.data?.message || 'Modules created.');
             }
-            
+
             let allSkippedWords = [];
 
             if (ModuleType === 'LESSON') {
@@ -320,15 +236,19 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 skippedWordsDisplay.textContent = '';
             }
-		
-		} catch (error) {
+
+        } catch (error) {
             console.error("Error calling Cloud Function:", error);
-            responseDiv.textContent = `Error: ${error.message}\n${JSON.stringify(error.details || {}, null, 2)}`;
+            // Check if error has details, as is common with callable functions
+            const errorMessage = error.details ?
+                                `Error: ${error.message}\nDetails: ${JSON.stringify(error.details, null, 2)}` :
+                                `Error: ${error.message}`;
+            responseDiv.textContent = errorMessage;
             responseDiv.style.color = 'red';
-			skippedWordsDisplay.textContent = '';
-		} finally {
+            skippedWordsDisplay.textContent = '';
+        } finally {
             loadingDiv.style.display = 'none';
-			loadingSpinner.classList.add('hidden');
+            loadingSpinner.classList.add('hidden');
         }
     });
 });

@@ -37,11 +37,17 @@
     <!-- Your Firebase Project Configuration - MUST LOAD AFTER SDKs -->
     <script src="/__/firebase/init.js"></script>
 
-    <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
-    <script src="common.js"></script>
+        <!-- Your NEW custom modular JavaScript files -->
+    <script type="module" src="js/firebase-services.js"></script>
+    <!-- ui-utilities.js is not explicitly used by this page's JS snippet, so it's optional -->
+    <!-- <script type="module" src="js/ui-utilities.js"></script> -->
+    
+    <!-- Global/Common JavaScript - This handles the global auth redirects, etc. -->
+    <script type="module" src="js/common.js"></script>
 
     <!-- Page-Specific JavaScript for this page -->
-    <script src="verify_email_notice.js"></script>
+    <script type="module" src="js/verify_email_notice.js"></script>
+  
   
 </body>
 </html>

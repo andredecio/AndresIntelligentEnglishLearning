@@ -1,13 +1,26 @@
+// js/onboarding.js
+// This script contains logic specific to onboarding.html. (Now modularized)
+
+// Import necessary Firebase services from our centralized setup.
+import { auth, db } from './firebase-services.js';
+// Import the shared error popup utility.
+import { showErrorPopup } from './ui-utilities.js'; // This replaces your local showError function
+
+
 document.addEventListener('DOMContentLoaded', () => {
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // We no longer need to declare auth and db here as they are imported.
+    // const auth = firebase.auth(); // Now imported
+    // const db = firebase.firestore(); // Now imported
 
     const form = document.getElementById('onboarding-form');
     const loading = document.getElementById('loading');
     const startDemoButton = document.getElementById('startDemoButton');
 
 
-    // 🔔 Local popup-style error display function (No change here)
+    // 🔔 REMOVED: Your original local 'showError' function.
+    // All calls to 'showError' will now implicitly use the 'showErrorPopup'
+    // function imported from './ui-utilities.js'.
+    /*
     function showError(message) {
         const popup = document.getElementById('popup-error');
         const text = document.getElementById('popup-error-text');
@@ -19,16 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         text.textContent = message;
-        popup.style.display = 'flex';
-
-        closeButton.onclick = () => {
-            popup.style.display = 'none';
-        };
-
-        setTimeout(() => {
-            popup.style.display = 'none';
-        }, 10000);
+        popup.style.display = 'flex'; // Your original display style
+        // ... rest of original showError logic, including setTimeout ...
     }
+    */
+
 
     // --- NEW: Function to toggle the 'non-clickable' class ---
     /**
@@ -84,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
-            showError("Failed to load your saved data.");
+            showErrorPopup("Failed to load your saved data."); // Call imported showErrorPopup
         } finally {
             toggleNonClickableClass(); // After pre-populating, update button appearance
         }
@@ -122,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (auth.currentUser?.isAnonymous && (email || password)) {
             // If one is present but the other is missing
             if (!email || !password) {
-                showError("To create a permanent account, both email and password are required.");
+                showErrorPopup("To create a permanent account, both email and password are required."); // Call imported showErrorPopup
                 loading.style.display = 'none';
                 if (startDemoButton) startDemoButton.disabled = false; // Re-enable if validation fails
                 toggleNonClickableClass(); // Reset visual state
@@ -130,14 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // If both are present, validate their format/length
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showError("Please enter a valid email address.");
+                showErrorPopup("Please enter a valid email address."); // Call imported showErrorPopup
                 loading.style.display = 'none';
                 if (startDemoButton) startDemoButton.disabled = false;
                 toggleNonClickableClass();
                 return;
             }
             if (password.length < 6) { // Firebase default minimum password length
-                showError("Password must be at least 6 characters long.");
+                showErrorPopup("Password must be at least 6 characters long."); // Call imported showErrorPopup
                 loading.style.display = 'none';
                 if (startDemoButton) startDemoButton.disabled = false;
                 toggleNonClickableClass();
@@ -153,6 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Attempt linking ONLY if user is anonymous AND both email and password are provided (and valid)
             if (user?.isAnonymous && email && password) {
                 try {
+                    // firebase.auth.EmailAuthProvider.credential remains as it's a static method on global 'firebase'
                     await user.linkWithCredential(firebase.auth.EmailAuthProvider.credential(email, password));
                     console.log("Anonymous account upgraded and linked with email/password.");
 
@@ -165,9 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } catch (linkError) {
                     if (linkError.code === 'auth/email-already-in-use') {
-                        showError("This email is already in use. Please sign in with that email or use a different one.");
+                        showErrorPopup("This email is already in use. Please sign in with that email or use a different one."); // Call imported showErrorPopup
                     } else {
-                        showError("Failed to link account: " + linkError.message);
+                        showErrorPopup("Failed to link account: " + linkError.message); // Call imported showErrorPopup
                     }
                     loading.style.display = 'none';
                     if (startDemoButton) startDemoButton.disabled = false;
@@ -185,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 goal,
                 goalNotes: goal === 'other' ? goalNotes : '',
                 sex,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(), // firebase.firestore.FieldValue remains
                 email: auth.currentUser?.email || email || null // Ensure we save the email if it was linked/provided
             };
 
@@ -205,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("Error processing demo flow:", error);
-            showError("An error occurred: " + error.message);
+            showErrorPopup("An error occurred: " + error.message); // Call imported showErrorPopup
         } finally {
             loading.style.display = 'none';
             if (startDemoButton) startDemoButton.disabled = false; // Re-enable button after processing

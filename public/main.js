@@ -1,5 +1,8 @@
-// main.js
-// This script contains logic specific to main.html.
+// js/main.js
+// This script contains logic specific to main.html. (Now modularized)
+
+// Import the 'auth' Firebase service from our centralized setup.
+import { auth } from './firebase-services.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get references to the new buttons and the FirebaseUI container
@@ -9,8 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const optionsGrid = document.querySelector('.options-grid');
     const actionButtonsDiv = document.querySelector('.action-buttons'); // Assuming this wraps your signOut and delete buttons
 
-    // Get a reference to the Firebase Auth instance
-    const auth = firebase.auth();
+    // The 'auth' instance is now imported from firebase-services.js.
+    // Removed: const auth = firebase.auth(); // No longer needed here as it's imported
     // Removed: const db = firebase.firestore(); // No longer needed here as Cloud Function handles Firestore update
 
     // Declare ui variable here so it's accessible in callbacks
@@ -97,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // --- INITIATE RE-AUTHENTICATION ---
                     firebaseUiContainer.style.display = 'block';
+                    // FirebaseUI uses the global 'firebase' object, which is available
+                    // through the compat SDKs and firebase-services.js.
                     ui = new firebaseui.auth.AuthUI(auth);
 
                     const uiConfig = {

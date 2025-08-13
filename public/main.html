@@ -88,22 +88,20 @@
     <!-- This div will be used for re-authentication if needed -->
     <div id="firebaseui-auth-container" style="display:none; margin-top: 20px;"></div>
 
-    <!-- Firebase SDKs (Compat versions) - MUST LOAD FIRST -->
+    <!-- Firebase SDKs and auto-init script (as detailed in Step 1) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script> <!-- ADDED THIS LINE -->
-    <!-- Optional: Firebase Analytics SDK (Compat version - uncomment if needed and configured) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
-    <!-- FirebaseUI JS - crucial for re-authentication flow -->
-    <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
 
-    <!-- Global/Common JavaScript - MUST LOAD AFTER Firebase Config -->
-    <script src="common.js"></script>
+    <!-- Your NEW custom modular JavaScript files -->
+    <script type="module" src="js/firebase-services.js"></script>
+    <script type="module" src="js/ui-utilities.js"></script>
+    <script type="module" src="js/common.js"></script> <!-- This handles the global auth redirects, etc. -->
 
-    <!-- Page-Specific JavaScript for main.html - MUST LOAD AFTER common.js -->
-    <script src="main.js"></script>
-
+    <!-- Page-specific JavaScript for main.html -->
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

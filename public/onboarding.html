@@ -74,18 +74,19 @@
 	<button id="popup-error-close" class="error-button" aria-label="Close error popup">✖</button>
 </div>
 
-  <!-- Firebase SDKs (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="/__/firebase/init.js"></script>
+    <!-- Firebase SDKs and auto-init script (as detailed in Step 1) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
 
+    <!-- Your NEW custom modular JavaScript files -->
+    <script type="module" src="js/firebase-services.js"></script>
+    <script type="module" src="js/ui-utilities.js"></script>
+    <script type="module" src="js/common.js"></script> <!-- This handles the global auth redirects, etc. -->
 
-
-  <!-- Common logic (auth + popup display) -->
-  <script src="common.js"></script>
-
-  <!-- Page-specific logic -->
-  <script src="onboarding.js"></script>
-</body>
+    <!-- Page-specific JavaScript for onboarding.html -->
+    <script type="module" src="js/onboarding.js"></script></body>
 </html>
