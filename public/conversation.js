@@ -1,14 +1,10 @@
-// js/conversation.js
-// This file will now directly use the imported Firebase services.
-// No need for 'import { app } from './firebase-config.js';' (as per your original comment).
+// js/conversation.js (Remodified for standard script loading - NO 'import' or 'export')
 
-// Import necessary Firebase services from our centralized setup.
-import { auth, functions } from './firebase-services.js';
+// Removed: import { auth, functions } from './firebase-services.js';
 
-
-// Get references to Firebase services from the global 'firebase' object (now imported)
-// const auth = firebase.auth(); // Now imported
-// const functions = firebase.functions(); // Now imported
+// Get references to Firebase services from the global 'firebase' object.
+// These are assumed to be globally available from firebase-services.js.
+// 'auth' and 'functions' are now direct global variables.
 const chatWithGemini = functions.httpsCallable('chatWithGemini'); // Get your Callable Function
 
 
@@ -25,6 +21,7 @@ let recognition; // For Web Speech API SpeechRecognition
 const synth = window.speechSynthesis; // For Web Speech API SpeechSynthesis
 
 
+// Accessing global 'auth' object
 auth.onAuthStateChanged((user) => {
     if (!user) {
         console.warn('No user authenticated. Redirecting to index...');
@@ -68,6 +65,7 @@ async function sendMessage() {
 
     try {
         // Call the Cloud Function
+        // 'chatWithGemini' is a callable function object, already derived from global 'functions'
         const result = await chatWithGemini({ message: message });
         const geminiResponse = result.data.response;
 

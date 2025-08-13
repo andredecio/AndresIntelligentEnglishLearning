@@ -1,100 +1,54 @@
-// firebase-services.js
+// firebase-services.js (FINAL, FINAL version for use with standard <script src="..."> tags)
 
-// 1. Import the core Firebase App module (modular SDK)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+// This script expects the global 'firebase' object to be available,
+// created by the Firebase compat SDKs loaded in your HTML (e.g., firebase-app-compat.js, init.js).
+// IMPORTANT: DO NOT use 'import' or 'export' statements anywhere in this file.
 
-// 2. Import the Firebase App 'compat' module.
-//    This is crucial! It patches the 'app' object with methods like .firestore()
-import "https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"; // <--- NEW AND IMPORTANT!
-
-// 3. Import the specific service 'compat' modules you need.
-//    These register the services so app.firestore() can return a working instance.
-import "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js";
-import {
-  getAuth, // We can still use modular getAuth for consistency if we want
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+// Get references to Firebase services from the global 'firebase' object.
+// These will correctly be the compat versions, supporting old syntax like .collection().
+const auth = firebase.auth();
+const db = firebase.firestore();
+const functions = firebase.functions(); // Added: Get Firebase Functions service
+// Note: If you use Firebase Storage, you'll need to enable it in the console
+// and ensure firebase-storage-compat.js is loaded in HTML.
+// Then you can get the storage service like this:
+// const storage = firebase.storage();
 
 
-// Your web app's Firebase configuration.
-// IMPORTANT: Replace 'YOUR_API_KEY', 'YOUR_MESSAGING_SENDER_ID', and 'YOUR_APP_ID'
-// with the actual values from your Firebase Project settings -> Project Overview -> Your Web App.
-// You can find these in the Firebase Console: Project settings -> General -> Your apps -> Web app.
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY", // <--- YOU MUST REPLACE THIS!
-  authDomain: "enduring-victor-460703-a2.firebaseapp.com",
-  projectId: "enduring-victor-460703-a2",
-  storageBucket: "enduring-victor-460703-a2.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <--- YOU MUST REPLACE THIS!
-  appId: "YOUR_APP_ID", // <--- YOU MUST REPLACE THIS!
-  // measurementId: "G-XXXXXXXXXX" // If you're using Google Analytics, add this too.
-};
+// IMPORTANT: Replace "YOUR_GOOGLE_CLIENT_ID_FOR_OAUTH" with your actual Google OAuth Client ID
+// This is used by ModuleContent_Classroom.js for Google Classroom integration.
+const GOOGLE_CLIENT_ID = "190391960875-g53jhbjrkbp0u42bg7bb9trufjjbmk1d.apps.googleusercontent.com"; // Added: Google Client ID
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
 
-// Get the Authentication service instance (can still use modular getAuth)
-const auth = getAuth(app);
+// --- Firebase Authentication Helper Functions ---
 
-// Get the Cloud Firestore service instance using the compat method on the app object
-const db = app.firestore(); // <--- THIS SHOULD FINALLY WORK!
+function observeAuthState(callback) {
+  return auth.onAuthStateChanged(callback);
+}
 
-// --- Exported Firebase Service Instances ---
-export { auth, db };
-
-// --- Common Firebase Authentication Helper Functions ---
-
-/**
- * Attaches an observer to the authentication state.
- * @param {function(firebase.User | null)} callback - Function to call when auth state changes.
- */
-export const observeAuthState = (callback) => {
-  return onAuthStateChanged(auth, callback);
-};
-
-/**
- * Signs in a user with email and password.
- * @param {string} email - User's email.
- * @param {string} password - User's password.
- * @returns {Promise<firebase.User | null>} - The signed-in user or null if an error occurs.
- */
-export const signInUserWithEmailAndPassword = async (email, password) => {
+async function signInUserWithEmailAndPassword(email, password) {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await auth.signInWithEmailAndPassword(email, password);
     console.log("Successfully signed in user:", userCredential.user.email);
     return userCredential.user;
   } catch (error) {
     console.error("Error signing in:", error.message);
-    throw error; // Re-throw to allow calling code to handle the error
+    throw error;
   }
-};
+}
 
-/**
- * Signs out the current user.
- * @returns {Promise<void>}
- */
-export const signOutCurrentUser = async () => {
+async function signOutCurrentUser() {
   try {
-    await signOut(auth);
+    await auth.signOut();
     console.log("User signed out successfully.");
   } catch (error) {
     console.error("Error signing out:", error.message);
     throw error;
   }
-};
+}
 
-// --- Common Cloud Firestore Helper Functions (Already adapted to compat syntax) ---
-
-/**
- * Gets a single document from a collection.
- * @param {string} collectionName - The name of the collection (e.g., 'users', 'learningContent').
- * @param {string} docId - The ID of the document to retrieve.
- * @returns {Promise<object | null>} - The document data or null if not found.
- */
-export const getDocument = async (collectionName, docId) => {
-  // Using OLD SYNTAX with compat:
+// --- Cloud Firestore Helper Functions ---
+async function getDocument(collectionName, docId) {
   const docRef = db.collection(collectionName).doc(docId);
   try {
     const docSnap = await docRef.get();
@@ -109,15 +63,9 @@ export const getDocument = async (collectionName, docId) => {
     console.error(`Error getting document '${docId}' from '${collectionName}':`, error.message);
     throw error;
   }
-};
+}
 
-/**
- * Gets all documents from a specified collection.
- * @param {string} collectionName - The name of the collection.
- * @returns {Promise<Array<object>>} - An array of document data.
- */
-export const getCollectionDocs = async (collectionName) => {
-  // Using OLD SYNTAX with compat:
+async function getCollectionDocs(collectionName) {
   const collectionRef = db.collection(collectionName);
   try {
     const querySnapshot = await collectionRef.get();
@@ -131,17 +79,9 @@ export const getCollectionDocs = async (collectionName) => {
     console.error(`Error getting documents from collection '${collectionName}':`, error.message);
     throw error;
   }
-};
+}
 
-// Example of a more specific query based on your Firestore index:
-/**
- * Queries learning content by module type and image status.
- * @param {string} moduleType - The module type to filter by.
- * @param {string} imageStatus - The image status to filter by.
- * @returns {Promise<Array<object>>} - An array of matching document data.
- */
-export const getLearningContentByCriteria = async (moduleType, imageStatus) => {
-  // Using OLD SYNTAX with compat:
+async function getLearningContentByCriteria(moduleType, imageStatus) {
   const learningContentRef = db.collection("learningContent");
   const q = learningContentRef
     .where("MODULETYPE", "==", moduleType)
@@ -159,4 +99,23 @@ export const getLearningContentByCriteria = async (moduleType, imageStatus) => {
     console.error("Error querying learning content:", error.message);
     throw error;
   }
-};
+}
+
+// --- Make functions and services accessible globally ---
+// Assign these functions and service objects to the window object.
+window.auth = auth;
+window.db = db;
+window.functions = functions; // Added: Expose the functions service
+// window.storage = storage; // Uncomment if you add storage service above
+
+window.observeAuthState = observeAuthState;
+window.signInUserWithEmailAndPassword = signInUserWithEmailAndPassword;
+window.signOutCurrentUser = signOutCurrentUser;
+window.getDocument = getDocument;
+window.getCollectionDocs = getCollectionDocs;
+window.getLearningContentByCriteria = getLearningContentByCriteria;
+
+window.GOOGLE_CLIENT_ID = GOOGLE_CLIENT_ID; // Added: Expose the Google Client ID
+
+// You do NOT need to include your firebaseConfig object here.
+// The /__/firebase/init.js script (loaded in your HTML) handles that for you.

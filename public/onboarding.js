@@ -1,41 +1,16 @@
-// js/onboarding.js
-// This script contains logic specific to onboarding.html. (Now modularized)
+// js/onboarding.js (Remodified for standard script loading - NO 'import' or 'export')
 
-// Import necessary Firebase services from our centralized setup.
-import { auth, db } from './firebase-services.js';
-// Import the shared error popup utility.
-import { showErrorPopup } from './ui-utilities.js'; // This replaces your local showError function
+// Removed: import { auth, db } from './firebase-services.js';
+// Removed: import { showErrorPopup } from './ui-utilities.js';
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // We no longer need to declare auth and db here as they are imported.
-    // const auth = firebase.auth(); // Now imported
-    // const db = firebase.firestore(); // Now imported
+    // auth and db are now globally available from firebase-services.js.
+    // showErrorPopup is now globally available from ui-utilities.js.
 
     const form = document.getElementById('onboarding-form');
     const loading = document.getElementById('loading');
     const startDemoButton = document.getElementById('startDemoButton');
-
-
-    // 🔔 REMOVED: Your original local 'showError' function.
-    // All calls to 'showError' will now implicitly use the 'showErrorPopup'
-    // function imported from './ui-utilities.js'.
-    /*
-    function showError(message) {
-        const popup = document.getElementById('popup-error');
-        const text = document.getElementById('popup-error-text');
-        const closeButton = document.getElementById('popup-error-close');
-
-        if (!popup || !text || !closeButton) {
-            console.warn("Popup element(s) not found.");
-            return;
-        }
-
-        text.textContent = message;
-        popup.style.display = 'flex'; // Your original display style
-        // ... rest of original showError logic, including setTimeout ...
-    }
-    */
 
 
     // --- NEW: Function to toggle the 'non-clickable' class ---
@@ -61,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Pre-populate form if user data exists ---
+    // Accessing global 'auth' object
     auth.onAuthStateChanged(async (user) => {
         if (!user) {
             toggleNonClickableClass(); // Initial appearance check if no user is logged in
@@ -72,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            // Accessing global 'db' object
             const doc = await db.collection('users').doc(user.uid).get();
             if (doc.exists) {
                 const data = doc.data();
@@ -92,28 +69,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
-            showErrorPopup("Failed to load your saved data."); // Call imported showErrorPopup
+            // Using globally available showErrorPopup
+            showErrorPopup("Failed to load your saved data.");
         } finally {
             toggleNonClickableClass(); // After pre-populating, update button appearance
         }
     });
 
     // --- All core logic now in the form's submit handler ---
-    // This listener will ONLY fire IF native HTML5 validation passes when the startDemoButton is clicked.
     form.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Prevent default full page reload *after* native validation (if any) passes
+        e.preventDefault();
 
-        // At this point, native browser validation messages for 'required' fields would have already appeared
-        // if anything was missing. So, we are safe to proceed with our custom logic.
-
-        // Disable the button and show loading indicator *during* the asynchronous processing
         if (startDemoButton) {
-            startDemoButton.disabled = true; // This is a *true* disable for processing time
-            startDemoButton.classList.remove('non-clickable'); // Ensure it doesn't look like an input error now
+            startDemoButton.disabled = true;
+            startDemoButton.classList.remove('non-clickable');
         }
         loading.style.display = 'block';
 
-        // Collect all form data (these values are now guaranteed to be present for 'required' fields)
         const firstName = document.getElementById('first-name').value.trim();
         const lastName = document.getElementById('last-name').value.trim();
         const dob = document.getElementById('dob').value;
@@ -126,26 +98,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         // Custom Validation for email/password combination and format
-        // This runs IF the user is anonymous AND has attempted to provide either an email OR a password.
+        // Accessing global 'auth' object
         if (auth.currentUser?.isAnonymous && (email || password)) {
-            // If one is present but the other is missing
             if (!email || !password) {
-                showErrorPopup("To create a permanent account, both email and password are required."); // Call imported showErrorPopup
-                loading.style.display = 'none';
-                if (startDemoButton) startDemoButton.disabled = false; // Re-enable if validation fails
-                toggleNonClickableClass(); // Reset visual state
-                return;
-            }
-            // If both are present, validate their format/length
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showErrorPopup("Please enter a valid email address."); // Call imported showErrorPopup
+                // Using globally available showErrorPopup
+                showErrorPopup("To create a permanent account, both email and password are required.");
                 loading.style.display = 'none';
                 if (startDemoButton) startDemoButton.disabled = false;
                 toggleNonClickableClass();
                 return;
             }
-            if (password.length < 6) { // Firebase default minimum password length
-                showErrorPopup("Password must be at least 6 characters long."); // Call imported showErrorPopup
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                // Using globally available showErrorPopup
+                showErrorPopup("Please enter a valid email address.");
+                loading.style.display = 'none';
+                if (startDemoButton) startDemoButton.disabled = false;
+                toggleNonClickableClass();
+                return;
+            }
+            if (password.length < 6) {
+                // Using globally available showErrorPopup
+                showErrorPopup("Password must be at least 6 characters long.");
                 loading.style.display = 'none';
                 if (startDemoButton) startDemoButton.disabled = false;
                 toggleNonClickableClass();
@@ -155,17 +128,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         try {
+            // Accessing global 'auth' object
             let user = auth.currentUser;
             let emailVerificationNeeded = false;
 
-            // Attempt linking ONLY if user is anonymous AND both email and password are provided (and valid)
             if (user?.isAnonymous && email && password) {
                 try {
-                    // firebase.auth.EmailAuthProvider.credential remains as it's a static method on global 'firebase'
+                    // Accessing global 'firebase.auth.EmailAuthProvider'
                     await user.linkWithCredential(firebase.auth.EmailAuthProvider.credential(email, password));
                     console.log("Anonymous account upgraded and linked with email/password.");
 
-                    // Crucial: Check if email is already verified. If not, initiate verification flow.
+                    // Accessing global 'auth' object
                     if (!auth.currentUser.emailVerified) {
                         await auth.currentUser.sendEmailVerification();
                         emailVerificationNeeded = true;
@@ -174,9 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } catch (linkError) {
                     if (linkError.code === 'auth/email-already-in-use') {
-                        showErrorPopup("This email is already in use. Please sign in with that email or use a different one."); // Call imported showErrorPopup
+                        // Using globally available showErrorPopup
+                        showErrorPopup("This email is already in use. Please sign in with that email or use a different one.");
                     } else {
-                        showErrorPopup("Failed to link account: " + linkError.message); // Call imported showErrorPopup
+                        // Using globally available showErrorPopup
+                        showErrorPopup("Failed to link account: " + linkError.message);
                     }
                     loading.style.display = 'none';
                     if (startDemoButton) startDemoButton.disabled = false;
@@ -185,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Prepare user data to save (use auth.currentUser.uid as it's the stable UID after any linking)
+            // Prepare user data to save
             const userData = {
                 firstName,
                 lastName,
@@ -194,17 +169,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 goal,
                 goalNotes: goal === 'other' ? goalNotes : '',
                 sex,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(), // firebase.firestore.FieldValue remains
-                email: auth.currentUser?.email || email || null // Ensure we save the email if it was linked/provided
+                // Accessing global 'firebase.firestore.FieldValue'
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                email: auth.currentUser?.email || email || null
             };
 
-            // Save onboarding data to Firestore for the current user
+            // Save onboarding data to Firestore
+            // Accessing global 'db' object and global 'auth' object
             await db.collection('users').doc(auth.currentUser.uid).set(userData, { merge: true });
             console.log("Onboarding data saved for user:", auth.currentUser.uid);
 
 
             // --- Conditional Redirection Logic ---
             if (emailVerificationNeeded) {
+                // Accessing global 'auth' object
                 await auth.signOut();
                 console.log("User signed out for email verification process.");
                 window.location.href = 'verify_email_notice.html';
@@ -214,15 +192,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("Error processing demo flow:", error);
-            showErrorPopup("An error occurred: " + error.message); // Call imported showErrorPopup
+            // Using globally available showErrorPopup
+            showErrorPopup("An error occurred: " + error.message);
         } finally {
             loading.style.display = 'none';
-            if (startDemoButton) startDemoButton.disabled = false; // Re-enable button after processing
-            toggleNonClickableClass(); // Re-evaluate visual state after processing
+            if (startDemoButton) startDemoButton.disabled = false;
+            toggleNonClickableClass();
         }
     });
 
-    // Handle showing "other" goal notes field (No change here)
+    // Handle showing "other" goal notes field
     document.getElementById('learning-goal').addEventListener('change', function () {
         const notesField = document.getElementById('other-goal-notes');
         notesField.style.display = this.value === 'other' ? 'block' : 'none';

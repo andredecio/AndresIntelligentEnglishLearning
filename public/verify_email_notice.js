@@ -1,13 +1,11 @@
-// js/verify_email_notice.js
-// This script handles email verification notice page functionality. (Now modularized)
+// js/verify_email_notice.js (Remodified for standard script loading - NO 'import' or 'export')
 
-// Import the 'auth' Firebase service from our centralized setup.
-import { auth } from './firebase-services.js';
+// Removed: import { auth } from './firebase-services.js';
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // We no longer need to declare auth here as it is imported.
-    // const auth = firebase.auth();
+    // 'auth' is now globally available from firebase-services.js.
+
     const resendEmailButton = document.getElementById('resendEmailButton');
     const resendMessage = document.getElementById('resendMessage');
 
@@ -29,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     resendEmailButton.addEventListener('click', async () => {
+        // Accessing global 'auth' object
         const user = auth.currentUser;
         if (user && user.email) {
             try {

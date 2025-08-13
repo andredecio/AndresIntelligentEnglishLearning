@@ -1,11 +1,13 @@
-// js/AdminSystem_Auth.js
+// js/AdminSystem_Auth.js (Remodified for standard script loading - NO 'import' or 'export')
 // Handles authentication, authorization (admin claims), and UI state for the Admin System.
 
-// Import necessary Firebase services from our centralized setup.
-import { auth, app, functions } from './firebase-services.js'; // 'app' and 'functions' are imported for context, though 'functions' is mostly used by generator.
-import { displayError } from './ui-utilities.js'; // Import reusable error display utility.
+// Removed: import { auth, app, functions } from './firebase-services.js';
+// Removed: import { displayError } from './ui-utilities.js';
 
 document.addEventListener('DOMContentLoaded', () => { // Retained from original AdminSystem.js.
+    // 'auth', 'app', 'functions' are now globally available from firebase-services.js.
+    // 'displayError' is now globally available from ui-utilities.js.
+
     // --- References to HTML Elements (Auth and Section Toggling) ---
     // Auth Section elements
     const authSection = document.getElementById('authSection');
@@ -18,10 +20,10 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
     const generatorSection = document.getElementById('generatorSection');
     const logoutButton = document.getElementById('logoutButton');
     // For navigation to ModuleContent.html
-    const manageContentBtn = document.getElementById('manageContentBtn'); // This was found in your full AdminSystem.js
+    const manageContentBtn = document.getElementById('manageContentBtn');
 
     // --- Firebase Authentication State Listener ---
-    // (Your existing authentication logic)
+    // Accessing global 'auth' object
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             try {
@@ -34,21 +36,16 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
                 } else {
                     console.warn("User logged in but is not authorized as admin. Logging out.");
                     loginErrorDiv.textContent = 'You do not have administrative access. Logging out.';
+                    // Accessing global 'auth' object
                     await auth.signOut();
                 }
             } catch (error) {
                 console.error("Error checking custom claims:", error);
                 loginErrorDiv.textContent = `Error during authorization check: ${error.message}`;
+                // Accessing global 'auth' object
                 await auth.signOut();
             }
         } else {
-            // These two elements are related to the generator section,
-            // but their state needs to be reset on auth state change.
-            // They are declared in AdminSystem_Generator.js, so we need to get references here
-            // if we want to reset them from this module.
-            // Alternatively, Generator.js can handle its own reset on its DCL if it listens to auth,
-            // or we could export a reset function from Generator.js and call it from here.
-            // For now, mirroring original behavior where possible.
             const responseDiv = document.getElementById('response');
             const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
             if (responseDiv) responseDiv.textContent = '';
@@ -71,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
         loginErrorDiv.textContent = ''; // Clear error before new attempt
 
         try {
+            // Accessing global 'auth' object
             await auth.signInWithEmailAndPassword(email, password);
             console.log("Login successful.");
         } catch (error) {
@@ -83,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
     // --- Logout Button Handler ---
     logoutButton.addEventListener('click', async () => {
         try {
+            // Accessing global 'auth' object
             await auth.signOut();
             console.log("User logged out successfully.");
         } catch (error) {
@@ -91,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
     });
 
     // NEW: Event listener for the "Manage Module Content" button
-    // This was found in your full AdminSystem.js, so including it here.
     if (manageContentBtn) {
         manageContentBtn.addEventListener('click', () => {
             window.location.href = 'ModuleContent.html'; // Navigate to the new page

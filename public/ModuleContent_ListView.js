@@ -1,39 +1,34 @@
-// js/ModuleContent_ListView.js
+// js/ModuleContent_ListView.js (Remodified for standard script loading - NO 'import' or 'export')
 // Handles displaying, filtering, and navigating through module lists.
 
-// Import necessary Firebase services from our centralized setup.
-import { db } from './firebase-services.js';
-// Import UI utility functions.
-import { showAlert, showSpinner, hideSpinner, renderThumbnail, renderAudioPlayer } from './ui-utilities.js';
-// Import functions from the Editor module (to load a record into editor when selected)
-import { loadRecordIntoEditor, getCurrentActiveRecord } from './ModuleContent_Editor.js';
+// Removed: import { db } from './firebase-services.js';
+// Removed: import { showAlert, showSpinner, hideSpinner, renderThumbnail, renderAudioPlayer } from './ui-utilities.js';
+// Removed: import { loadRecordIntoEditor, getCurrentActiveRecord } from './ModuleContent_Editor.js';
 
-// --- Crucial Global State Variables (internal to this module) ---
-// These manage the navigation and filtering logic for the list view.
+
+// --- Crucial Global State Variables (internal to this module, but used by its global functions) ---
 let topLevelModuleNavigationList = []; // Stores ALL top-level modules for main navigation
 let filteredNavigationList = [];      // Stores the currently filtered list for Prev/Next buttons
 let currentTopLevelModuleIndex = 0;   // Current index within filteredNavigationList
 let allAvailableModules = [];         // For the larger list of *all* selectable modules (for linking as children)
 
 // --- Global DOM Element References (internal to this module) ---
-// These are specific to the list view and navigation.
 let prevRecordBtn = null;
 let newRecordBtn = null;
 let nextRecordBtn = null;
-let moduleTypeFilterSelect = null; // The main filter for top-level navigation
-let filterModuleTypeSelect = null; // The filter within the larger 'children' list
+let moduleTypeFilterSelect = null;
+let filterModuleTypeSelect = null;
 let searchModulesInput = null;
 let availableModulesList = null;
-let statusAlert = null;     // Re-reference for showAlert
-let statusMessageSpan = null; // Re-reference for showAlert
-let loadingSpinner = null;  // For the larger availableModulesList spinner (if separate from main page spinner)
+let statusAlert = null;
+let statusMessageSpan = null;
+let loadingSpinner = null;
 
 
 // --- Module-Specific Constants ---
-// Lists of module types that determine behavior (moved from original ModuleContent.js)
 const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY', 'SYLLABLE'];
 const NON_SELECTABLE_LEAF_MODULE_TYPES = ['PHONEME'];
-const moduleTypes = { // Define module types and their corresponding collections
+const moduleTypes = {
     'COURSE': 'COURSE',
     'LESSON': 'LESSON',
     'SEMANTIC_GROUP': 'learningContent',
@@ -52,28 +47,24 @@ const typesWithMeaningOrigin = ['VOCABULARY_GROUP', 'VOCABULARY'];
 
 
 // --- Callbacks to Orchestrator (ModuleContent.js) ---
-// These functions will be provided by the main ModuleContent.js to allow ListView.js
-// to trigger actions in other modules (like updating the editor after selection).
 let onRecordSelectedCallback = () => {};
 
 
 /**
  * Initializes the list view module by assigning DOM elements and setting up event listeners.
- * @param {object} elements - An object containing references to the list view's DOM elements.
- * @param {object} callbacks - An object containing callback functions for inter-module communication.
  */
-export function setupListView(elements, callbacks) {
+function setupListView(elements, callbacks) { // Removed 'export'
     // Assign DOM elements
     prevRecordBtn = elements.prevRecordBtn;
-    newRecordBtn = elements.newRecordBtn; // New record creation is initiated from list view
+    newRecordBtn = elements.newRecordBtn;
     nextRecordBtn = elements.nextRecordBtn;
     moduleTypeFilterSelect = elements.moduleTypeFilterSelect;
-    filterModuleTypeSelect = elements.filterModuleTypeSelect; // Filter within the available modules list
+    filterModuleTypeSelect = elements.filterModuleTypeSelect;
     searchModulesInput = elements.searchModulesInput;
     availableModulesList = elements.availableModulesList;
-    statusAlert = elements.statusAlert; // For showAlert function
-    statusMessageSpan = elements.statusMessageSpan; // For showAlert function
-    loadingSpinner = elements.loadingSpinner; // For show/hideSpinner (if a separate spinner for this list)
+    statusAlert = elements.statusAlert;
+    statusMessageSpan = elements.statusMessageSpan;
+    loadingSpinner = elements.loadingSpinner;
 
     // Assign callbacks
     onRecordSelectedCallback = callbacks.onRecordSelected;
@@ -84,14 +75,15 @@ export function setupListView(elements, callbacks) {
         filterModuleTypeSelect.addEventListener('change', displayFilteredModules);
     }
     if (searchModulesInput) {
-        searchModulesInput.addEventListener('input', displayFilteredModules); // Or 'change' if you prefer
+        searchModulesInput.addEventListener('input', displayFilteredModules);
     }
 
     // --- Event Listeners for Single Record View Buttons ---
     if (newRecordBtn) {
         newRecordBtn.addEventListener('click', () => {
-            onRecordSelectedCallback(null, null); // Notify orchestrator to load a blank form
-            currentTopLevelModuleIndex = -1; // Indicate no record is active in navigation
+            // Assumed to be globally available from ModuleContent_Editor.js
+            loadRecordIntoEditor(null, null);
+            currentTopLevelModuleIndex = -1;
             updateNavigationButtons();
         });
     }
@@ -125,30 +117,32 @@ async function loadSelectedModuleIntoEditor() {
     const selectedModule = filteredNavigationList[currentTopLevelModuleIndex];
     if (selectedModule) {
         try {
+            // Accessing global 'db' object
             const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get();
             if (moduleSnap.exists) {
+                // Assumed to be globally available from ModuleContent_Editor.js
                 onRecordSelectedCallback({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
             } else {
+                // Assumed to be globally available from ui-utilities.js
                 showAlert(statusMessageSpan, statusAlert, "Selected module not found. Refreshing navigation.", true);
+                // Assumed to be globally available
                 await fetchAndPopulateTopLevelNavigation();
-                await applyModuleTypeFilter(); // This will reload the first item of the now-refreshed filtered list
+                await applyModuleTypeFilter();
             }
         } catch (error) {
             console.error("Error fetching selected module for editor:", error);
+            // Assumed to be globally available from ui-utilities.js
             showAlert(statusMessageSpan, statusAlert, `Error loading module: ${error.message}`, true);
         }
     } else {
-        onRecordSelectedCallback(null, null); // No module to load, clear editor
+        // Assumed to be globally available from ModuleContent_Editor.js
+        onRecordSelectedCallback(null, null);
     }
 }
 
 
 /**
  * Renders an individual list item for the larger availableModulesList.
- * @param {object} moduleData - The record data from Firestore.
- * @param {number} level - The nesting level for indentation (0 for top-level).
- * @param {Array<string>} currentModuleIds - Array of IDs currently selected for the active parent.
- * @returns {HTMLLIElement} The created list item HTML element.
  */
 function renderModuleListItem(moduleData, level, currentModuleIds) {
     const li = document.createElement('li');
@@ -223,10 +217,12 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
         mediaContainer.classList.add('module-media');
 
         if (moduleData.IMAGEURL) {
+            // Assumed to be globally available from ui-utilities.js
             const imgLink = renderThumbnail(moduleData.IMAGEURL);
             if (imgLink) mediaContainer.appendChild(imgLink);
         }
         if (moduleData.audioUrl) {
+            // Assumed to be globally available from ui-utilities.js
             const audioBtn = renderAudioPlayer(moduleData.audioUrl);
             if (audioBtn) mediaContainer.appendChild(audioBtn);
         }
@@ -246,15 +242,16 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
             const isExpanded = li.classList.toggle('expanded');
             expandToggle.textContent = isExpanded ? '▼' : '▶';
 
-            if (!isExpanded) { // If collapsing, remove all nested children
+            if (!isExpanded) {
                 let nextSibling = li.nextElementSibling;
                 while (nextSibling && parseInt(nextSibling.dataset.level) > level) {
                     const tempSibling = nextSibling;
                     nextSibling = tempSibling.nextElementSibling;
                     tempSibling.remove();
                 }
-            } else { // If expanding, fetch and render children
+            } else {
                 const childIds = moduleData.MODULEID_ARRAY || [];
+                // Assumed to be globally available from ModuleContent_Editor.js
                 await fetchAndRenderChildren(moduleData.id, childIds, level + 1, li, getCurrentActiveRecord()?.MODULEID_ARRAY || []);
             }
         });
@@ -267,11 +264,6 @@ function renderModuleListItem(moduleData, level, currentModuleIds) {
 
 /**
  * Fetches and renders child modules for a given parent.
- * @param {string} parentId The ID of the parent module.
- * @param {Array<string>} childIds An array of IDs of the child modules.
- * @param {number} level The nesting level for the children.
- * @param {HTMLLIElement} parentLi The HTML <li> element of the parent.
- * @param {Array<string>} selectedModuleIds Array of IDs currently selected for the active parent.
  */
 async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selectedModuleIds) {
     console.log(`--- fetchAndRenderChildren called for parent: ${parentId}, level: ${level} ---`);
@@ -289,7 +281,7 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
     const allChildPromises = childIds.map(async (childId) => {
         let docSnap = null;
         try {
-            // Check learningContent, syllables, phonemes collections
+            // Accessing global 'db' object
             for (const col of ['learningContent', 'syllables', 'phonemes']) {
                 docSnap = await db.collection(col).doc(childId).get();
                 if (docSnap.exists) {
@@ -298,16 +290,18 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
                 }
             }
             console.warn(`DEBUG: Child module with ID ${childId} not found in any expected collection.`);
+            // Assumed to be globally available from ui-utilities.js
             showAlert(statusMessageSpan, statusAlert, `Child module ${childId} not found.`, true);
             return null;
         } catch (error) {
             console.error(`DEBUG: Error fetching child ${childId}:`, error);
+            // Assumed to be globally available from ui-utilities.js
             showAlert(statusMessageSpan, statusAlert, `Permission denied for child module ${childId}. Check Firestore Rules.`, true);
             return null;
         }
     });
 
-    const children = (await Promise.all(allChildPromises)).filter(Boolean); // Filter out nulls
+    const children = (await Promise.all(allChildPromises)).filter(Boolean);
     console.log(`DEBUG: Number of valid children fetched for parent ${parentId}: ${children.length}`);
     console.log(`DEBUG: Fetched children data (filtered):`, children);
 
@@ -335,9 +329,9 @@ async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selec
 
 /**
  * Loads all relevant modules for the larger available modules list.
- * This includes COURSEs, LESSONs, and all selectable items from learningContent.
  */
-export async function loadAllAvailableModules() {
+async function loadAllAvailableModules() { // Removed 'export'
+    // Assumed to be globally available from ui-utilities.js
     showSpinner(availableModulesList, loadingSpinner);
     if (availableModulesList) { availableModulesList.innerHTML = ''; }
 
@@ -346,11 +340,11 @@ export async function loadAllAvailableModules() {
 
         const collectionsToFetch = ['COURSE', 'LESSON', 'learningContent'];
         for (const colName of collectionsToFetch) {
+            // Accessing global 'db' object
             const snapshot = await db.collection(colName).get();
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if (colName === 'learningContent' && data.MODULETYPE && NON_SELECTABLE_LEAF_MODULE_TYPES.includes(data.MODULETYPE)) {
-                    // Skip non-selectable leaf types from learningContent for this list.
                     return;
                 }
                 allFetchedModules.push({ id: doc.id, ...data, collection: colName });
@@ -358,27 +352,29 @@ export async function loadAllAvailableModules() {
         }
 
         allAvailableModules = allFetchedModules;
-        displayFilteredModules(); // Display initially without filters
+        displayFilteredModules();
 
     } catch (error) {
         console.error("Error loading all available modules:", error);
+        // Assumed to be globally available from ui-utilities.js
         showAlert(statusMessageSpan, statusAlert, "Failed to load available modules. " + error.message, true);
     } finally {
+        // Assumed to be globally available from ui-utilities.js
         hideSpinner(availableModulesList, loadingSpinner);
     }
 }
 
 /**
  * Displays modules in the larger list view based on current filters and search.
- * It uses the 'allAvailableModules' global array.
  */
-export function displayFilteredModules() {
+function displayFilteredModules() { // Removed 'export'
     if (availableModulesList) { availableModulesList.innerHTML = ''; }
 
     const filterType = filterModuleTypeSelect ? filterModuleTypeSelect.value : 'all';
     const searchTerm = searchModulesInput ? searchModulesInput.value.toLowerCase() : '';
 
-    const activeRecord = getCurrentActiveRecord(); // Get active record from editor module
+    // Assumed to be globally available from ModuleContent_Editor.js
+    const activeRecord = getCurrentActiveRecord();
     const activeRecordId = activeRecord ? activeRecord.id : null;
     const currentModuleIds = activeRecord?.MODULEID_ARRAY || [];
 
@@ -422,7 +418,8 @@ export function displayFilteredModules() {
         if (checkbox && !checkbox.disabled) {
             checkbox.addEventListener('change', (event) => {
                 const moduleId = event.target.dataset.moduleId;
-                const activeRecordForSelection = getCurrentActiveRecord(); // Get latest active record
+                // Assumed to be globally available from ModuleContent_Editor.js
+                const activeRecordForSelection = getCurrentActiveRecord();
 
                 if (activeRecordForSelection) {
                     if (!activeRecordForSelection.MODULEID_ARRAY) {
@@ -438,10 +435,7 @@ export function displayFilteredModules() {
                             activeRecordForSelection.MODULEID_ARRAY.splice(index, 1);
                         }
                     }
-                    // Notify editor to update its children display (if needed, or editor does it on load)
-                    // For now, let's keep updateCurrentChildrenDisplay as part of editor module.
-                    // This change handler should directly update the active record's children array,
-                    // and then editor module's updateCurrentChildrenDisplay should be called if editor is visible.
+                    // Assumed to be globally available from ModuleContent_Editor.js
                     loadRecordIntoEditor(activeRecordForSelection, activeRecordForSelection.collection);
                 }
             });
@@ -451,11 +445,9 @@ export function displayFilteredModules() {
 
 /**
  * Adds a module ID to the current active record's selection.
- * NOTE: This function is now mostly handled by the checkbox change listener in displayFilteredModules,
- * but keeping it exported if other parts of the app need to programmatically add children.
- * @param {string} moduleId The ID of the module to add.
  */
-export function addModuleToActiveRecordSelection(moduleId) {
+function addModuleToActiveRecordSelection(moduleId) { // Removed 'export'
+    // Assumed to be globally available from ModuleContent_Editor.js
     const activeRecord = getCurrentActiveRecord();
     if (activeRecord) {
         if (!activeRecord.MODULEID_ARRAY) {
@@ -463,7 +455,8 @@ export function addModuleToActiveRecordSelection(moduleId) {
         }
         if (!activeRecord.MODULEID_ARRAY.includes(moduleId)) {
             activeRecord.MODULEID_ARRAY.push(moduleId);
-            loadRecordIntoEditor(activeRecord, activeRecord.collection); // Refresh editor to show change
+            // Assumed to be globally available from ModuleContent_Editor.js
+            loadRecordIntoEditor(activeRecord, activeRecord.collection);
             console.log(`Added ${moduleId} to currentActiveRecord.MODULEID_ARRAY`);
         }
     }
@@ -471,17 +464,16 @@ export function addModuleToActiveRecordSelection(moduleId) {
 
 /**
  * Removes a module ID from the current active record's selection.
- * NOTE: This function is now mostly handled by the checkbox change listener in displayFilteredModules,
- * but keeping it exported if other parts of the app need to programmatically remove children.
- * @param {string} moduleId The ID of the module to remove.
  */
-export function removeModuleFromActiveRecordSelection(moduleId) {
+function removeModuleFromActiveRecordSelection(moduleId) { // Removed 'export'
+    // Assumed to be globally available from ModuleContent_Editor.js
     const activeRecord = getCurrentActiveRecord();
     if (activeRecord && activeRecord.MODULEID_ARRAY) {
         const index = activeRecord.MODULEID_ARRAY.indexOf(moduleId);
         if (index > -1) {
             activeRecord.MODULEID_ARRAY.splice(index, 1);
-            loadRecordIntoEditor(activeRecord, activeRecord.collection); // Refresh editor to show change
+            // Assumed to be globally available from ModuleContent_Editor.js
+            loadRecordIntoEditor(activeRecord, activeRecord.collection);
             console.log(`Removed ${moduleId} from currentActiveRecord.MODULEID_ARRAY`);
         }
     }
@@ -490,9 +482,9 @@ export function removeModuleFromActiveRecordSelection(moduleId) {
 /**
  * Populates the main filter dropdown with unique module types found in top-level modules.
  */
-export function populateModuleTypeFilter() {
+function populateModuleTypeFilter() { // Removed 'export'
     if (moduleTypeFilterSelect) {
-        moduleTypeFilterSelect.innerHTML = '<option value="ALL">All Module Types</option>'; // Clear existing options except 'ALL'
+        moduleTypeFilterSelect.innerHTML = '<option value="ALL">All Module Types</option>';
 
         const uniqueModuleTypes = new Set();
         topLevelModuleNavigationList.forEach(module => {
@@ -507,18 +499,13 @@ export function populateModuleTypeFilter() {
             option.textContent = type.replace(/_/g, ' ');
             moduleTypeFilterSelect.appendChild(option);
         });
-
-        // Add event listener so that when the selection changes, we apply the filter
-        // This was already added in setupListView, so it's a bit redundant here.
-        // It should be moved solely to setupListView.
-        // moduleTypeFilterSelect.addEventListener('change', applyModuleTypeFilter);
     }
 }
 
 /**
  * Applies the selected filter and updates the navigation list, then loads the first record.
  */
-export async function applyModuleTypeFilter() {
+async function applyModuleTypeFilter() { // Removed 'export'
     const selectedFilterType = moduleTypeFilterSelect ? moduleTypeFilterSelect.value : 'ALL';
 
     if (selectedFilterType === 'ALL') {
@@ -529,12 +516,15 @@ export async function applyModuleTypeFilter() {
         });
     }
 
-    currentTopLevelModuleIndex = 0; // Reset index for new filter
+    currentTopLevelModuleIndex = 0;
 
     if (filteredNavigationList.length > 0) {
-        await loadSelectedModuleIntoEditor(); // Load the first record of the filtered list
+        // Assumed to be globally available
+        await loadSelectedModuleIntoEditor();
     } else {
-        loadRecordIntoEditor(null); // No records match, clear editor
+        // Assumed to be globally available from ModuleContent_Editor.js
+        loadRecordIntoEditor(null);
+        // Assumed to be globally available from ui-utilities.js
         showAlert(statusMessageSpan, statusAlert, `No records found for module type: ${selectedFilterType}`, false);
     }
     updateNavigationButtons();
@@ -544,25 +534,24 @@ export async function applyModuleTypeFilter() {
  * Fetches all top-level modules (COURSEs, LESSONs, and selected learningContent types)
  * into the master navigation list.
  */
-export async function fetchAndPopulateTopLevelNavigation() {
+async function fetchAndPopulateTopLevelNavigation() { // Removed 'export'
     try {
         const allTopLevelModules = [];
 
         const topLevelCollections = ['COURSE', 'LESSON'];
         for (const col of topLevelCollections) {
+            // Accessing global 'db' object
             const snapshot = await db.collection(col).get();
             snapshot.forEach(doc => {
                 allTopLevelModules.push({ id: doc.id, ...doc.data(), MODULETYPE: doc.data().MODULETYPE || col, collection: col });
             });
         }
 
-        const topLevelLearningContentTypes = [
-            'SEMANTIC_GROUP', 'VOCABULARY', 'VOCABULARY_GROUP', 'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING'
-        ];
+        // Accessing global 'db' object
         const learningContentSnapshot = await db.collection('learningContent').get();
         learningContentSnapshot.forEach(doc => {
             const data = doc.data();
-            if (topLevelLearningContentTypes.includes(data.MODULETYPE)) {
+            if (topLevelLearningContentTypes.includes(data.MODULETYPE)) { // Fix: topLevelLearningContentTypes was undefined. It's a const defined above.
                 allTopLevelModules.push({ id: doc.id, ...data, collection: 'learningContent' });
             }
         });
@@ -570,10 +559,11 @@ export async function fetchAndPopulateTopLevelNavigation() {
         allTopLevelModules.sort((a, b) => (a.TITLE || '').localeCompare(b.TITLE || ''));
 
         topLevelModuleNavigationList = allTopLevelModules;
-        populateModuleTypeFilter(); // Re-populate filter dropdown based on new list
+        populateModuleTypeFilter();
         updateNavigationButtons();
     } catch (error) {
         console.error("Error fetching top-level navigation:", error);
+        // Assumed to be globally available from ui-utilities.js
         showAlert(statusMessageSpan, statusAlert, "Failed to load top-level navigation. " + error.message, true);
     }
 }
@@ -581,7 +571,7 @@ export async function fetchAndPopulateTopLevelNavigation() {
 /**
  * Updates the disabled state of Prev/Next buttons based on the current index and filtered list length.
  */
-export function updateNavigationButtons() {
+function updateNavigationButtons() { // Removed 'export'
     if (prevRecordBtn) {
         prevRecordBtn.disabled = currentTopLevelModuleIndex <= 0;
     } else {
@@ -599,3 +589,22 @@ export function updateNavigationButtons() {
         if (nextRecordBtn) nextRecordBtn.disabled = true;
     }
 }
+
+// --- Make functions accessible globally via the window object ---
+window.setupListView = setupListView;
+window.loadSelectedModuleIntoEditor = loadSelectedModuleIntoEditor;
+window.renderModuleListItem = renderModuleListItem; // Often internal, but explicitly exposed for flexibility
+window.fetchAndRenderChildren = fetchAndRenderChildren;
+window.loadAllAvailableModules = loadAllAvailableModules;
+window.displayFilteredModules = displayFilteredModules;
+window.addModuleToActiveRecordSelection = addModuleToActiveRecordSelection;
+window.removeModuleFromActiveRecordSelection = removeModuleFromActiveRecordSelection;
+window.populateModuleTypeFilter = populateModuleTypeFilter;
+window.applyModuleTypeFilter = applyModuleTypeFilter;
+window.fetchAndPopulateTopLevelNavigation = fetchAndPopulateTopLevelNavigation;
+window.updateNavigationButtons = updateNavigationButtons;
+
+// Added a missing constant from the fetchAndPopulateTopLevelNavigation function
+const topLevelLearningContentTypes = [
+    'SEMANTIC_GROUP', 'VOCABULARY', 'VOCABULARY_GROUP', 'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING'
+];

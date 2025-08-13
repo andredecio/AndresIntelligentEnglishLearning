@@ -1,10 +1,12 @@
-// js/AdminSystem_Generator.js
+// js/AdminSystem_Generator.js (Remodified for standard script loading - NO 'import' or 'export')
 // Handles content generation forms and Cloud Function calls for the Admin System.
 
-// Import necessary Firebase services from our centralized setup.
-import { app, functions } from './firebase-services.js'; // 'app' is imported for context, 'functions' for callable functions.
+// Removed: import { app, functions } from './firebase-services.js'; // 'app' and 'functions' are now globally accessible
 
 document.addEventListener('DOMContentLoaded', () => { // Retained from original AdminSystem.js.
+    // 'functions' is now globally available from firebase-services.js.
+    // 'app' is also globally available via `firebase.app()` if needed, but not directly used in this script.
+
     // --- References to HTML Elements (Content Generator) ---
     const contentGeneratorForm = document.getElementById('contentGeneratorForm');
     const cefrLevelSelect = document.getElementById('cefrLevel');
@@ -12,16 +14,16 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
     const numGItemsInput = document.getElementById('numGItems');
     const numCItemsInput = document.getElementById('numCItems');
     const numLSItemsInput = document.getElementById('numLSItems');
-    const numRWItemsInput = document.getElementById('numRWItems'); // Corrected typo here
+    const numRWItemsInput = document.getElementById('numRWItems');
     const themeInput = document.getElementById('theme');
     const ModuleTypeSelect = document.getElementById('ModuleType');
     const responseDiv = document.getElementById('response');
-    const loadingDiv = document.getElementById('loading'); // For content generation process
+    const loadingDiv = document.getElementById('loading');
     const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
-    const loadingSpinner = document.getElementById('loadingSpinner'); // Spinner is on the page, shared with auth.
+    const loadingSpinner = document.getElementById('loadingSpinner');
 
     // --- Firebase Callable Cloud Function References ---
-    // Make sure createLesson is also referenced here!
+    // Accessing global 'functions' object
     const createLesson = functions.httpsCallable('createLesson');
     const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
     const generateGrammarContent = functions.httpsCallable('generateGrammarContent');
@@ -29,10 +31,9 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
     const generateReadingWritingContent = functions.httpsCallable('generateReadingWritingContent');
     const generateListeningSpeakingContent = functions.httpsCallable('generateListeningSpeakingContent');
 
-    // --- Content Generator Form Submission Handler (Your original logic, now secured) ---
+    // --- Content Generator Form Submission Handler ---
     contentGeneratorForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        // Declare all number variables with `let`
         let numVItems, numGItems, numCItems, numRWItems, numLSItems;
 
         const ModuleType = ModuleTypeSelect.value;
@@ -72,17 +73,16 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
         loadingDiv.style.display = 'block';
         responseDiv.style.color = 'initial';
         skippedWordsDisplay.textContent = '';
-        loadingSpinner.classList.remove('hidden');
+        loadingSpinner.classList.add('hidden');
 
         try {
             console.log("cefrLevel:", cefrLevel);
 
-            let lessonModuleId = null; // Variable to store the MODULEID from the LESSON document
+            let lessonModuleId = null;
 
             if (ModuleType === 'LESSON') {
                 const excount = numVItems + numGItems + numCItems + numLSItems + numRWItems;
 
-                // Only create the LESSON document if there's at least one module expected
                 if (excount === 0) {
                     alert("Cannot create a LESSON with 0 expected modules. Please specify at least one module count greater than 0.");
                     loadingDiv.style.display = 'none';
@@ -123,8 +123,6 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
                 }
             }
 
-            // Define the module generators.
-            // They will now conditionally include lessonModuleId in their payload.
             const moduleGenerators = {
                 'VOCABULARY': {
                     count: numVItems,
@@ -173,25 +171,22 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
                 }
             };
 
-            let result = {}; // This will hold the aggregated results of module generation
+            let result = {};
 
             if (ModuleType === 'LESSON') {
-                // If we are creating a LESSON, iterate through all module types
                 for (const [type, moduleData] of Object.entries(moduleGenerators)) {
-                    if (moduleData.count > 0) { // <--- CONDITIONAL CALLING BASED ON COUNT
+                    if (moduleData.count > 0) {
                         console.log(`Generating ${type} modules...`);
-                        result[type] = await moduleData.generator();  // Call the actual generator function
+                        result[type] = await moduleData.generator();
                         console.log(`${type} modules complete.`);
                     } else {
                         console.log(`Skipping ${type} modules as count is zero.`);
-                        // Provide a consistent placeholder result for skipped modules
                         result[type] = { data: { message: `Skipped: count was 0` } };
                     }
                 }
-            } else if (Object.prototype.hasOwnProperty.call(moduleGenerators, ModuleType)) { // More robust check
-                // If a specific module type is selected (not LESSON)
+            } else if (Object.prototype.hasOwnProperty.call(moduleGenerators, ModuleType)) {
                 const selectedModuleData = moduleGenerators[ModuleType];
-                if (selectedModuleData.count > 0) { // Also check count for single module type generation
+                if (selectedModuleData.count > 0) {
                     result = await selectedModuleData.generator();
                 } else {
                     alert(`Cannot generate ${ModuleType} modules if count is 0. Please specify a count greater than 0.`);
@@ -206,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
             // --- Display Results and Skipped Words ---
             if (ModuleType === 'LESSON') {
                 const messages = Object.entries(result).map(
-                    ([type, res]) => `${type}: ${res?.data?.message || 'OK'}` // Use optional chaining for message
+                    ([type, res]) => `${type}: ${res?.data?.message || 'OK'}`
                 );
                 responseDiv.textContent = 'Success! Modules created:\n' + messages.join('\n');
             } else {
@@ -239,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
 
         } catch (error) {
             console.error("Error calling Cloud Function:", error);
-            // Check if error has details, as is common with callable functions
             const errorMessage = error.details ?
                                 `Error: ${error.message}\nDetails: ${JSON.stringify(error.details, null, 2)}` :
                                 `Error: ${error.message}`;
