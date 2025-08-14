@@ -103,6 +103,7 @@
                 }
                 window.loadRecordIntoEditor(window.getCurrentActiveRecord(), savedRecord.collection);
                 window.updateClassroomButtonState(window.getCurrentActiveRecord()?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
+				window.displayFilteredModules();
             },
             onRecordDeleted: async () => {
                 // These functions are assumed to be globally available
@@ -128,6 +129,7 @@
                 window.loadRecordIntoEditor(recordData, collectionName);
                 window.updateClassroomButtonState(recordData?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
                 window.updateCurrentChildrenDisplay();
+				window.displayFilteredModules();
             }
         };
         // setupListView is assumed to be globally available from ModuleContent_ListView.js
