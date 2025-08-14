@@ -587,8 +587,16 @@
             });
         }
 
-        currentTopLevelModuleIndex = 0;
+    const activeRecordId = window.getCurrentActiveRecord()?.id;
+        let newIndex = 0; // Default to 0 if no record or record not found after filter
 
+        if (activeRecordId) {
+            const foundIndex = filteredNavigationList.findIndex(m => m.id === activeRecordId);
+            if (foundIndex !== -1) {
+                newIndex = foundIndex; // Keep the same record selected if found
+            }
+        }
+        currentTopLevelModuleIndex = newIndex; // Set to preserved index or default 0
         if (filteredNavigationList.length > 0) {
             await loadSelectedModuleIntoEditor();
         } else {
