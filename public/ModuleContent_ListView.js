@@ -665,5 +665,7 @@
     window.applyModuleTypeFilter = applyModuleTypeFilter;
     window.fetchAndPopulateTopLevelNavigation = fetchAndPopulateTopLevelNavigation;
     window.updateNavigationButtons = updateNavigationButtons;
+	window.filteredNavigationList = filteredNavigationList; // ADD THIS LINE
+	window.currentTopLevelModuleIndex = currentTopLevelModuleIndex; // ADD THIS LINE
 
 })(); // End IIFE for ModuleContent_ListView.js
