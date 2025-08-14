@@ -1,10 +1,9 @@
 // js/ModuleContent_Editor.js (Remodified for standard script loading - NO 'import' or 'export')
 // Handles the single record editor view: loading, saving, and deleting module records.
 
-// Removed: import { db, auth } from './firebase-services.js';
-// Removed: import { showAlert, renderThumbnail, renderAudioPlayer } from './ui-utilities.js';
-// Removed: import { updateClassroomButtonState } from './ModuleContent_Classroom.js';
-
+// Removed: import { db, auth } from './firebase-services.js'; // Confirmed, they are gone
+// Removed: import { showAlert, renderThumbnail, renderAudioPlayer } from './ui-utilities.js'; // Confirmed, they are gone
+// Removed: import { updateClassroomButtonState } from './ModuleContent_Classroom.js'; // Confirmed, it's gone
 
 // --- Internal Module-Specific Constants and DOM Element References ---
 // These are internal to the editor module. They will be initialized via a setup function.
@@ -63,7 +62,7 @@ let onRecordDeletedCallback = () => {};
  * @param {object} elements - An object containing references to the editor's DOM elements.
  * @param {object} callbacks - An object containing callback functions for inter-module communication.
  */
-function setupEditor(elements, callbacks) { // Removed 'export'
+function setupEditor(elements, callbacks) {
     // Assign DOM elements
     activeRecordIdInput = elements.activeRecordIdInput;
     activeRecordCollectionInput = elements.activeRecordCollectionInput;
@@ -107,7 +106,8 @@ function setupEditor(elements, callbacks) { // Removed 'export'
                 toggleConditionalFields(selectedType);
 
                 // Assuming updateClassroomButtonState is globally available
-                updateClassroomButtonState(selectedType, generateClassroomBtn, activeRecordTypeSelect);
+                // Corrected: Now accesses window.updateClassroomButtonState
+                window.updateClassroomButtonState(selectedType, generateClassroomBtn, activeRecordTypeSelect);
             }
         });
     }
@@ -142,7 +142,7 @@ function toggleConditionalFields(moduleType) {
  * @param {object | null} recordData - The Firestore document data (with 'id' property), or null for a new record.
  * @param {string | null} collectionName - The name of the Firestore collection the record belongs to.
  */
-function loadRecordIntoEditor(recordData, collectionName = null) { // Removed 'export'
+function loadRecordIntoEditor(recordData, collectionName = null) {
     currentActiveRecordInternal = recordData;
 
     if (recordData) {
@@ -161,7 +161,8 @@ function loadRecordIntoEditor(recordData, collectionName = null) { // Removed 'e
         toggleConditionalFields(recordData.MODULETYPE);
 
         if (recordThemeInput) recordThemeInput.value = recordData.THEME || '';
-        if (imageStatusSelect) imageStatusSelect.value = recordData.imageStatus || 'needs_review';
+        // Corrected: Now uses 'recordData.imageStatus' if it exists, otherwise defaults to 'pending'
+        if (imageStatusSelect) imageStatusSelect.value = recordData.imageStatus || 'pending';
         if (cefrInput) cefrInput.value = recordData.CEFR || '';
         if (meaningOriginInput) meaningOriginInput.value = recordData.MEANING_ORIGIN || '';
 
@@ -185,25 +186,25 @@ function loadRecordIntoEditor(recordData, collectionName = null) { // Removed 'e
         if (recordTitleInput) recordTitleInput.value = '';
         if (recordDescriptionTextarea) recordDescriptionTextarea.value = '';
         if (recordThemeInput) recordThemeInput.value = '';
-        if (imageStatusSelect) imageStatusSelect.value = '';
+        if (imageStatusSelect) imageStatusSelect.value = ''; // Clear for new record
         if (cefrInput) cefrInput.value = '';
         if (meaningOriginInput) meaningOriginInput.value = '';
 
-        toggleConditionalFields('COURSE');
+        toggleConditionalFields('COURSE'); // Default to COURSE for new records
 
         if (saveRecordBtn) saveRecordBtn.textContent = 'Create Module';
         if (deleteRecordBtn) deleteRecordBtn.style.display = 'none';
     }
 
     // Assuming updateCurrentChildrenDisplay is globally available
-    updateCurrentChildrenDisplay();
+    window.updateCurrentChildrenDisplay();
 }
 
 
 /**
  * Updates the 'Currently Included Modules' list based on currentActiveRecordInternal.MODULEID_ARRAY.
  */
-async function updateCurrentChildrenDisplay() { // Removed 'export'
+async function updateCurrentChildrenDisplay() {
     if (currentChildrenDisplay) {
         currentChildrenDisplay.innerHTML = '';
     }
@@ -218,9 +219,10 @@ async function updateCurrentChildrenDisplay() { // Removed 'export'
     const childPromises = currentActiveRecordInternal.MODULEID_ARRAY.map(async (childId) => {
         let docSnap = null;
         // Accessing global 'db' object
+        // Corrected: Now accesses window.db
         const collectionsToSearch = ['LESSON', 'learningContent', 'syllables', 'phonemes'];
         for (const col of collectionsToSearch) {
-            docSnap = await db.collection(col).doc(childId).get();
+            docSnap = await window.db.collection(col).doc(childId).get();
             if (docSnap.exists) {
                 const data = docSnap.data();
                 return { id: docSnap.id, title: data.TITLE || data.name, type: data.MODULETYPE };
@@ -255,13 +257,13 @@ async function saveRecord() {
     const meaningOrigin = meaningOriginInput ? meaningOriginInput.value : null;
 
     if (!title) {
-        // Assuming showAlert is globally available
-        showAlert(statusMessageSpan, statusAlert, 'Title cannot be empty!', true);
+        // Corrected: Now accesses window.showAlert
+        window.showAlert(statusMessageSpan, statusAlert, 'Title cannot be empty!', true);
         return;
     }
     if (!recordCollection || !recordType) {
-        // Assuming showAlert is globally available
-        showAlert(statusMessageSpan, statusAlert, 'Collection and Module Type are missing! This should not happen.', true);
+        // Corrected: Now accesses window.showAlert
+        window.showAlert(statusMessageSpan, statusAlert, 'Collection and Module Type are missing! This should not happen.', true);
         return;
     }
 
@@ -272,18 +274,28 @@ async function saveRecord() {
         MODULEID_ARRAY: currentActiveRecordInternal && currentActiveRecordInternal.MODULEID_ARRAY ? [...currentActiveRecordInternal.MODULEID_ARRAY] : []
     };
 
-    if (typesWithTheme.includes(recordType)) { dataToSave.THEME = theme; }
-    if (typesWithImageStatus.includes(recordType)) { dataToSave.imageStatus = imageStatus; }
-    if (typesWithCEFR.includes(recordType)) { dataToSave.CEFR = cefr; }
-    if (typesWithMeaningOrigin.includes(recordType)) { dataToSave.MEANING_ORIGIN = meaningOrigin; }
+    // Ensure the imageStatus default is set if the field is relevant but no value is selected.
+    if (typesWithImageStatus.includes(recordType)) {
+        dataToSave.imageStatus = imageStatus || 'pending'; // Default to 'pending' if null
+    } else {
+        // If imageStatus is not relevant for this module type, ensure it's not saved or is removed.
+        // It's safer to not include it if the field is not applicable.
+        delete dataToSave.imageStatus;
+    }
+
+
+    if (typesWithTheme.includes(recordType)) { dataToSave.THEME = theme; } else { delete dataToSave.THEME; } // Ensure Theme is removed if not relevant
+    if (typesWithCEFR.includes(recordType)) { dataToSave.CEFR = cefr; } else { delete dataToSave.CEFR; } // Ensure CEFR is removed if not relevant
+    if (typesWithMeaningOrigin.includes(recordType)) { dataToSave.MEANING_ORIGIN = meaningOrigin; } else { delete dataToSave.MEANING_ORIGIN; } // Ensure Meaning Origin is removed if not relevant
+
 
     try {
         if (recordId) {
-            // Accessing global 'db' object
-            const docRef = db.collection(recordCollection).doc(recordId);
+            // Corrected: Now accesses window.db
+            const docRef = window.db.collection(recordCollection).doc(recordId);
             await docRef.update(dataToSave);
-            // Assuming showAlert is globally available
-            showAlert(statusMessageSpan, statusAlert, 'Module updated successfully!', false);
+            // Corrected: Now accesses window.showAlert
+            window.showAlert(statusMessageSpan, statusAlert, 'Module updated successfully!', false);
             console.log("Updated record:", recordId, dataToSave);
 
             currentActiveRecordInternal = {
@@ -292,15 +304,15 @@ async function saveRecord() {
             };
 
         } else {
-            // Accessing global 'db' object
-            const docRef = await db.collection(recordCollection).add(dataToSave);
+            // Corrected: Now accesses window.db
+            const docRef = await window.db.collection(recordCollection).add(dataToSave);
             const newRecordId = docRef.id;
 
             if (activeRecordIdInput) activeRecordIdInput.value = newRecordId;
 
             currentActiveRecordInternal = { id: newRecordId, ...dataToSave, collection: recordCollection };
-            // Assuming showAlert is globally available
-            showAlert(statusMessageSpan, statusAlert, 'Module created successfully!', false);
+            // Corrected: Now accesses window.showAlert
+            window.showAlert(statusMessageSpan, statusAlert, 'Module created successfully!', false);
             console.log("Created new record with ID:", newRecordId, dataToSave);
         }
 
@@ -309,8 +321,8 @@ async function saveRecord() {
 
     } catch (error) {
         console.error('Error saving record:', error);
-        // Assuming showAlert is globally available
-        showAlert(statusMessageSpan, statusAlert, `Error saving module: ${error.message}`, true);
+        // Corrected: Now accesses window.showAlert
+        window.showAlert(statusMessageSpan, statusAlert, `Error saving module: ${error.message}`, true);
     }
 }
 
@@ -319,8 +331,8 @@ async function saveRecord() {
  */
 async function deleteRecord() {
     if (!currentActiveRecordInternal || !currentActiveRecordInternal.id) {
-        // Assuming showAlert is globally available
-        showAlert(statusMessageSpan, statusAlert, 'No module selected for deletion.', true);
+        // Corrected: Now accesses window.showAlert
+        window.showAlert(statusMessageSpan, statusAlert, 'No module selected for deletion.', true);
         return;
     }
 
@@ -328,25 +340,25 @@ async function deleteRecord() {
     if (!confirmDelete) return;
 
     try {
-        // Accessing global 'db' object
-        await db.collection(currentActiveRecordInternal.collection).doc(currentActiveRecordInternal.id).delete();
-        // Assuming showAlert is globally available
-        showAlert(statusMessageSpan, statusAlert, 'Module deleted successfully!', false);
+        // Corrected: Now accesses window.db
+        await window.db.collection(currentActiveRecordInternal.collection).doc(currentActiveRecordInternal.id).delete();
+        // Corrected: Now accesses window.showAlert
+        window.showAlert(statusMessageSpan, statusAlert, 'Module deleted successfully!', false);
         console.log("Deleted record:", currentActiveRecordInternal.id);
 
         onRecordDeletedCallback();
 
     } catch (error) {
         console.error('Error deleting record:', error);
-        // Assuming showAlert is globally available
-        showAlert(statusMessageSpan, statusAlert, `Error deleting module: ${error.message}`, true);
+        // Corrected: Now accesses window.showAlert
+        window.showAlert(statusMessageSpan, statusAlert, `Error deleting module: ${error.message}`, true);
     }
 }
 
 /**
  * Helper to get the current active record from the editor.
  */
-function getCurrentActiveRecord() { // Removed 'export'
+function getCurrentActiveRecord() {
     return currentActiveRecordInternal;
 }
 
