@@ -108,8 +108,8 @@
                     currentTopLevelModuleIndex--;
                     await loadSelectedModuleIntoEditor();
                     updateNavigationButtons();
-					{else {
-						 console.log("DEBUG LV: Already at the last record."); // ADD THIS LINE
+				} else {
+				 		 console.log("DEBUG LV: Already at the last record."); // ADD THIS LINE
                 }
             });
         }
