@@ -142,62 +142,153 @@ function toggleConditionalFields(moduleType) {
 
 // In ModuleContent_Editor.js
 
+// In ModuleContent_Editor.js
+
+/**
+ * Loads a record's data into the editor form, or clears the form for a new record.
+ * @param {object | null} recordData - The Firestore document data (with 'id' property), or null for a new record.
+ * @param {string | null} collectionName - The name of the Firestore collection the record belongs to.
+ */
 function loadRecordIntoEditor(recordData, collectionName = null) {
-    currentActiveRecordInternal = recordData;
+    // --- CRITICAL FIX: Re-fetch all necessary DOM elements directly within the function scope ---
+    // This bypasses any subtle scope/closure issues that might cause them to become null/undefined.
+    const currentActiveRecordIdInput = document.getElementById('activeRecordId');
+    const currentActiveRecordCollectionInput = document.getElementById('activeRecordCollection');
+    const currentActiveRecordTypeSelect = document.getElementById('activeRecordTypeSelect');
+    const currentNewRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group'); // Use querySelector for class
+    const currentRecordTitleInput = document.getElementById('recordTitle');
+    const currentRecordDescriptionTextarea = document.getElementById('recordDescription');
+    const currentRecordThemeInput = document.getElementById('recordTheme');
+    const currentThemeFields = document.querySelectorAll('.theme-fields'); // Use querySelectorAll for class
+    const currentImageStatusSelect = document.getElementById('imageStatus');
+    const currentImageStatusFields = document.querySelectorAll('.image-status-fields');
+    const currentCefrInput = document.getElementById('cefrInput');
+    const currentCefrFields = document.querySelectorAll('.cefr-fields');
+    const currentMeaningOriginInput = document.getElementById('meaningOriginInput');
+    const currentMeaningOriginFields = document.querySelectorAll('.meaning-origin-fields');
+    const currentSaveRecordBtn = document.getElementById('saveRecordBtn');
+    const currentDeleteRecordBtn = document.getElementById('deleteRecordBtn');
+    const currentCurrentChildrenDisplay = document.getElementById('currentChildrenDisplay');
+    const currentGenerateClassroomBtn = document.getElementById('generateClassroomBtn');
+
+
+    currentActiveRecordInternal = recordData; // Keep this, it manages the internal state
 
     if (recordData) {
-        // ... (existing code for existing records)
-        if (activeRecordIdInput) activeRecordIdInput.value = recordData.id || '';
-        if (activeRecordCollectionInput) activeRecordCollectionInput.value = collectionName || ''; // This is for existing records
+        console.log("DEBUG: Populating editor for existing record. Record ID:", recordData.id);
+        console.log("DEBUG: Record TITLE:", recordData.TITLE);
+        console.log("DEBUG: Record DESCRIPTION:", recordData.DESCRIPTION);
+        console.log("DEBUG: Record MODULETYPE:", recordData.MODULETYPE);
 
-        if (activeRecordTypeSelect) {
-            activeRecordTypeSelect.value = recordData.MODULETYPE || '';
-            activeRecordTypeSelect.disabled = true;
+        if (currentActiveRecordIdInput) currentActiveRecordIdInput.value = recordData.id || '';
+        if (currentActiveRecordCollectionInput) currentActiveRecordCollectionInput.value = collectionName || '';
+
+        if (currentActiveRecordTypeSelect) {
+            currentActiveRecordTypeSelect.value = recordData.MODULETYPE || '';
+            currentActiveRecordTypeSelect.disabled = true;
+            console.log("DEBUG: activeRecordTypeSelect value set to:", currentActiveRecordTypeSelect.value);
         }
-        if (newRecordTypeSelectorGroup) newRecordTypeSelectorGroup.classList.remove('hidden'); // Ensure this is not adding 'hidden' back for existing records
-        // ... (rest of existing record path)
+        // Ensure newRecordTypeSelectorGroup is always handled
+        if (currentNewRecordTypeSelectorGroup) currentNewRecordTypeSelectorGroup.classList.remove('hidden');
 
-
-    } else { // This handles 'new record' initialization
-        console.log("DEBUG loadRecordIntoEditor: Initializing for NEW record.");
-        if (activeRecordIdInput) activeRecordIdInput.value = '';
-        currentActiveRecordInternal = null;
-
-        if (activeRecordTypeSelect) {
-            activeRecordTypeSelect.value = 'COURSE';
-            activeRecordTypeSelect.disabled = false;
-            console.log("DEBUG loadRecordIntoEditor: activeRecordTypeSelect.value set to:", activeRecordTypeSelect.value);
+        if (currentRecordTitleInput) {
+            currentRecordTitleInput.value = recordData.TITLE || recordData.name || '';
+            console.log("DEBUG: recordTitleInput value set to:", currentRecordTitleInput.value);
         }
-        if (newRecordTypeSelectorGroup) { // Ensure it's not null before removing class
-            newRecordTypeSelectorGroup.classList.remove('hidden');
-        }
-
-
-        // ADDED: Explicitly check the elements before setting value
-        if (activeRecordCollectionInput) {
-            const desiredCollectionValue = moduleTypes[activeRecordTypeSelect.value];
-            console.log("DEBUG loadRecordIntoEditor: Attempting to set activeRecordCollectionInput.value to:", desiredCollectionValue);
-            activeRecordCollectionInput.value = desiredCollectionValue;
-            console.log("DEBUG loadRecordIntoEditor: activeRecordCollectionInput.value after assignment:", activeRecordCollectionInput.value);
-        } else {
-            console.warn("DEBUG loadRecordIntoEditor: activeRecordCollectionInput is null or undefined during new record init.");
+        if (currentRecordDescriptionTextarea) {
+            currentRecordDescriptionTextarea.value = recordData.DESCRIPTION || '';
+            console.log("DEBUG: recordDescriptionTextarea value set to:", currentRecordDescriptionTextarea.value);
         }
 
+        // Call toggleConditionalFields using the local variables
+        toggleConditionalFields(recordData.MODULETYPE);
 
-        if (recordTitleInput) recordTitleInput.value = '';
-        if (recordDescriptionTextarea) recordDescriptionTextarea.value = '';
-        if (recordThemeInput) recordThemeInput.value = '';
-        if (imageStatusSelect) imageStatusSelect.value = '';
-        if (cefrInput) cefrInput.value = '';
-        if (meaningOriginInput) meaningOriginInput.value = '';
+        if (currentRecordThemeInput) currentRecordThemeInput.value = recordData.THEME || '';
+        if (currentImageStatusSelect) currentImageStatusSelect.value = recordData.imageStatus || 'pending';
+        if (currentCefrInput) currentCefrInput.value = recordData.CEFR || '';
+        if (currentMeaningOriginInput) currentMeaningOriginInput.value = recordData.MEANING_ORIGIN || '';
 
-        toggleConditionalFields('COURSE'); // Default to COURSE for new records
+        if (currentSaveRecordBtn) currentSaveRecordBtn.textContent = 'Update Module';
+        if (currentDeleteRecordBtn) currentDeleteRecordBtn.style.display = 'inline-block';
 
-        if (saveRecordBtn) saveRecordBtn.textContent = 'Create Module';
-        if (deleteRecordBtn) deleteRecordBtn.style.display = 'none';
+    } else { // Clearing editor for a new/empty record.
+        console.log("DEBUG: Clearing editor for a new/empty record.");
+
+        if (currentActiveRecordIdInput) currentActiveRecordIdInput.value = '';
+        currentActiveRecordInternal = null; // Clear internal record when starting a new one
+
+        if (currentActiveRecordTypeSelect) {
+            currentActiveRecordTypeSelect.value = 'COURSE';
+            currentActiveRecordTypeSelect.disabled = false;
+        }
+        if (currentNewRecordTypeSelectorGroup) { // Ensure this is handled for new records
+            currentNewRecordTypeSelectorGroup.classList.remove('hidden');
+        }
+
+        // Initialize collection based on default type for new record
+        if (currentActiveRecordCollectionInput && currentActiveRecordTypeSelect && moduleTypes[currentActiveRecordTypeSelect.value]) {
+             currentActiveRecordCollectionInput.value = moduleTypes[currentActiveRecordTypeSelect.value];
+        }
+
+        if (currentRecordTitleInput) currentRecordTitleInput.value = '';
+        if (currentRecordDescriptionTextarea) currentRecordDescriptionTextarea.value = '';
+        if (currentRecordThemeInput) currentRecordThemeInput.value = '';
+        if (currentImageStatusSelect) currentImageStatusSelect.value = ''; // Clear for new record
+        if (currentCefrInput) currentCefrInput.value = '';
+        if (currentMeaningOriginInput) currentMeaningOriginInput.value = '';
+
+        // Call toggleConditionalFields for the default 'COURSE' type
+        toggleConditionalFields('COURSE');
+
+        if (currentSaveRecordBtn) currentSaveRecordBtn.textContent = 'Create Module';
+        if (currentDeleteRecordBtn) currentDeleteRecordBtn.style.display = 'none';
     }
 
-    window.updateCurrentChildrenDisplay(); // This is correctly placed at the end
+    // Assuming window.updateCurrentChildrenDisplay is globally available
+    // Ensure this function uses its own re-fetched elements if it needs them
+    window.updateCurrentChildrenDisplay();
+}
+
+// Ensure toggleConditionalFields also uses the local variables or re-fetches
+// Since toggleConditionalFields is only called *within* loadRecordIntoEditor (and setupEditor),
+// and it takes the moduleType as an argument, its direct element access within it needs to be updated too.
+// For now, let's update its calls to use the local 'current*' variables.
+// No, it uses the global ones assigned by setupEditor, so they will be null too.
+// It's better to update toggleConditionalFields to directly fetch them if needed, or pass them in.
+// For simplicity and consistency with loadRecordIntoEditor, let's update toggleConditionalFields to re-fetch too.
+
+
+/**
+ * Toggles the visibility of conditional fields (Theme, Image Status, CEFR, Meaning Origin)
+ * based on the selected module type.
+ * @param {string} moduleType - The type of module (e.g., 'COURSE', 'VOCABULARY').
+ */
+function toggleConditionalFields(moduleType) {
+    // Re-fetch elements for robustness
+    const currentRecordThemeInput = document.getElementById('recordTheme'); // Also needed here to clear value
+    const currentThemeFields = document.querySelectorAll('.theme-fields');
+    const currentImageStatusSelect = document.getElementById('imageStatus'); // Also needed here to clear value
+    const currentImageStatusFields = document.querySelectorAll('.image-status-fields');
+    const currentCefrInput = document.getElementById('cefrInput'); // Also needed here to clear value
+    const currentCefrFields = document.querySelectorAll('.cefr-fields');
+    const currentMeaningOriginInput = document.getElementById('meaningOriginInput'); // Also needed here to clear value
+    const currentMeaningOriginFields = document.querySelectorAll('.meaning-origin-fields');
+
+    const isThemeRelevant = typesWithTheme.includes(moduleType);
+    if (currentThemeFields) currentThemeFields.forEach(el => el.classList[isThemeRelevant ? 'remove' : 'add']('hidden'));
+    if (!isThemeRelevant && currentRecordThemeInput) currentRecordThemeInput.value = '';
+
+    const isImageStatusRelevant = typesWithImageStatus.includes(moduleType);
+    if (currentImageStatusFields) currentImageStatusFields.forEach(el => el.classList[isImageStatusRelevant ? 'remove' : 'add']('hidden'));
+    if (!isImageStatusRelevant && currentImageStatusSelect) currentImageStatusSelect.value = '';
+
+    const isCEFRRelevant = typesWithCEFR.includes(moduleType);
+    if (currentCefrFields) currentCefrFields.forEach(el => el.classList[isCEFRRelevant ? 'remove' : 'add']('hidden'));
+    if (!isCEFRRelevant && currentCefrInput) currentCefrInput.value = '';
+
+    const isMeaningOriginRelevant = typesWithMeaningOrigin.includes(moduleType);
+    if (currentMeaningOriginFields) currentMeaningOriginFields.forEach(el => el.classList[isMeaningOriginRelevant ? 'remove' : 'add']('hidden'));
+    if (!isMeaningOriginRelevant && currentMeaningOriginInput) currentMeaningOriginInput.value = '';
 }
 
 
