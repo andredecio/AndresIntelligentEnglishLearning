@@ -137,56 +137,54 @@ function toggleConditionalFields(moduleType) {
 }
 
 
-/**
- * Loads a record's data into the editor form, or clears the form for a new record.
- * @param {object | null} recordData - The Firestore document data (with 'id' property), or null for a new record.
- * @param {string | null} collectionName - The name of the Firestore collection the record belongs to.
- */
+// In ModuleContent_Editor.js
+
 function loadRecordIntoEditor(recordData, collectionName = null) {
     currentActiveRecordInternal = recordData;
 
     if (recordData) {
+        // ... (existing code for existing records)
         if (activeRecordIdInput) activeRecordIdInput.value = recordData.id || '';
-        if (activeRecordCollectionInput) activeRecordCollectionInput.value = collectionName || '';
+        if (activeRecordCollectionInput) activeRecordCollectionInput.value = collectionName || ''; // This is for existing records
 
         if (activeRecordTypeSelect) {
             activeRecordTypeSelect.value = recordData.MODULETYPE || '';
             activeRecordTypeSelect.disabled = true;
         }
-        if (newRecordTypeSelectorGroup) newRecordTypeSelectorGroup.classList.remove('hidden');
+        if (newRecordTypeSelectorGroup) newRecordTypeSelectorGroup.classList.remove('hidden'); // Ensure this is not adding 'hidden' back for existing records
+        // ... (rest of existing record path)
 
-        if (recordTitleInput) recordTitleInput.value = recordData.TITLE || recordData.name || '';
-        if (recordDescriptionTextarea) recordDescriptionTextarea.value = recordData.DESCRIPTION || '';
 
-        toggleConditionalFields(recordData.MODULETYPE);
-
-        if (recordThemeInput) recordThemeInput.value = recordData.THEME || '';
-        // Corrected: Now uses 'recordData.imageStatus' if it exists, otherwise defaults to 'pending'
-        if (imageStatusSelect) imageStatusSelect.value = recordData.imageStatus || 'pending';
-        if (cefrInput) cefrInput.value = recordData.CEFR || '';
-        if (meaningOriginInput) meaningOriginInput.value = recordData.MEANING_ORIGIN || '';
-
-        if (saveRecordBtn) saveRecordBtn.textContent = 'Update Module';
-        if (deleteRecordBtn) deleteRecordBtn.style.display = 'inline-block';
-
-    } else {
+    } else { // This handles 'new record' initialization
+        console.log("DEBUG loadRecordIntoEditor: Initializing for NEW record.");
         if (activeRecordIdInput) activeRecordIdInput.value = '';
         currentActiveRecordInternal = null;
 
         if (activeRecordTypeSelect) {
             activeRecordTypeSelect.value = 'COURSE';
             activeRecordTypeSelect.disabled = false;
+            console.log("DEBUG loadRecordIntoEditor: activeRecordTypeSelect.value set to:", activeRecordTypeSelect.value);
         }
-        if (newRecordTypeSelectorGroup) newRecordTypeSelectorGroup.classList.remove('hidden');
+        if (newRecordTypeSelectorGroup) { // Ensure it's not null before removing class
+            newRecordTypeSelectorGroup.classList.remove('hidden');
+        }
 
-        if (activeRecordCollectionInput && activeRecordTypeSelect && moduleTypes[activeRecordTypeSelect.value]) {
-             activeRecordCollectionInput.value = moduleTypes[activeRecordTypeSelect.value];
+
+        // ADDED: Explicitly check the elements before setting value
+        if (activeRecordCollectionInput) {
+            const desiredCollectionValue = moduleTypes[activeRecordTypeSelect.value];
+            console.log("DEBUG loadRecordIntoEditor: Attempting to set activeRecordCollectionInput.value to:", desiredCollectionValue);
+            activeRecordCollectionInput.value = desiredCollectionValue;
+            console.log("DEBUG loadRecordIntoEditor: activeRecordCollectionInput.value after assignment:", activeRecordCollectionInput.value);
+        } else {
+            console.warn("DEBUG loadRecordIntoEditor: activeRecordCollectionInput is null or undefined during new record init.");
         }
+
 
         if (recordTitleInput) recordTitleInput.value = '';
         if (recordDescriptionTextarea) recordDescriptionTextarea.value = '';
         if (recordThemeInput) recordThemeInput.value = '';
-        if (imageStatusSelect) imageStatusSelect.value = ''; // Clear for new record
+        if (imageStatusSelect) imageStatusSelect.value = '';
         if (cefrInput) cefrInput.value = '';
         if (meaningOriginInput) meaningOriginInput.value = '';
 
@@ -196,8 +194,7 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
         if (deleteRecordBtn) deleteRecordBtn.style.display = 'none';
     }
 
-    // Assuming updateCurrentChildrenDisplay is globally available
-    window.updateCurrentChildrenDisplay();
+    window.updateCurrentChildrenDisplay(); // This is correctly placed at the end
 }
 
 
