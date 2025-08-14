@@ -246,6 +246,8 @@ async function updateCurrentChildrenDisplay() {
  * Saves (creates or updates) the active record in Firestore.
  */
 async function saveRecord() {
+	 const currentStatusMessageSpan = document.getElementById('statusMessage');
+    const currentStatusAlert = document.getElementById('statusAlert');
     const recordId = activeRecordIdInput ? activeRecordIdInput.value : null;
     const recordCollection = activeRecordCollectionInput ? activeRecordCollectionInput.value : null;
     const recordType = activeRecordTypeSelect ? activeRecordTypeSelect.value : null;
@@ -258,13 +260,12 @@ async function saveRecord() {
 
     if (!title) {
         // Corrected: Now accesses window.showAlert
-        window.showAlert(statusMessageSpan, statusAlert, 'Title cannot be empty!', true);
+        window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Title cannot be empty!', true);
         return;
     }
     if (!recordCollection || !recordType) {
         // Corrected: Now accesses window.showAlert
-        window.showAlert(statusMessageSpan, statusAlert, 'Collection and Module Type are missing! This should not happen.', true);
-        return;
+		window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Collection and Module Type are missing! This should not happen.', true);        return;
     }
 
     const dataToSave = {
@@ -295,7 +296,7 @@ async function saveRecord() {
             const docRef = window.db.collection(recordCollection).doc(recordId);
             await docRef.update(dataToSave);
             // Corrected: Now accesses window.showAlert
-            window.showAlert(statusMessageSpan, statusAlert, 'Module updated successfully!', false);
+           window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Module updated successfully!', false);
             console.log("Updated record:", recordId, dataToSave);
 
             currentActiveRecordInternal = {
@@ -312,7 +313,7 @@ async function saveRecord() {
 
             currentActiveRecordInternal = { id: newRecordId, ...dataToSave, collection: recordCollection };
             // Corrected: Now accesses window.showAlert
-            window.showAlert(statusMessageSpan, statusAlert, 'Module created successfully!', false);
+            window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Module created successfully!', false);
             console.log("Created new record with ID:", newRecordId, dataToSave);
         }
 
@@ -322,18 +323,18 @@ async function saveRecord() {
     } catch (error) {
         console.error('Error saving record:', error);
         // Corrected: Now accesses window.showAlert
-        window.showAlert(statusMessageSpan, statusAlert, `Error saving module: ${error.message}`, true);
-    }
+			window.showAlert(currentStatusMessageSpan, currentStatusAlert, `Error saving module: ${error.message}`, true);    }
 }
 
 /**
  * Deletes the currently active record from Firestore.
  */
 async function deleteRecord() {
+		const currentStatusMessageSpan = document.getElementById('statusMessage');
+		const currentStatusAlert = document.getElementById('statusAlert');
     if (!currentActiveRecordInternal || !currentActiveRecordInternal.id) {
         // Corrected: Now accesses window.showAlert
-        window.showAlert(statusMessageSpan, statusAlert, 'No module selected for deletion.', true);
-        return;
+		window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'No module selected for deletion.', true);        return;
     }
 
     const confirmDelete = confirm(`Are you sure you want to delete "${currentActiveRecordInternal.TITLE || currentActiveRecordInternal.id}"? This cannot be undone.`);
@@ -343,7 +344,7 @@ async function deleteRecord() {
         // Corrected: Now accesses window.db
         await window.db.collection(currentActiveRecordInternal.collection).doc(currentActiveRecordInternal.id).delete();
         // Corrected: Now accesses window.showAlert
-        window.showAlert(statusMessageSpan, statusAlert, 'Module deleted successfully!', false);
+        window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Module deleted successfully!', false);
         console.log("Deleted record:", currentActiveRecordInternal.id);
 
         onRecordDeletedCallback();
@@ -351,8 +352,7 @@ async function deleteRecord() {
     } catch (error) {
         console.error('Error deleting record:', error);
         // Corrected: Now accesses window.showAlert
-        window.showAlert(statusMessageSpan, statusAlert, `Error deleting module: ${error.message}`, true);
-    }
+		window.showAlert(currentStatusMessageSpan, currentStatusAlert, `Error deleting module: ${error.message}`, true);    }
 }
 
 /**
