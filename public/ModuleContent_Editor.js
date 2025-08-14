@@ -117,34 +117,6 @@ function setupEditor(elements, callbacks) {
 }
 
 /**
- * Toggles the visibility of conditional fields (Theme, Image Status, CEFR, Meaning Origin)
- * based on the selected module type.
- * @param {string} moduleType - The type of module (e.g., 'COURSE', 'VOCABULARY').
- */
-function toggleConditionalFields(moduleType) {
-    const isThemeRelevant = typesWithTheme.includes(moduleType);
-    if (themeFields) themeFields.forEach(el => el.classList[isThemeRelevant ? 'remove' : 'add']('hidden'));
-    if (!isThemeRelevant && recordThemeInput) recordThemeInput.value = '';
-
-    const isImageStatusRelevant = typesWithImageStatus.includes(moduleType);
-    if (imageStatusFields) imageStatusFields.forEach(el => el.classList[isImageStatusRelevant ? 'remove' : 'add']('hidden'));
-    if (!isImageStatusRelevant && imageStatusSelect) imageStatusSelect.value = '';
-
-    const isCEFRRelevant = typesWithCEFR.includes(moduleType);
-    if (cefrFields) cefrFields.forEach(el => el.classList[isCEFRRelevant ? 'remove' : 'add']('hidden'));
-    if (!isCEFRRelevant && cefrInput) cefrInput.value = '';
-
-    const isMeaningOriginRelevant = typesWithMeaningOrigin.includes(moduleType);
-    if (meaningOriginFields) meaningOriginFields.forEach(el => el.classList[isMeaningOriginRelevant ? 'remove' : 'add']('hidden'));
-    if (!isMeaningOriginRelevant && meaningOriginInput) meaningOriginInput.value = '';
-}
-
-
-// In ModuleContent_Editor.js
-
-// In ModuleContent_Editor.js
-
-/**
  * Loads a record's data into the editor form, or clears the form for a new record.
  * @param {object | null} recordData - The Firestore document data (with 'id' property), or null for a new record.
  * @param {string | null} collectionName - The name of the Firestore collection the record belongs to.
