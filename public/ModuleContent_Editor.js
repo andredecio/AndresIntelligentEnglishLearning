@@ -63,6 +63,9 @@ let onRecordDeletedCallback = () => {};
  * @param {object} callbacks - An object containing callback functions for inter-module communication.
  */
 function setupEditor(elements, callbacks) {
+	console.log("DEBUG Editor: setupEditor called.");
+    console.log("DEBUG Editor: elements object received:", elements); // Check the whole object
+
     // Assign DOM elements
     activeRecordIdInput = elements.activeRecordIdInput;
     activeRecordCollectionInput = elements.activeRecordCollectionInput;
