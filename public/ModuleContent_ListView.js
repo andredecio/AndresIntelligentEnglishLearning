@@ -376,45 +376,92 @@
         }
     }
 
+// Inside ModuleContent_ListView.js (within the IIFE)
+
     /**
      * Displays modules in the larger list view based on current filters and search.
      */
     function displayFilteredModules() {
-        if (availableModulesList) { availableModulesList.innerHTML = ''; }
+        if (availableModulesList) { availableModulesList.innerHTML = ''; } // Clear previous list
 
         const filterType = filterModuleTypeSelect ? filterModuleTypeSelect.value : 'all';
         const searchTerm = searchModulesInput ? searchModulesInput.value.toLowerCase() : '';
 
+        // Get the currently active record and its included module IDs
         // Assumed to be globally available from ModuleContent_Editor.js
         const activeRecord = window.getCurrentActiveRecord();
         const activeRecordId = activeRecord ? activeRecord.id : null;
         const currentModuleIds = activeRecord?.MODULEID_ARRAY || [];
 
-        let modulesToShow = [...allAvailableModules];
+        let modulesToConsider = [...allAvailableModules]; // Start with all fetched modules
 
+        // ENHANCEMENT 1: Do not show COURSE moduletypes in the larger view module list generally.
+        // This filter applies unless the active record specifically dictates otherwise (e.g., COURSE only shows LESSONs).
+        modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE !== 'COURSE');
+
+        // Existing logic: If the active record is a COURSE, only show LESSONs for selection.
+        // This overrides the general 'no COURSE' rule and implicitly means no COURSEs will be shown anyway.
         if (activeRecord && activeRecord.MODULETYPE === 'COURSE') {
-            modulesToShow = modulesToShow.filter(module => module.MODULETYPE === 'LESSON');
+            modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE === 'LESSON');
+            // Force and disable the filterModuleTypeSelect if a COURSE is selected
             if (filterModuleTypeSelect) {
                 filterModuleTypeSelect.value = 'LESSON';
                 filterModuleTypeSelect.disabled = true;
             }
         } else {
+            // Ensure filterModuleTypeSelect is enabled if not a COURSE active record
             if (filterModuleTypeSelect) {
                 filterModuleTypeSelect.disabled = false;
-                if (filterModuleTypeSelect.value === 'LESSON' && !activeRecord) {
-                    filterModuleTypeSelect.value = 'all';
-                }
+                // You might choose to reset filterModuleTypeSelect.value here if needed,
+                // but for now, we'll let it retain its last user-selected value.
             }
         }
 
-        const filtered = modulesToShow.filter(module => {
+        // Apply main filters and search
+        const filtered = modulesToConsider.filter(module => {
             const matchesType = (filterType === 'all' || module.MODULETYPE === filterType);
-            const matchesSearch = (module.TITLE || '').toLowerCase().includes(searchTerm) || (module.name || '').toLowerCase().includes(searchTerm);
+
+            // ENHANCEMENT 4: Search for theme as well as title
+            const matchesSearch = (
+                (module.TITLE || '').toLowerCase().includes(searchTerm) || // Search by TITLE
+                (module.name || '').toLowerCase().includes(searchTerm) ||  // Fallback for TITLE
+                (module.THEME || '').toLowerCase().includes(searchTerm)    // NEW: Search by THEME
+            );
+
+            // Exclude the current active record itself from the selectable list
             const isCurrentActiveRecord = (activeRecordId && module.id === activeRecordId);
 
             return matchesType && matchesSearch && !isCurrentActiveRecord;
         });
 
+        // ENHANCEMENT 2 & 3: Custom Sorting
+        // Checked items (those in currentModuleIds) appear at the top,
+        // then sorted by MODULETYPE, then THEME, then TITLE.
+        filtered.sort((a, b) => {
+            const aChecked = currentModuleIds.includes(a.id);
+            const bChecked = currentModuleIds.includes(b.id);
+
+            // Priority 1: Checked items first
+            if (aChecked && !bChecked) return -1; // 'a' is checked, 'b' is not, so 'a' comes first
+            if (!aChecked && bChecked) return 1;  // 'b' is checked, 'a' is not, so 'b' comes first
+
+            // Priority 2: Then by MODULETYPE (alphabetical ascending)
+            const typeComparison = (a.MODULETYPE || '').localeCompare(b.MODULETYPE || '');
+            if (typeComparison !== 0) return typeComparison;
+
+            // Priority 3: Then by THEME (alphabetical ascending, handle undefined/null)
+            const themeA = a.THEME || ''; // Use empty string for comparison if null/undefined
+            const themeB = b.THEME || '';
+            const themeComparison = themeA.localeCompare(themeB);
+            if (themeComparison !== 0) return themeComparison;
+
+            // Priority 4: Finally by TITLE (alphabetical ascending, fallback to 'name')
+            const titleA = a.TITLE || a.name || ''; // Use empty string for comparison if null/undefined
+            const titleB = b.TITLE || b.name || '';
+            return titleA.localeCompare(titleB);
+        });
+
+        // Display the filtered and sorted modules
         if (filtered.length === 0) {
             if (availableModulesList) {
                 availableModulesList.innerHTML = `<li class="loading-placeholder">No modules found matching criteria or available for selection.</li>`;
@@ -423,9 +470,11 @@
         }
 
         filtered.forEach(moduleData => {
+            // renderModuleListItem already uses currentModuleIds to set the checkbox state
             const li = renderModuleListItem(moduleData, 0, currentModuleIds);
             if (availableModulesList) { availableModulesList.appendChild(li); }
 
+            // Attach checkbox event listener (existing logic)
             const checkbox = li.querySelector('input[type="checkbox"]');
             if (checkbox && !checkbox.disabled) {
                 checkbox.addEventListener('change', (event) => {
