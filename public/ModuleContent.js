@@ -125,6 +125,9 @@
 
         const listViewCallbacks = {
             onRecordSelected: (recordData, collectionName) => {
+				 console.log("DEBUG ORCH: onRecordSelectedCallback received data."); // ADD THIS LINE
+				console.log("DEBUG ORCH: recordData:", recordData); // ADD THIS LINE
+				console.log("DEBUG ORCH: collectionName:", collectionName); // ADD THIS LINE
                 // These functions are assumed to be globally available
                 window.loadRecordIntoEditor(recordData, collectionName);
                 window.updateClassroomButtonState(recordData?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);

@@ -108,12 +108,15 @@
                     currentTopLevelModuleIndex--;
                     await loadSelectedModuleIntoEditor();
                     updateNavigationButtons();
+					{else {
+						 console.log("DEBUG LV: Already at the last record."); // ADD THIS LINE
                 }
             });
         }
 
         if (nextRecordBtn) {
             nextRecordBtn.addEventListener('click', async () => {
+				  console.log("DEBUG LV: Next button clicked."); // ADD THIS LINE
                 if (currentTopLevelModuleIndex < filteredNavigationList.length - 1) {
                     currentTopLevelModuleIndex++;
                     await loadSelectedModuleIntoEditor();
@@ -128,27 +131,34 @@
      * into the editor via the orchestrator's callback.
      */
     async function loadSelectedModuleIntoEditor() {
+		console.log("DEBUG LV: loadSelectedModuleIntoEditor entered."); // ADD THIS LINE
         const selectedModule = filteredNavigationList[currentTopLevelModuleIndex];
+		console.log("DEBUG LV: Selected module for editor:", selectedModule); // ADD THIS LINE
         if (selectedModule) {
             try {
                 // Accessing global 'db' object
                 const moduleSnap = await window.db.collection(selectedModule.collection).doc(selectedModule.id).get();
                 if (moduleSnap.exists) {
+					 console.log("DEBUG LV: Module data fetched successfully."); // ADD THIS LINE
                     onRecordSelectedCallback({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
+					console.log("DEBUG LV: onRecordSelectedCallback called from ListView."); // ADD THIS LINE
                 } else {
+				console.warn("DEBUG LV: Selected module not found in Firestore. Refreshing navigation."); // ADD THIS LINE
                     // Accessing global 'showAlert' function
                     window.showAlert(statusMessageSpan, statusAlert, "Selected module not found. Refreshing navigation.", true);
                     await fetchAndPopulateTopLevelNavigation();
                     await applyModuleTypeFilter();
                 }
             } catch (error) {
-                console.error("Error fetching selected module for editor:", error);
+				
+                 console.error("DEBUG LV: Error fetching selected module for editor (Firestore query failed):", error); // ADD THIS LINE
                 // Accessing global 'showAlert' function
                 window.showAlert(statusMessageSpan, statusAlert, `Error loading module: ${error.message}`, true);
             }
         } else {
             // Assumed to be globally available from ModuleContent_Editor.js
-            onRecordSelectedCallback(null, null);
+			console.log("DEBUG LV: No selected module (null/undefined) to load. Clearing editor."); // ADD THIS LINE
+			onRecordSelectedCallback(null, null);
         }
     }
 
