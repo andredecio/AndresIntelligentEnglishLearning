@@ -257,7 +257,18 @@ async function saveRecord() {
     const imageStatus = imageStatusSelect ? imageStatusSelect.value : null;
     const cefr = cefrInput ? cefrInput.value : null;
     const meaningOrigin = meaningOriginInput ? meaningOriginInput.value : null;
-
+    // --- ADD THESE DEBUG LOGS ---
+    console.log("DEBUG saveRecord: activeRecordCollectionInput:", activeRecordCollectionInput);
+    if (activeRecordCollectionInput) {
+        console.log("DEBUG saveRecord: activeRecordCollectionInput.value:", activeRecordCollectionInput.value);
+    }
+    console.log("DEBUG saveRecord: activeRecordTypeSelect:", activeRecordTypeSelect);
+    if (activeRecordTypeSelect) {
+        console.log("DEBUG saveRecord: activeRecordTypeSelect.value:", activeRecordTypeSelect.value);
+    }
+    console.log("DEBUG saveRecord: recordCollection (derived):", recordCollection);
+    console.log("DEBUG saveRecord: recordType (derived):", recordType);
+    // --- END DEBUG LOGS --
     if (!title) {
         // Corrected: Now accesses window.showAlert
         window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Title cannot be empty!', true);
