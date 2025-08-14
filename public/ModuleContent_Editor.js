@@ -116,12 +116,6 @@ function setupEditor(elements, callbacks) {
     }
 }
 
-/**
- * Loads a record's data into the editor form, or clears the form for a new record.
- * @param {object | null} recordData - The Firestore document data (with 'id' property), or null for a new record.
- * @param {string | null} collectionName - The name of the Firestore collection the record belongs to.
- */
-// In ModuleContent_Editor.js
 
 /**
  * Loads a record's data into the editor form, or clears the form for a new record.
@@ -129,16 +123,16 @@ function setupEditor(elements, callbacks) {
  * @param {string | null} collectionName - The name of the Firestore collection the record belongs to.
  */
 function loadRecordIntoEditor(recordData, collectionName = null) {
-    // --- Keep re-fetching of all necessary DOM elements at the start ---
-    // (currentActiveRecordIdInput, currentActiveRecordCollectionInput, etc. as you have them)
+    // --- CRITICAL FIX: Re-fetch all necessary DOM elements directly within the function scope ---
+    // This bypasses any subtle scope/closure issues that might cause them to become null/undefined.
     const currentActiveRecordIdInput = document.getElementById('activeRecordId');
     const currentActiveRecordCollectionInput = document.getElementById('activeRecordCollection');
     const currentActiveRecordTypeSelect = document.getElementById('activeRecordTypeSelect');
-    const currentNewRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group');
+    const currentNewRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group'); // Use querySelector for class
     const currentRecordTitleInput = document.getElementById('recordTitle');
     const currentRecordDescriptionTextarea = document.getElementById('recordDescription');
     const currentRecordThemeInput = document.getElementById('recordTheme');
-    const currentThemeFields = document.querySelectorAll('.theme-fields');
+    const currentThemeFields = document.querySelectorAll('.theme-fields'); // Use querySelectorAll for class
     const currentImageStatusSelect = document.getElementById('imageStatus');
     const currentImageStatusFields = document.querySelectorAll('.image-status-fields');
     const currentCefrInput = document.getElementById('cefrInput');
@@ -159,6 +153,13 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
         console.log("DEBUG: Record DESCRIPTION:", recordData.DESCRIPTION);
         console.log("DEBUG: Record MODULETYPE:", recordData.MODULETYPE);
         console.log("DEBUG: Incoming collectionName for existing record:", collectionName); // CONFIRM THIS IS 'COURSE'
+
+        // CRITICAL: Ensure currentActiveRecordInternal retains its collection property
+        // This is CRITICAL if recordData itself doesn't always contain 'collection' from Firestore.
+        // It uses the passed 'collectionName' first, then falls back to existing on recordData if available.
+        if (currentActiveRecordInternal) {
+            currentActiveRecordInternal.collection = collectionName || recordData.collection;
+        }
 
         if (currentActiveRecordIdInput) currentActiveRecordIdInput.value = recordData.id || '';
 
@@ -195,7 +196,34 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
 
     } else { // Path for new/empty record
         console.log("DEBUG: Clearing editor for a new/empty record.");
-        // ... (Keep existing code for the 'else' block, including its debug logs for activeRecordCollectionInput.value)
+
+        if (currentActiveRecordIdInput) currentActiveRecordIdInput.value = '';
+        currentActiveRecordInternal = null; // Clear internal record when starting a new one
+
+        if (currentActiveRecordTypeSelect) {
+            currentActiveRecordTypeSelect.value = 'COURSE';
+            currentActiveRecordTypeSelect.disabled = false;
+        }
+        if (currentNewRecordTypeSelectorGroup) { // Ensure this is handled for new records
+            currentNewRecordTypeSelectorGroup.classList.remove('hidden');
+        }
+
+        // Initialize collection based on default type for new record
+        if (currentActiveRecordCollectionInput && currentActiveRecordTypeSelect && moduleTypes[currentActiveRecordTypeSelect.value]) {
+             currentActiveRecordCollectionInput.value = moduleTypes[currentActiveRecordTypeSelect.value];
+        }
+
+        if (currentRecordTitleInput) currentRecordTitleInput.value = '';
+        if (currentRecordDescriptionTextarea) currentRecordDescriptionTextarea.value = '';
+        if (currentRecordThemeInput) currentRecordThemeInput.value = '';
+        if (currentImageStatusSelect) currentImageStatusSelect.value = ''; // Clear for new record
+        if (currentCefrInput) currentCefrInput.value = '';
+        if (currentMeaningOriginInput) currentMeaningOriginInput.value = '';
+
+        toggleConditionalFields('COURSE');
+
+        if (currentSaveRecordBtn) currentSaveRecordBtn.textContent = 'Create Module';
+        if (currentDeleteRecordBtn) currentDeleteRecordBtn.style.display = 'none';
     }
 
     window.updateCurrentChildrenDisplay();
@@ -206,16 +234,6 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
     console.log("  activeRecordCollectionInput.value:", currentActiveRecordCollectionInput ? currentActiveRecordCollectionInput.value : 'NULL');
     console.log("  activeRecordTypeSelect.value:", currentActiveRecordTypeSelect ? currentActiveRecordTypeSelect.value : 'NULL');
 }
-
-// ... (Keep the updated toggleConditionalFields which also re-fetches elements)
-
-// Ensure toggleConditionalFields also uses the local variables or re-fetches
-// Since toggleConditionalFields is only called *within* loadRecordIntoEditor (and setupEditor),
-// and it takes the moduleType as an argument, its direct element access within it needs to be updated too.
-// For now, let's update its calls to use the local 'current*' variables.
-// No, it uses the global ones assigned by setupEditor, so they will be null too.
-// It's better to update toggleConditionalFields to directly fetch them if needed, or pass them in.
-// For simplicity and consistency with loadRecordIntoEditor, let's update toggleConditionalFields to re-fetch too.
 
 
 /**
@@ -299,7 +317,9 @@ async function updateCurrentChildrenDisplay() {
 async function saveRecord() {
 	 const currentStatusMessageSpan = document.getElementById('statusMessage');
     const currentStatusAlert = document.getElementById('statusAlert');
-	    console.log("DEBUG saveRecord Check: activeRecordIdInput (Global Element):", activeRecordIdInput);
+
+    // These logs confirm the values *at the moment saveRecord is called*
+    console.log("DEBUG saveRecord Check: activeRecordIdInput (Global Element):", activeRecordIdInput);
     if (activeRecordIdInput) console.log("DEBUG saveRecord Check: activeRecordIdInput.value:", activeRecordIdInput.value);
 
     console.log("DEBUG saveRecord Check: activeRecordCollectionInput (Global Element):", activeRecordCollectionInput);
@@ -307,6 +327,7 @@ async function saveRecord() {
 
     console.log("DEBUG saveRecord Check: activeRecordTypeSelect (Global Element):", activeRecordTypeSelect);
     if (activeRecordTypeSelect) console.log("DEBUG saveRecord Check: activeRecordTypeSelect.value:", activeRecordTypeSelect.value);
+
 
     const recordId = activeRecordIdInput ? activeRecordIdInput.value : null;
     const recordCollection = activeRecordCollectionInput ? activeRecordCollectionInput.value : null;
@@ -317,25 +338,16 @@ async function saveRecord() {
     const imageStatus = imageStatusSelect ? imageStatusSelect.value : null;
     const cefr = cefrInput ? cefrInput.value : null;
     const meaningOrigin = meaningOriginInput ? meaningOriginInput.value : null;
-    // --- ADD THESE DEBUG LOGS ---
-    console.log("DEBUG saveRecord: activeRecordCollectionInput:", activeRecordCollectionInput);
-    if (activeRecordCollectionInput) {
-        console.log("DEBUG saveRecord: activeRecordCollectionInput.value:", activeRecordCollectionInput.value);
-    }
-    console.log("DEBUG saveRecord: activeRecordTypeSelect:", activeRecordTypeSelect);
-    if (activeRecordTypeSelect) {
-        console.log("DEBUG saveRecord: activeRecordTypeSelect.value:", activeRecordTypeSelect.value);
-    }
+
+    // These logs derive from the values obtained above
     console.log("DEBUG saveRecord: recordCollection (derived):", recordCollection);
     console.log("DEBUG saveRecord: recordType (derived):", recordType);
-    // --- END DEBUG LOGS --
+
     if (!title) {
-        // Corrected: Now accesses window.showAlert
         window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Title cannot be empty!', true);
         return;
     }
     if (!recordCollection || !recordType) {
-        // Corrected: Now accesses window.showAlert
 		window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Collection and Module Type are missing! This should not happen.', true);        return;
     }
 
@@ -350,51 +362,57 @@ async function saveRecord() {
     if (typesWithImageStatus.includes(recordType)) {
         dataToSave.imageStatus = imageStatus || 'pending'; // Default to 'pending' if null
     } else {
-        // If imageStatus is not relevant for this module type, ensure it's not saved or is removed.
-        // It's safer to not include it if the field is not applicable.
         delete dataToSave.imageStatus;
     }
 
 
-    if (typesWithTheme.includes(recordType)) { dataToSave.THEME = theme; } else { delete dataToSave.THEME; } // Ensure Theme is removed if not relevant
-    if (typesWithCEFR.includes(recordType)) { dataToSave.CEFR = cefr; } else { delete dataToSave.CEFR; } // Ensure CEFR is removed if not relevant
-    if (typesWithMeaningOrigin.includes(recordType)) { dataToSave.MEANING_ORIGIN = meaningOrigin; } else { delete dataToSave.MEANING_ORIGIN; } // Ensure Meaning Origin is removed if not relevant
+    if (typesWithTheme.includes(recordType)) { dataToSave.THEME = theme; } else { delete dataToSave.THEME; }
+    if (typesWithCEFR.includes(recordType)) { dataToSave.CEFR = cefr; } else { delete dataToSave.CEFR; }
+    if (typesWithMeaningOrigin.includes(recordType)) { dataToSave.MEANING_ORIGIN = meaningOrigin; } else { delete dataToSave.MEANING_ORIGIN; }
 
 
     try {
-        if (recordId) {
-            // Corrected: Now accesses window.db
+        if (recordId) { // Updating an existing record
             const docRef = window.db.collection(recordCollection).doc(recordId);
             await docRef.update(dataToSave);
-            // Corrected: Now accesses window.showAlert
-           window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Module updated successfully!', false);
+
+            // CRITICAL: When updating, ensure currentActiveRecordInternal retains its collection property
+            // as dataToSave doesn't include it.
+            currentActiveRecordInternal = {
+                ...currentActiveRecordInternal, // Keep existing properties like 'collection'
+                ...dataToSave // Overlay with updated fields
+            };
+            // Double-check the collection is definitely set for callback, using recordCollection (which is confirmed to be valid)
+            if (!currentActiveRecordInternal.collection && recordCollection) {
+                currentActiveRecordInternal.collection = recordCollection;
+            }
+
+            window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Module updated successfully!', false);
             console.log("Updated record:", recordId, dataToSave);
 
-            currentActiveRecordInternal = {
-                ...currentActiveRecordInternal,
-                ...dataToSave
-            };
-
-        } else {
-            // Corrected: Now accesses window.db
+        } else { // Creating a new record
             const docRef = await window.db.collection(recordCollection).add(dataToSave);
             const newRecordId = docRef.id;
 
             if (activeRecordIdInput) activeRecordIdInput.value = newRecordId;
 
+            // When creating, collection is explicitly set here
             currentActiveRecordInternal = { id: newRecordId, ...dataToSave, collection: recordCollection };
-            // Corrected: Now accesses window.showAlert
+
             window.showAlert(currentStatusMessageSpan, currentStatusAlert, 'Module created successfully!', false);
             console.log("Created new record with ID:", newRecordId, dataToSave);
         }
 
-        // Callbacks from orchestrator
-        onRecordSavedCallback(currentActiveRecordInternal);
+        // Debug log before callback
+        console.log("DEBUG Editor: Calling onRecordSavedCallback with currentActiveRecordInternal:", currentActiveRecordInternal);
+        console.log("DEBUG Editor: Specifically, currentActiveRecordInternal.collection (for callback):", currentActiveRecordInternal.collection);
+
+        onRecordSavedCallback(currentActiveRecordInternal); // Pass the updated internal record
 
     } catch (error) {
         console.error('Error saving record:', error);
-        // Corrected: Now accesses window.showAlert
-			window.showAlert(currentStatusMessageSpan, currentStatusAlert, `Error saving module: ${error.message}`, true);    }
+		window.showAlert(currentStatusMessageSpan, currentStatusAlert, `Error saving module: ${error.message}`, true);
+    }
 }
 
 /**
