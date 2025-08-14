@@ -311,6 +311,15 @@ async function updateCurrentChildrenDisplay() {
 async function saveRecord() {
 	 const currentStatusMessageSpan = document.getElementById('statusMessage');
     const currentStatusAlert = document.getElementById('statusAlert');
+	    console.log("DEBUG saveRecord Check: activeRecordIdInput (Global Element):", activeRecordIdInput);
+    if (activeRecordIdInput) console.log("DEBUG saveRecord Check: activeRecordIdInput.value:", activeRecordIdInput.value);
+
+    console.log("DEBUG saveRecord Check: activeRecordCollectionInput (Global Element):", activeRecordCollectionInput);
+    if (activeRecordCollectionInput) console.log("DEBUG saveRecord Check: activeRecordCollectionInput.value:", activeRecordCollectionInput.value);
+
+    console.log("DEBUG saveRecord Check: activeRecordTypeSelect (Global Element):", activeRecordTypeSelect);
+    if (activeRecordTypeSelect) console.log("DEBUG saveRecord Check: activeRecordTypeSelect.value:", activeRecordTypeSelect.value);
+
     const recordId = activeRecordIdInput ? activeRecordIdInput.value : null;
     const recordCollection = activeRecordCollectionInput ? activeRecordCollectionInput.value : null;
     const recordType = activeRecordTypeSelect ? activeRecordTypeSelect.value : null;
