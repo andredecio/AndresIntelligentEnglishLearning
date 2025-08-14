@@ -219,6 +219,11 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
     // Assuming window.updateCurrentChildrenDisplay is globally available
     // Ensure this function uses its own re-fetched elements if it needs them
     window.updateCurrentChildrenDisplay();
+	console.log("DEBUG loadRecordIntoEditor FINISHED:");
+    console.log("  activeRecordIdInput.value:", currentActiveRecordIdInput ? currentActiveRecordIdInput.value : 'NULL');
+    console.log("  activeRecordCollectionInput.value:", currentActiveRecordCollectionInput ? currentActiveRecordCollectionInput.value : 'NULL');
+    console.log("  activeRecordTypeSelect.value:", currentActiveRecordTypeSelect ? currentActiveRecordTypeSelect.value : 'NULL');
+
 }
 
 // Ensure toggleConditionalFields also uses the local variables or re-fetches
