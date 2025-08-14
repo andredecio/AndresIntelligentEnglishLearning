@@ -72,6 +72,19 @@
         // Assign callbacks
         onRecordSelectedCallback = callbacks.onRecordSelected;
 
+  // --- Event Listeners for Filters/Search ---
+        if (moduleTypeFilterSelect) {
+            moduleTypeFilterSelect.addEventListener('change', applyModuleTypeFilter);
+        }
+
+        // Keep existing listeners for the larger list view's filters
+        if (filterModuleTypeSelect) {
+            filterModuleTypeSelect.addEventListener('change', displayFilteredModules);
+        }
+        if (searchModulesInput) {
+            searchModulesInput.addEventListener('input', displayFilteredModules);
+        }
+
         // --- Event Listeners for Filters/Search ---
         if (filterModuleTypeSelect) {
             filterModuleTypeSelect.addEventListener('change', displayFilteredModules);
@@ -80,7 +93,6 @@
             searchModulesInput.addEventListener('input', displayFilteredModules);
         }
 
-        // --- Event Listeners for Single Record View Buttons ---
         if (newRecordBtn) {
             newRecordBtn.addEventListener('click', () => {
                 // Assumed to be globally available from ModuleContent_Editor.js
