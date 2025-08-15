@@ -48,7 +48,8 @@
     "rewrites": [
       {
         "source": "/api/classroom-generator",
-        "function": "generateCourseForClassroom"
+        "function": "generateCourseForClassroom",
+        "region": "asia-southeast1"  
       }
     ]
   },
