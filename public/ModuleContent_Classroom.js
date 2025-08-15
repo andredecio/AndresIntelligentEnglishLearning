@@ -4,7 +4,6 @@
 // Removed: import { auth, functions, GOOGLE_CLIENT_ID } from './firebase-services.js';
 // Removed: import { showAlert } from './ui-utilities.js';
 
-
 // Removed this line from top-level:
 // const generateCourseForClassroomCloudFunction = functions.httpsCallable('generateCourseForClassroom');
 
@@ -33,42 +32,28 @@ function initiateGoogleClassroomExport(
     statusMessageSpan,
     statusAlert
 ) {
-    // --- CRITICAL FIX START ---
-    // Define the callable function here to ensure window.functions is ready.
-    // This function will be created each time initiateGoogleClassroomExport is called.
-    // While slightly less efficient than defining it once, it guarantees correct initialization.
-    // A more advanced approach would be to define it in a DOMContentLoaded block in ModuleContent.js
-    // and pass it down, but this is a quick and effective fix for the current structure.
-    const generateCourseForClassroomCloudFunction = window.functions.httpsCallable('generateCourseForClassroom');
-    // --- CRITICAL FIX END ---
-
-    // Accessing global 'auth' object
-    const currentUser = window.auth.currentUser; // Changed to window.auth
+    const currentUser = window.auth.currentUser; // Accessing global 'auth' object
 
     if (!currentUser) {
-        // Accessing global 'showAlert' function
-        window.showAlert(statusMessageSpan, statusAlert, "You must be signed in to generate content to Classroom.", true); // Changed to window.showAlert
+        window.showAlert(statusMessageSpan, statusAlert, "You must be signed in to generate content to Classroom.", true);
         return;
     }
 
     if (!selectedCourseId) {
-        // Accessing global 'showAlert' function
-        window.showAlert(statusMessageSpan, statusAlert, "Please select a valid COURSE record to generate (ID not found).", true); // Changed to window.showAlert
+        window.showAlert(statusMessageSpan, statusAlert, "Please select a valid COURSE record to generate (ID not found).", true);
         return;
     }
 
     try {
         // google.accounts.oauth2.initCodeClient is assumed to be globally available from Google's GSI library.
-        // Accessing global 'GOOGLE_CLIENT_ID'
         const client = google.accounts.oauth2.initCodeClient({
-            client_id: window.GOOGLE_CLIENT_ID, // Changed to window.GOOGLE_CLIENT_ID
+            client_id: window.GOOGLE_CLIENT_ID,
             scope: GOOGLE_SCOPES,
             ux_mode: 'popup',
             callback: async (response) => {
                 if (response.error) {
                     console.error('OAuth Error:', response.error);
-                    // Accessing global 'showAlert' function
-                    window.showAlert(statusMessageSpan, statusAlert, 'Google OAuth permission denied or error: ' + response.error, true); // Changed to window.showAlert
+                    window.showAlert(statusMessageSpan, statusAlert, 'Google OAuth permission denied or error: ' + response.error, true);
                     return;
                 }
 
@@ -77,23 +62,47 @@ function initiateGoogleClassroomExport(
 
                 try {
                     if (generateClassroomBtn) generateClassroomBtn.disabled = true;
-                    // Accessing global 'showAlert' function
-                    window.showAlert(statusMessageSpan, statusAlert, `Attempting to generate Course: "${selectedCourseTitle || selectedCourseId}" to Google Classroom...`, false); // Changed to window.showAlert
+                    window.showAlert(statusMessageSpan, statusAlert, `Attempting to generate Course: "${selectedCourseTitle || selectedCourseId}" to Google Classroom...`, false);
 
-                    // 'generateCourseForClassroomCloudFunction' is now defined within this scope
-                    const result = await generateCourseForClassroomCloudFunction({
-                        courseId: selectedCourseId,
-                        authorizationCode: authorizationCode,
-                        firebaseAuthUid: currentUser.uid
+                    // --- CRITICAL FIX: Directly use fetch to the rewritten endpoint ---
+                    const url = '/api/classroom-generator'; // Use the new rewrite endpoint from firebase.json
+
+                    // Get the Firebase Authentication ID token to send to the Cloud Function
+                    // This is crucial if your function is secured (e.g., uses auth.verifyIdToken)
+                    const idToken = await window.auth.currentUser.getIdToken();
+
+                    const fetchResponse = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Pass the Firebase ID token in the Authorization header
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                        // Callable Functions expect the payload wrapped in a 'data' property
+                        body: JSON.stringify({
+                            data: {
+                                courseId: selectedCourseId,
+                                authorizationCode: authorizationCode,
+                                firebaseAuthUid: window.auth.currentUser.uid
+                            }
+                        })
                     });
 
-                    console.log('Cloud Function response:', result.data);
-                    // Accessing global 'showAlert' function
-                    window.showAlert(statusMessageSpan, statusAlert, result.data.message, false); // Changed to window.showAlert
+                    if (!fetchResponse.ok) {
+                        // If response is not 2xx, it's an HTTP error from the function
+                        const errorBody = await fetchResponse.json();
+                        console.error('Cloud Function HTTP Error:', fetchResponse.status, errorBody);
+                        throw new Error(errorBody.error?.message || `Cloud Function returned HTTP error ${fetchResponse.status}`);
+                    }
+
+                    const result = await fetchResponse.json(); // Parse the response JSON
+                    console.log('Cloud Function response:', result.data); // Callable-like functions return result.data
+
+                    window.showAlert(statusMessageSpan, statusAlert, result.data.message, false);
+
                 } catch (cfError) {
-                    console.error('Error calling Cloud Function:', cfError.code, cfError.message, cfError.details);
-                    // Accessing global 'showAlert' function
-                    window.showAlert(statusMessageSpan, statusAlert, `Failed to integrate with Google Classroom: ${cfError.message}`, true); // Changed to window.showAlert
+                    console.error('Error calling Cloud Function via rewrite:', cfError);
+                    window.showAlert(statusMessageSpan, statusAlert, `Failed to integrate with Google Classroom: ${cfError.message}`, true);
                 } finally {
                     if (generateClassroomBtn) generateClassroomBtn.disabled = false;
                 }
@@ -102,8 +111,7 @@ function initiateGoogleClassroomExport(
         client.requestCode();
     } catch (oauthInitError) {
         console.error('Error initiating OAuth client:', oauthInitError);
-        // Accessing global 'showAlert' function
-        window.showAlert(statusMessageSpan, statusAlert, 'Could not start Google OAuth process. Check console for details.', true); // Changed to window.showAlert
+        window.showAlert(statusMessageSpan, statusAlert, 'Could not start Google OAuth process. Check console for details.', true);
     }
 }
 
