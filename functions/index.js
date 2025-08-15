@@ -8,7 +8,7 @@ const admin = require('firebase-admin'); // Firebase Admin SDK
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); 
 const textToSpeechClient = new TextToSpeechClient();
 
-functions.logger.info('Firebase Functions code deployed: v1.006v');  //Export to Google Classroom
+functions.logger.info('Firebase Functions code deployed: v1.006x');  //Export to Google Classroom
 
 
 // Direct initialization of Firebase Admin SDK. This is the most robust way. ---

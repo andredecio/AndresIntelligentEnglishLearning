@@ -99,7 +99,9 @@ async function getModuleDocument(moduleId, parentModuleType) {
  * @returns {object} The request body for Classroom API.
  */
 function mapFirestoreToClassroomBody(data, moduleType, topicId) {
-    let title = data.TITLE || `Untitled ${moduleType} Module`;
+    //let title = data.TITLE || `Untitled ${moduleType} Module`;
+	let title = moduleType + " " + data.TITLE || `Untitled ${moduleType} Module`;
+
     let description = data.DESCRIPTION || '';
     const materials = []; // For attachments (links to external resources)
 
@@ -419,6 +421,7 @@ exports.generateCourseForClassroom = functions.region('asia-southeast1').runWith
         if (courseData.MODULEID_ARRAY && courseData.MODULEID_ARRAY.length > 0) {
             await processChildren(
                 courseData.MODULEID_ARRAY,
+				
                 'COURSE', // The type of the very top-level parent for initial lookup
                 classroomCourseId,
                 null, // No parent topic for these top-level children (LESSONs will be topics)
