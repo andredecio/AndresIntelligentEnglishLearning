@@ -2,7 +2,7 @@
 // Handles Google Classroom export functionalities for Module Content.
 
 // Removed: import { auth, functions, GOOGLE_CLIENT_ID } from './firebase-services.js';
-// Removed: import { showAlert } from './ui-utilities.js';
+// Version 1.006x
 
 // Removed this line from top-level:
 // const generateCourseForClassroomCloudFunction = functions.httpsCallable('generateCourseForClassroom');
