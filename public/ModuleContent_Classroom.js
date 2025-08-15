@@ -5,9 +5,8 @@
 // Removed: import { showAlert } from './ui-utilities.js';
 
 
-// --- Google Classroom Specific Constants and Cloud Function ---
-// Accessing global 'functions' object
-const generateCourseForClassroomCloudFunction = functions.httpsCallable('generateCourseForClassroom');
+// Removed this line from top-level:
+// const generateCourseForClassroomCloudFunction = functions.httpsCallable('generateCourseForClassroom');
 
 const GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses',
@@ -27,25 +26,34 @@ const GOOGLE_SCOPES = [
  * @param {HTMLElement} statusMessageSpan - The span for alert messages.
  * @param {HTMLElement} statusAlert - The container for alert messages.
  */
-function initiateGoogleClassroomExport( // Removed 'export'
+function initiateGoogleClassroomExport(
     selectedCourseId,
     selectedCourseTitle,
     generateClassroomBtn,
     statusMessageSpan,
     statusAlert
 ) {
+    // --- CRITICAL FIX START ---
+    // Define the callable function here to ensure window.functions is ready.
+    // This function will be created each time initiateGoogleClassroomExport is called.
+    // While slightly less efficient than defining it once, it guarantees correct initialization.
+    // A more advanced approach would be to define it in a DOMContentLoaded block in ModuleContent.js
+    // and pass it down, but this is a quick and effective fix for the current structure.
+    const generateCourseForClassroomCloudFunction = window.functions.httpsCallable('generateCourseForClassroom');
+    // --- CRITICAL FIX END ---
+
     // Accessing global 'auth' object
-    const currentUser = auth.currentUser;
+    const currentUser = window.auth.currentUser; // Changed to window.auth
 
     if (!currentUser) {
         // Accessing global 'showAlert' function
-        showAlert(statusMessageSpan, statusAlert, "You must be signed in to generate content to Classroom.", true);
+        window.showAlert(statusMessageSpan, statusAlert, "You must be signed in to generate content to Classroom.", true); // Changed to window.showAlert
         return;
     }
 
     if (!selectedCourseId) {
         // Accessing global 'showAlert' function
-        showAlert(statusMessageSpan, statusAlert, "Please select a valid COURSE record to generate (ID not found).", true);
+        window.showAlert(statusMessageSpan, statusAlert, "Please select a valid COURSE record to generate (ID not found).", true); // Changed to window.showAlert
         return;
     }
 
@@ -53,14 +61,14 @@ function initiateGoogleClassroomExport( // Removed 'export'
         // google.accounts.oauth2.initCodeClient is assumed to be globally available from Google's GSI library.
         // Accessing global 'GOOGLE_CLIENT_ID'
         const client = google.accounts.oauth2.initCodeClient({
-            client_id: GOOGLE_CLIENT_ID,
+            client_id: window.GOOGLE_CLIENT_ID, // Changed to window.GOOGLE_CLIENT_ID
             scope: GOOGLE_SCOPES,
             ux_mode: 'popup',
             callback: async (response) => {
                 if (response.error) {
                     console.error('OAuth Error:', response.error);
                     // Accessing global 'showAlert' function
-                    showAlert(statusMessageSpan, statusAlert, 'Google OAuth permission denied or error: ' + response.error, true);
+                    window.showAlert(statusMessageSpan, statusAlert, 'Google OAuth permission denied or error: ' + response.error, true); // Changed to window.showAlert
                     return;
                 }
 
@@ -70,9 +78,9 @@ function initiateGoogleClassroomExport( // Removed 'export'
                 try {
                     if (generateClassroomBtn) generateClassroomBtn.disabled = true;
                     // Accessing global 'showAlert' function
-                    showAlert(statusMessageSpan, statusAlert, `Attempting to generate Course: "${selectedCourseTitle || selectedCourseId}" to Google Classroom...`, false);
+                    window.showAlert(statusMessageSpan, statusAlert, `Attempting to generate Course: "${selectedCourseTitle || selectedCourseId}" to Google Classroom...`, false); // Changed to window.showAlert
 
-                    // 'generateCourseForClassroomCloudFunction' is a callable function object, already derived from global 'functions'
+                    // 'generateCourseForClassroomCloudFunction' is now defined within this scope
                     const result = await generateCourseForClassroomCloudFunction({
                         courseId: selectedCourseId,
                         authorizationCode: authorizationCode,
@@ -81,11 +89,11 @@ function initiateGoogleClassroomExport( // Removed 'export'
 
                     console.log('Cloud Function response:', result.data);
                     // Accessing global 'showAlert' function
-                    showAlert(statusMessageSpan, statusAlert, result.data.message, false);
+                    window.showAlert(statusMessageSpan, statusAlert, result.data.message, false); // Changed to window.showAlert
                 } catch (cfError) {
                     console.error('Error calling Cloud Function:', cfError.code, cfError.message, cfError.details);
                     // Accessing global 'showAlert' function
-                    showAlert(statusMessageSpan, statusAlert, `Failed to integrate with Google Classroom: ${cfError.message}`, true);
+                    window.showAlert(statusMessageSpan, statusAlert, `Failed to integrate with Google Classroom: ${cfError.message}`, true); // Changed to window.showAlert
                 } finally {
                     if (generateClassroomBtn) generateClassroomBtn.disabled = false;
                 }
@@ -95,7 +103,7 @@ function initiateGoogleClassroomExport( // Removed 'export'
     } catch (oauthInitError) {
         console.error('Error initiating OAuth client:', oauthInitError);
         // Accessing global 'showAlert' function
-        showAlert(statusMessageSpan, statusAlert, 'Could not start Google OAuth process. Check console for details.', true);
+        window.showAlert(statusMessageSpan, statusAlert, 'Could not start Google OAuth process. Check console for details.', true); // Changed to window.showAlert
     }
 }
 
@@ -105,7 +113,7 @@ function initiateGoogleClassroomExport( // Removed 'export'
  * @param {HTMLElement} generateClassroomBtn - The button element.
  * @param {HTMLElement} activeRecordTypeSelect - The select element for active record type.
  */
-function updateClassroomButtonState(currentModuleType, generateClassroomBtn, activeRecordTypeSelect) { // Removed 'export'
+function updateClassroomButtonState(currentModuleType, generateClassroomBtn, activeRecordTypeSelect) {
     if (!activeRecordTypeSelect || !generateClassroomBtn) {
         console.warn("Required DOM elements for Classroom button state not found.");
         return;
