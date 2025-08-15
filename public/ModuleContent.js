@@ -90,27 +90,37 @@
 
         const editorCallbacks = {
             onRecordSaved: async (savedRecord) => {
-                // These functions are assumed to be globally available from ModuleContent_ListView.js
+                // IMPORTANT: Ensure the very latest saved data is immediately displayed in the editor.
+                // This call will trigger updateCurrentChildrenDisplay, updateClassroomButtonState, etc.
+                // It's the primary way to update the editor UI after a save.
+                // This replaces the previous logic that tried to manually set currentTopLevelModuleIndex
+                // and then call loadRecordIntoEditor with getCurrentActiveRecord.
+                window.loadRecordIntoEditor(savedRecord, savedRecord.collection);
+
+                // Re-fetch and re-filter navigation lists.
+                // applyModuleTypeFilter will now correctly try to preserve the saved record's position.
+                // It should NOT call loadSelectedModuleIntoEditor() internally if the record is already
+                // being handled by the explicit loadRecordIntoEditor call above.
                 await window.fetchAndPopulateTopLevelNavigation();
                 await window.applyModuleTypeFilter();
-                // Note: 'filteredNavigationList' and 'currentTopLevelModuleIndex' need to be globally managed by ModuleContent_ListView.js
-                // or passed around. Assuming they are global as per the original modular intent.
-                // Assuming filteredNavigationList and currentTopLevelModuleIndex are exposed globally by ListView
-                const savedIndex = window.filteredNavigationList.findIndex(m => m.id === savedRecord.id);
-                if (savedIndex !== -1) {
-                    window.currentTopLevelModuleIndex = savedIndex; // Corrected from local variable
-                    window.updateNavigationButtons();
-                }
-                window.loadRecordIntoEditor(window.getCurrentActiveRecord(), savedRecord.collection);
-                window.updateClassroomButtonState(window.getCurrentActiveRecord()?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
-				window.displayFilteredModules();
+
+                // After updating navigation and editor, refresh the larger selectable modules list.
+                // This ensures it reflects the updated MODULEID_ARRAY in the now-active record.
+                window.displayFilteredModules();
             },
             onRecordDeleted: async () => {
                 // These functions are assumed to be globally available
                 await window.fetchAndPopulateTopLevelNavigation();
+                // applyModuleTypeFilter will call loadSelectedModuleIntoEditor(null) if list becomes empty,
+                // or load the first record if list has items.
                 await window.applyModuleTypeFilter();
-                window.loadRecordIntoEditor(null);
+
+                // updateClassroomButtonState will need to query the *new* current record.
+                // getCurrentActiveRecord is important here as it reflects the state after applyModuleTypeFilter.
                 window.updateClassroomButtonState(window.getCurrentActiveRecord()?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
+
+                // Ensure the larger list of selectable modules is refreshed.
+                window.displayFilteredModules();
             }
         };
         // setupEditor is assumed to be globally available from ModuleContent_Editor.js
@@ -125,11 +135,13 @@
 
         const listViewCallbacks = {
             onRecordSelected: (recordData, collectionName) => {
-                // These functions are assumed to be globally available
+                // Calling loadRecordIntoEditor will handle updating the editor fields
+                // and will internally trigger updateCurrentChildrenDisplay.
                 window.loadRecordIntoEditor(recordData, collectionName);
                 window.updateClassroomButtonState(recordData?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
-                //window.updateCurrentChildrenDisplay();
-				window.displayFilteredModules();
+                // REMOVED REDUNDANT CALL: window.updateCurrentChildrenDisplay(); (already handled by loadRecordIntoEditor)
+                // Calling displayFilteredModules will also refresh the available modules list
+                window.displayFilteredModules();
             }
         };
         // setupListView is assumed to be globally available from ModuleContent_ListView.js
@@ -169,7 +181,7 @@
         // --- 4. Initial Page Load Actions ---
         // These functions are assumed to be globally available from ModuleContent_ListView.js
         await window.fetchAndPopulateTopLevelNavigation();
-        await window.applyModuleTypeFilter();
+        await window.applyModuleTypeFilter(); // This will handle initial load into editor.
         await window.loadAllAvailableModules();
     });
 

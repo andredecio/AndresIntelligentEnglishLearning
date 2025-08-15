@@ -229,10 +229,6 @@ function loadRecordIntoEditor(recordData, collectionName = null) {
     window.updateCurrentChildrenDisplay();
 
     // --- Keep the final DEBUG loadRecordIntoEditor FINISHED logs ---
-    console.log("DEBUG loadRecordIntoEditor FINISHED:");
-    console.log("  activeRecordIdInput.value:", currentActiveRecordIdInput ? currentActiveRecordIdInput.value : 'NULL');
-    console.log("  activeRecordCollectionInput.value:", currentActiveRecordCollectionInput ? currentActiveRecordCollectionInput.value : 'NULL');
-    console.log("  activeRecordTypeSelect.value:", currentActiveRecordTypeSelect ? currentActiveRecordTypeSelect.value : 'NULL');
 }
 
 

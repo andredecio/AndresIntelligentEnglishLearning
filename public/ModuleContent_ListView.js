@@ -573,6 +573,7 @@
         }
     }
 
+
     /**
      * Applies the selected filter and updates the navigation list, then loads the first record.
      */
@@ -587,7 +588,7 @@
             });
         }
 
-    const activeRecordId = window.getCurrentActiveRecord()?.id;
+        const activeRecordId = window.getCurrentActiveRecord()?.id;
         let newIndex = 0; // Default to 0 if no record or record not found after filter
 
         if (activeRecordId) {
@@ -597,14 +598,28 @@
             }
         }
         currentTopLevelModuleIndex = newIndex; // Set to preserved index or default 0
+
+        // --- CRITICAL CHANGE START ---
+        // Get ID of record currently loaded in the editor
+        const currentEditorRecordId = window.getCurrentActiveRecord()?.id;
+        // Get ID of the record that *should* be loaded based on the filter and preserved index
+        const targetRecordId = filteredNavigationList[currentTopLevelModuleIndex]?.id;
+
         if (filteredNavigationList.length > 0) {
-            await loadSelectedModuleIntoEditor();
+            // Only call loadSelectedModuleIntoEditor if the target record is DIFFERENT from the one
+            // currently loaded in the editor, or if there's nothing loaded.
+            if (targetRecordId !== currentEditorRecordId) {
+                await loadSelectedModuleIntoEditor();
+            } else {
+                console.log("DEBUG LV: applyModuleTypeFilter - Editor already has target record loaded. Skipping redundant load.");
+            }
         } else {
-            // Assumed to be globally available from ModuleContent_Editor.js
+            // If filtered list is empty, always clear the editor
             window.loadRecordIntoEditor(null);
-            // Assumed to be globally available from ui-utilities.js
             window.showAlert(statusMessageSpan, statusAlert, `No records found for module type: ${selectedFilterType}`, false);
         }
+        // --- CRITICAL CHANGE END ---
+
         updateNavigationButtons();
     }
 
