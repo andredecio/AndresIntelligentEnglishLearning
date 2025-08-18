@@ -9,11 +9,14 @@
 // Set region to asia-southeast1 for correct region alighnment with backend functions
 const auth = firebase.auth();
 const db = firebase.firestore();
-const functions = firebase.functions('asia-southeast1');// Note: If you use Firebase Storage, you'll need to enable it in the console
-// and ensure firebase-storage-compat.js is loaded in HTML.
-// Then you can get the storage service like this:
-// const storage = firebase.storage();
+// 1. Get the Firebase App instance.
+// This is crucial because the .functions() method with a region is called OFF the app instance.
+const app = firebase.app(); 
 
+// 2. Get the Functions instance, specifying the region on the 'app' object.
+// This is the correct v8 way to define the functions object with a region.
+const functions = app.functions('asia-southeast1'); // Then you can get the storage service like this:
+// const storage = firebase.storage();
 
 // IMPORTANT: Replace "YOUR_GOOGLE_CLIENT_ID_FOR_OAUTH" with your actual Google OAuth Client ID
 // This is used by ModuleContent_Classroom.js for Google Classroom integration.
