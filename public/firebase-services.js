@@ -8,8 +8,7 @@
 // These will correctly be the compat versions, supporting old syntax like .collection().
 const auth = firebase.auth();
 const db = firebase.firestore();
-const functions = firebase.functions(); // Added: Get Firebase Functions service
-// Note: If you use Firebase Storage, you'll need to enable it in the console
+const functions = firebase.functions('asia-southeast1');// Note: If you use Firebase Storage, you'll need to enable it in the console
 // and ensure firebase-storage-compat.js is loaded in HTML.
 // Then you can get the storage service like this:
 // const storage = firebase.storage();
