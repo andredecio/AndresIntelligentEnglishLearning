@@ -6,6 +6,7 @@
 
 // Get references to Firebase services from the global 'firebase' object.
 // These will correctly be the compat versions, supporting old syntax like .collection().
+// Set region to asia-southeast1 for correct region alighnment with backend functions
 const auth = firebase.auth();
 const db = firebase.firestore();
 const functions = firebase.functions('asia-southeast1');// Note: If you use Firebase Storage, you'll need to enable it in the console
