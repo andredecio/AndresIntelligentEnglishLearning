@@ -97,9 +97,9 @@ function initiateGoogleClassroomExport(
                     }
 
                     const result = await fetchResponse.json(); // Parse the response JSON
-                    console.log('Cloud Function response:', result.data); // Callable-like functions return result.data
+                      console.log('Cloud Function response:', result.result); // Or just result to see the whole thing
 
-                    window.showAlert(statusMessageSpan, statusAlert, result.data.message, false);
+                    window.showAlert(statusMessageSpan, statusAlert, result.result.Message, false);
 
                 } catch (cfError) {
                     console.error('Error calling Cloud Function via rewrite:', cfError);
