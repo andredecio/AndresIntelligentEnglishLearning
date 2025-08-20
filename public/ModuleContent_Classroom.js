@@ -103,12 +103,14 @@ function initiateGoogleClassroomExport(
 
                 } catch (cfError) {
                     console.error('Error calling Cloud Function via rewrite:', cfError);
+					   console.log('DEBUG TYPE OF CF_ERROR:', typeof cfError);  // <-- Confirm what this says
+                    console.log('DEBUG VALUE OF CF_ERROR:', cfError);      // <-- Confirm what this logs
                     window.showAlert(statusMessageSpan, statusAlert, `Failed to integrate with Google Classroom: ${cfError.message}`, true);
                 } finally {
                     if (generateClassroomBtn) generateClassroomBtn.disabled = false;
                 }
             },
-        });
+        });f
         client.requestCode();
     } catch (oauthInitError) {
         console.error('Error initiating OAuth client:', oauthInitError);
