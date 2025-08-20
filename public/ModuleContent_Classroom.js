@@ -48,7 +48,7 @@ function initiateGoogleClassroomExport(
     try {
         // google.accounts.oauth2.initCodeClient is assumed to be globally available from Google's GSI library.
         const client = google.accounts.oauth2.initCodeClient({
-            client_id: window.GOOGLE_CLIENT_ID,
+            client_id: GOOGLE_CLIENT_ID,
             scope: GOOGLE_SCOPES,
             ux_mode: 'popup',
             callback: async (response) => {
