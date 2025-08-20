@@ -110,7 +110,7 @@ function initiateGoogleClassroomExport(
                     if (generateClassroomBtn) generateClassroomBtn.disabled = false;
                 }
             },
-        });f
+        });
         client.requestCode();
     } catch (oauthInitError) {
         console.error('Error initiating OAuth client:', oauthInitError);
