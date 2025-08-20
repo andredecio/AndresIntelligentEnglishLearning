@@ -6,6 +6,7 @@
 
 // Removed this line from top-level:
 // const generateCourseForClassroomCloudFunction = functions.httpsCallable('generateCourseForClassroom');
+const GOOGLE_CLIENT_ID = "190391960875-o8digh9sqso6hrju89o8nmuullvbh2b4.apps.googleusercontent.com";
 
 const GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses',
