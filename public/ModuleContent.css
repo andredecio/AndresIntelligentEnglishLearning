@@ -149,9 +149,10 @@ body {
 }
 
 #currentChildrenDisplay {
+	  font-size: 0.8em
     list-style: none;
-    padding: 0;
-    margin: 0;
+    padding: 5px;
+    margin: 5px;
 }
 
 #currentChildrenDisplay li {
