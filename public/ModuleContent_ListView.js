@@ -225,7 +225,7 @@
                 ? moduleData.DESCRIPTION.substring(0, 147) + '...'
                 : moduleData.DESCRIPTION;
 			displayDescription = displayDescription.replace(/(\d+\.\s)/g, '<br>$1');	
-            descriptionElement.innerHTML  = `Description: ${displayDescription}`;
+            descriptionElement.textContent = `Description: ${displayDescription}`;
             contentWrapper.appendChild(descriptionElement);
         }
         if (moduleData.MEANING_ORIGIN && typesWithMeaningOrigin.includes(moduleData.MODULETYPE)) {
