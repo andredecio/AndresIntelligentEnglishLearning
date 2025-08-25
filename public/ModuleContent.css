@@ -305,6 +305,9 @@ body {
     padding: 10px; /* Give it a little internal space so text isn't stuck to edges */
     border: 1px solid #ccc; /* Helps you visualize the container's boundaries for debugging */
 }
+.module-item-description::-webkit-scrollbar {
+  width: 8px;                 /* scrollbar thickness */
+}
 .module-item-description::-webkit-scrollbar-track {
   background: #f0f8ff;         /* light background (AliceBlue) */
 }
