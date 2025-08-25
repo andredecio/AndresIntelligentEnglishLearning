@@ -203,11 +203,12 @@
         typeIndicator.classList.add('type');
         typeIndicator.textContent = `${moduleData.MODULETYPE.replace(/_/g, ' ')}`;
         titleWrapper.appendChild(typeIndicator);
+		
         if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE)) {
             const cefrElement = document.createElement('span');
             cefrElement.classList.add('module-item-detail', 'module-item-cefr');
             cefrElement.textContent = `CEFR: ${moduleData.CEFR}`;
-            contentWrapper.appendChild(cefrElement);
+            titleWrapper.appendChild(cefrElement);
         }
 
         // Conditional fields (Theme, Description, CEFR, Meaning Origin)
