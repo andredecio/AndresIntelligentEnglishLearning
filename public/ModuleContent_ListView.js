@@ -214,7 +214,7 @@
         if (moduleData.DESCRIPTION) {
             const descriptionElement = document.createElement('p');
             descriptionElement.classList.add('module-item-detail', 'module-item-description');
-            const displayDescription = moduleData.DESCRIPTION.length > 150
+            const displayDescription = moduleData.DESCRIPTION.length > 1500
                 ? moduleData.DESCRIPTION.substring(0, 147) + '...'
                 : moduleData.DESCRIPTION;
             descriptionElement.textContent = `Description: ${displayDescription}`;

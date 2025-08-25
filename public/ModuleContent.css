@@ -292,10 +292,12 @@ body {
 
 .module-item-description {
    max-height: 200px; /* Adjust this height as needed to show a few lines before scrolling */
-    overflow-y: auto; /* This enables the vertical scrollbar when content overflows */
+  	min-height: 0;    /* avoids flexbox from preventing scroll */   
+	overflow-y: auto; /* This enables the vertical scrollbar when content overflows */
+	overflow-x: hidden; 
     white-space: pre-wrap; /* Ensures that text wraps and preserves line breaks from your data */
     word-wrap: break-word; /* Prevents long words from overflowing the container */
-    
+	flex: 1 1 auto;   /* allows it to expand inside the flexbox */
     /* Additional properties you *might* need, depending on your layout: */
     display: block; /* Ensure it's a block-level element that respects height/width */
     width: 100%; /* Make sure it takes up available width to trigger wrapping */
