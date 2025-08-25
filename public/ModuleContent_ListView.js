@@ -218,22 +218,41 @@
             themeElement.textContent = `Theme: ${moduleData.THEME}`;
             contentWrapper.appendChild(themeElement);
         }
-        if (moduleData.DESCRIPTION) {
-            const descriptionElement = document.createElement('p');
-            descriptionElement.classList.add('module-item-detail', 'module-item-description');
-            let displayDescription = moduleData.DESCRIPTION.length > 1500
-                ? moduleData.DESCRIPTION.substring(0, 147) + '...'
-                : moduleData.DESCRIPTION;
-			displayDescription = displayDescription.replace(/(\d+\.\s)/g, '<br>$1');	
-            descriptionElement.innerHTML  = `Description: ${displayDescription}`;
-            contentWrapper.appendChild(descriptionElement);
-        }
-        if (moduleData.MEANING_ORIGIN && typesWithMeaningOrigin.includes(moduleData.MODULETYPE)) {
+		
+		if (moduleData.MEANING_ORIGIN && typesWithMeaningOrigin.includes(moduleData.MODULETYPE)) {
             const meaningOriginElement = document.createElement('div');
             meaningOriginElement.classList.add('module-item-detail', 'module-item-meaning-origin');
             meaningOriginElement.textContent = `Origin: ${moduleData.MEANING_ORIGIN}`;
             contentWrapper.appendChild(meaningOriginElement);
         }
+
+if (moduleData.DESCRIPTION) {
+    const descriptionElement = document.createElement('p');
+    descriptionElement.classList.add('module-item-detail', 'module-item-description');
+
+    // Truncate if very long
+    let displayDescription = moduleData.DESCRIPTION.length > 1500
+        ? moduleData.DESCRIPTION.substring(0, 147) + '...'
+        : moduleData.DESCRIPTION;
+
+    // Remove any leading "Description:" text
+    displayDescription = displayDescription.replace(/^Description:\s*/i, '');
+
+    // Add line breaks before literal 'Number 1', 'Number 2', etc.
+    displayDescription = displayDescription.replace(/(Number\s*\d+)/gi, '<br>$1');
+
+    // Add line breaks before numbered questions like "1. "
+    displayDescription = displayDescription.replace(/(\d+\.\s)/g, '<br>$1');
+
+    // Add line breaks before dialogue lines "Person A:" or "Person B:"
+    displayDescription = displayDescription.replace(/(Person A:|Person B:)/g, '<br>$1');
+
+    // Remove any leading <br> if it exists
+    displayDescription = displayDescription.replace(/^<br>/, '');
+
+    descriptionElement.innerHTML = displayDescription;
+    contentWrapper.appendChild(descriptionElement);
+}
 
         // --- 3. Media Container ---
         if (moduleData.IMAGEURL || moduleData.audioUrl) {
