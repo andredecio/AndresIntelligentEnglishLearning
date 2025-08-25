@@ -20,7 +20,7 @@ const functions = app.functions('asia-southeast1'); // Then you can get the stor
 
 // IMPORTANT: Replace "YOUR_GOOGLE_CLIENT_ID_FOR_OAUTH" with your actual Google OAuth Client ID
 // This is used by ModuleContent_Classroom.js for Google Classroom integration.
-//const GOOGLE_CLIENT_ID = "190391960875-g53jhbjrkbp0u42bg7bb9trufjjbmk1d.apps.googleusercontent.com"; // Added: Google Client ID
+const GOOGLE_CLIENT_ID = "190391960875-g53jhbjrkbp0u42bg7bb9trufjjbmk1d.apps.googleusercontent.com"; // Added: Google Client ID
 
 
 // --- Firebase Authentication Helper Functions ---
