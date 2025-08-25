@@ -295,7 +295,9 @@ if (moduleData.DESCRIPTION) {
                 } else {
                     const childIds = moduleData.MODULEID_ARRAY || [];
                     // Assumed to be globally available from ModuleContent_Editor.js
-                    await fetchAndRenderChildren(moduleData.id, childIds, level + 1, li, window.getCurrentActiveRecord()?.MODULEID_ARRAY || []);
+                    // START OF MODIFICATION
+                    await fetchAndRenderChildren(moduleData.id, childIds, level + 1, li, window.getCurrentActiveRecord()?.MODULEID_ARRAY || [], moduleData.MODULETYPE);
+                    // END OF MODIFICATION
                 }
             });
         } else {
@@ -308,8 +310,10 @@ if (moduleData.DESCRIPTION) {
     /**
      * Fetches and renders child modules for a given parent.
      */
-    async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selectedModuleIds) {
-        console.log(`--- fetchAndRenderChildren called for parent: ${parentId}, level: ${level} ---`);
+    // START OF MODIFICATION
+    async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selectedModuleIds, parentModuleType) {
+        console.log(`--- fetchAndRenderChildren called for parent: ${parentId} (Type: ${parentModuleType}), level: ${level} ---`);
+    // END OF MODIFICATION
         console.log(`Child IDs to fetch:`, childIds);
 
         if (!childIds || childIds.length === 0) {
@@ -323,23 +327,48 @@ if (moduleData.DESCRIPTION) {
 
         const allChildPromises = childIds.map(async (childId) => {
             let docSnap = null;
+            let collectionsToSearch = []; // Initialize here
+
+            // START OF MODIFICATION
+            // Define the specific collections to search based on the parent's type
+            if (parentModuleType === 'SYLLABLE') {
+                collectionsToSearch = ['phonemes']; // A SYLLABLE should ONLY have PHONEMES as direct children
+            } else if (parentModuleType === 'COURSE') {
+                collectionsToSearch = ['LESSON']; // A COURSE should ONLY have LESSONS as direct children
+            } else if (parentModuleType === 'LESSON') {
+                 // LESSONs can have various learningContent types as children,
+                 // or possibly other structured types like VOCABULARY_GROUP
+                 collectionsToSearch = ['learningContent', 'VOCABULARY_GROUP', 'VOCABULARY']; // Adjust as per your data model
+            }
+            // Add more specific rules here for other parent types if they have strict child types.
+            else {
+                // Default fallback: if the parent type doesn't have a strict child type,
+                // you can keep a more general search, but be mindful of performance.
+                collectionsToSearch = ['learningContent', 'syllables', 'phonemes', 'COURSE', 'LESSON'];
+            }
+            // END OF MODIFICATION
+
             try {
                 // Accessing global 'db' object
-                for (const col of ['learningContent', 'syllables', 'phonemes']) {
+                // START OF MODIFICATION
+                for (const col of collectionsToSearch) {
                     docSnap = await window.db.collection(col).doc(childId).get();
                     if (docSnap.exists) {
-                        console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} from '${col}'.`);
+                        console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} found in '${col}'.`);
                         return { id: docSnap.id, ...docSnap.data(), collection: col };
                     }
                 }
-                console.warn(`DEBUG: Child module with ID ${childId} not found in any expected collection.`);
+                console.warn(`DEBUG: Child module with ID ${childId} not found in any expected collection for parent type ${parentModuleType}.`);
                 // Accessing global 'showAlert' function
-                window.showAlert(statusMessageSpan, statusAlert, `Child module ${childId} not found.`, true);
+                window.showAlert(statusMessageSpan, statusAlert, `Child module ${childId} not found in appropriate collection for parent type ${parentModuleType}.`, true);
+                // END OF MODIFICATION
                 return null;
             } catch (error) {
-                console.error(`DEBUG: Error fetching child ${childId}:`, error);
+                // START OF MODIFICATION
+                console.error(`DEBUG: Error fetching child ${childId} for parent type ${parentModuleType}:`, error);
                 // Accessing global 'showAlert' function
                 window.showAlert(statusMessageSpan, statusAlert, `Permission denied for child module ${childId}. Check Firestore Rules.`, true);
+                // END OF MODIFICATION
                 return null;
             }
         });
