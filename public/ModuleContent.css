@@ -358,8 +358,8 @@ body {
 }
 
 .module-media img.thumbnail {
-    width: 70px;
-    height: 70px;
+    width: 90px;
+    height: 90px;
     object-fit: cover;
     border-radius: 3px;
     border: 1px solid #ddd;
