@@ -291,7 +291,7 @@ body {
 }
 
 .module-item-description {
-   max-height: 200px; /* Adjust this height as needed to show a few lines before scrolling */
+   max-height: 100px; /* Adjust this height as needed to show a few lines before scrolling */
   	min-height: 0;    /* avoids flexbox from preventing scroll */   
 	overflow-y: auto; /* This enables the vertical scrollbar when content overflows */
 	overflow-x: hidden; 
