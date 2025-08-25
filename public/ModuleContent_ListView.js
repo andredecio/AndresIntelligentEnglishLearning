@@ -203,6 +203,12 @@
         typeIndicator.classList.add('type');
         typeIndicator.textContent = `${moduleData.MODULETYPE.replace(/_/g, ' ')}`;
         titleWrapper.appendChild(typeIndicator);
+        if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE)) {
+            const cefrElement = document.createElement('span');
+            cefrElement.classList.add('module-item-detail', 'module-item-cefr');
+            cefrElement.textContent = `CEFR: ${moduleData.CEFR}`;
+            contentWrapper.appendChild(cefrElement);
+        }
 
         // Conditional fields (Theme, Description, CEFR, Meaning Origin)
         if (moduleData.THEME && typesWithTheme.includes(moduleData.MODULETYPE)) {
@@ -219,12 +225,6 @@
                 : moduleData.DESCRIPTION;
             descriptionElement.textContent = `Description: ${displayDescription}`;
             contentWrapper.appendChild(descriptionElement);
-        }
-        if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE)) {
-            const cefrElement = document.createElement('span');
-            cefrElement.classList.add('module-item-detail', 'module-item-cefr');
-            cefrElement.textContent = `CEFR: ${moduleData.CEFR}`;
-            contentWrapper.appendChild(cefrElement);
         }
         if (moduleData.MEANING_ORIGIN && typesWithMeaningOrigin.includes(moduleData.MODULETYPE)) {
             const meaningOriginElement = document.createElement('div');
