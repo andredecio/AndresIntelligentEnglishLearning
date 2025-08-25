@@ -207,7 +207,7 @@
         if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE)) {
             const cefrElement = document.createElement('span');
             cefrElement.classList.add('module-item-detail', 'module-item-cefr');
-            cefrElement.textContent = `CEFR: ${moduleData.CEFR}`;
+            cefrElement.textContent = `  CEFR: ${moduleData.CEFR}`;
             titleWrapper.appendChild(cefrElement);
         }
 
@@ -224,7 +224,8 @@
             const displayDescription = moduleData.DESCRIPTION.length > 1500
                 ? moduleData.DESCRIPTION.substring(0, 147) + '...'
                 : moduleData.DESCRIPTION;
-            descriptionElement.textContent = `Description: ${displayDescription}`;
+			displayDescription = displayDescription.replace(/(\d+\.\s)/g, '<br>$1');	
+            descriptionElement.innerHTML  = `Description: ${displayDescription}`;
             contentWrapper.appendChild(descriptionElement);
         }
         if (moduleData.MEANING_ORIGIN && typesWithMeaningOrigin.includes(moduleData.MODULETYPE)) {
