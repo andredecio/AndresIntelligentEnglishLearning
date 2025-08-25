@@ -221,11 +221,11 @@
         if (moduleData.DESCRIPTION) {
             const descriptionElement = document.createElement('p');
             descriptionElement.classList.add('module-item-detail', 'module-item-description');
-            const displayDescription = moduleData.DESCRIPTION.length > 1500
+            let displayDescription = moduleData.DESCRIPTION.length > 1500
                 ? moduleData.DESCRIPTION.substring(0, 147) + '...'
                 : moduleData.DESCRIPTION;
 			displayDescription = displayDescription.replace(/(\d+\.\s)/g, '<br>$1');	
-            descriptionElement.textContent = `Description: ${displayDescription}`;
+            descriptionElement.innerHTML  = `Description: ${displayDescription}`;
             contentWrapper.appendChild(descriptionElement);
         }
         if (moduleData.MEANING_ORIGIN && typesWithMeaningOrigin.includes(moduleData.MODULETYPE)) {
