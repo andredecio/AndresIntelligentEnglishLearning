@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
     const generateConversationContent = functions.httpsCallable('generateConversationContent');
     const generateReadingWritingContent = functions.httpsCallable('generateReadingWritingContent');
     const generateListeningSpeakingContent = functions.httpsCallable('generateListeningSpeakingContent');
+    const generateSpanishListeningSpeakingContent = functions.httpsCallable('generateSpanishListeningSpeakingContent');
 
     // --- Content Generator Form Submission Handler ---
     contentGeneratorForm.addEventListener('submit', async (e) => {
