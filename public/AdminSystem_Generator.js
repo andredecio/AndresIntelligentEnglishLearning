@@ -153,7 +153,8 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
                 },
                 'LISTENINGSPEAKING': {
                     count: numLSItems,
-                    generator: () => generateListeningSpeakingContent({
+   //                 generator: () => generateListeningSpeakingContent({
+                    generator: () => generateSpanishListeningSpeakingContent({
                         cefrLevel,
                         numItems: numLSItems,
                         theme,
