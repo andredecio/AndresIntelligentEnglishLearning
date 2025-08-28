@@ -176,6 +176,14 @@
             li.dataset.level = level;
         }
 
+		if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE) &&
+            !['VOCABULARY', 'VOCABULARY_GROUP'].includes(moduleData.MODULETYPE)) {
+            const cefrElement = document.createElement('span');
+            cefrElement.classList.add('module-item-detail', 'module-item-cefr');
+            cefrElement.textContent = `  CEFR: ${moduleData.CEFR}`;
+            titleWrapper.appendChild(cefrElement);
+        }
+
         // --- 1. Checkbox ---
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
