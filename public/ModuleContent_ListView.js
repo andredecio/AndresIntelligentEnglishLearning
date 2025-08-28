@@ -258,11 +258,13 @@
                 if (moduleData.PRESENT_SIMPLE) {
                     verbForms.push(`Pres: ${moduleData.PRESENT_SIMPLE}`);
                 }
-                if (moduleData['3RD_PERSON_SINGULAR']) { // Use bracket notation for keys with numbers
-                    verbForms.push(`3rd: ${moduleData['3RD_PERSON_SINGULAR']}`);
+                // Corrected and added PRESENT_SIMPLE_3RD_PERSON_SINGULAR
+                if (moduleData.PRESENT_SIMPLE_3RD_PERSON_SINGULAR) {
+                    verbForms.push(`Pres. 3rd: ${moduleData.PRESENT_SIMPLE_3RD_PERSON_SINGULAR}`);
                 }
+                // Corrected display for SIMPLE_PAST
                 if (moduleData.SIMPLE_PAST) {
-                    verbForms.push(`Past: ${moduleData.SIMPLE_PAST}`);
+                    verbForms.push(`Simple Past: ${moduleData.SIMPLE_PAST}`);
                 }
                 if (moduleData.PAST_PARTICIPLE) {
                     verbForms.push(`PP: ${moduleData.PAST_PARTICIPLE}`);
@@ -430,7 +432,7 @@ if (moduleData.DESCRIPTION) {
         console.log(`DEBUG: Fetched children data (filtered):`, children);
 
         const existingNoContent = parentLi.nextElementSibling;
-        if (existingNoContent && existingNoContent.classList.contains('no-content-message') && parseInt(existingNoContent.dataset.level) === level) {
+        if (existingNoContent && existingNoContent.classList.contains('no-content-message') && parseInt(existingNoContent.dataset.level) > level) {
             existingNoContent.remove();
         }
 
