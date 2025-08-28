@@ -176,13 +176,6 @@
             li.dataset.level = level;
         }
 
-		if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE) &&
-            !['VOCABULARY', 'VOCABULARY_GROUP'].includes(moduleData.MODULETYPE)) {
-            const cefrElement = document.createElement('span');
-            cefrElement.classList.add('module-item-detail', 'module-item-cefr');
-            cefrElement.textContent = `  CEFR: ${moduleData.CEFR}`;
-            titleWrapper.appendChild(cefrElement);
-        }
 
         // --- 1. Checkbox ---
         const checkbox = document.createElement('input');
@@ -212,13 +205,14 @@
         typeIndicator.textContent = `${moduleData.MODULETYPE.replace(/_/g, ' ')}`;
         titleWrapper.appendChild(typeIndicator);
 		
-        if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE)) {
+		if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE) &&
+            !['VOCABULARY', 'VOCABULARY_GROUP'].includes(moduleData.MODULETYPE)) {
             const cefrElement = document.createElement('span');
             cefrElement.classList.add('module-item-detail', 'module-item-cefr');
             cefrElement.textContent = `  CEFR: ${moduleData.CEFR}`;
-            titleWrapper.appendChild(cefrElement);
+            titleWrapper.appendChild(cefrElement); // Third use, now safe because titleWrapper is declared above
         }
-
+		
         // Conditional fields (Theme, Description, CEFR, Meaning Origin)
         if (moduleData.THEME && typesWithTheme.includes(moduleData.MODULETYPE)) {
             const themeElement = document.createElement('div');
