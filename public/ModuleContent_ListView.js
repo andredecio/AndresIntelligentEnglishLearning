@@ -263,7 +263,7 @@ if (moduleData.DESCRIPTION) {
     // Add line breaks before numbered questions like "1. "
     displayDescription = displayDescription.replace(/(\d+\.\s)/g, '<br>$1');
 
-    // Add line breaks before dialogue lines "Person A:" or "Person B:"
+    // Add line breaks before dialogue lines "Person A:|Person B:)/g, '<br>$1');
     displayDescription = displayDescription.replace(/(Person A:|Person B:)/g, '<br>$1');
 
     // Remove any leading <br> if it exists
@@ -475,31 +475,51 @@ if (moduleData.DESCRIPTION) {
 
         let modulesToConsider = [...allAvailableModules]; // Start with all fetched modules
 
-        // ENHANCEMENT 1: Do not show COURSE moduletypes in the larger view module list generally.
-        // This filter applies unless the active record specifically dictates otherwise (e.g., COURSE only shows LESSONs).
+        // --- Filtering modules based on active record ---
+        // Default: Do not show COURSE moduletypes in the larger view module list generally.
         modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE !== 'COURSE');
 
-        // Existing logic: If the active record is a COURSE, only show LESSONs for selection.
-        // This overrides the general 'no COURSE' rule and implicitly means no COURSEs will be shown anyway.
-        if (activeRecord && activeRecord.MODULETYPE === 'COURSE') {
-            modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE === 'LESSON');
-            // Force and disable the filterModuleTypeSelect if a COURSE is selected
-            if (filterModuleTypeSelect) {
+        // --- Manage filter UI and module list based on active record type ---
+        if (filterModuleTypeSelect) { // Ensure the select element exists before manipulating it
+            // Reset state first to ensure clean updates
+            filterModuleTypeSelect.disabled = false;
+            Array.from(filterModuleTypeSelect.options).forEach(option => {
+                option.style.display = ''; // Make all options visible by default
+            });
+
+            if (activeRecord && activeRecord.MODULETYPE === 'COURSE') {
+                modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE === 'LESSON');
                 filterModuleTypeSelect.value = 'LESSON';
                 filterModuleTypeSelect.disabled = true;
+                Array.from(filterModuleTypeSelect.options).forEach(option => {
+                    if (option.value !== 'LESSON' && option.value !== 'all') {
+                        option.style.display = 'none'; // Hide irrelevant options
+                    }
+                });
+            } else if (activeRecord && activeRecord.MODULETYPE === 'LESSON') {
+                modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE !== 'LESSON'); // Exclude LESSONs from selectable list
+                filterModuleTypeSelect.disabled = true; // Disable filter control
+                
+                // If 'LESSON' was selected, reset to 'all'
+                if (filterModuleTypeSelect.value === 'LESSON') {
+                    filterModuleTypeSelect.value = 'all';
+                }
+
+                Array.from(filterModuleTypeSelect.options).forEach(option => {
+                    if (option.value === 'LESSON') {
+                        option.style.display = 'none'; // Hide the LESSON option
+                    }
+                });
             }
-        } else {
-            // Ensure filterModuleTypeSelect is enabled if not a COURSE active record
-            if (filterModuleTypeSelect) {
-                filterModuleTypeSelect.disabled = false;
-                // You might choose to reset filterModuleTypeSelect.value here if needed,
-                // but for now, we'll let it retain its last user-selected value.
-            }
+            // If neither COURSE nor LESSON is active, the initial reset (disabled=false, display='') handles it.
         }
 
-        // Apply main filters and search
+
+        // Apply main filters and search (using the potentially modified filterType)
+        // Use currentFilterType which might have been adjusted by the active record logic
+        const currentFilterType = filterModuleTypeSelect ? filterModuleTypeSelect.value : 'all'; 
         const filtered = modulesToConsider.filter(module => {
-            const matchesType = (filterType === 'all' || module.MODULETYPE === filterType);
+            const matchesType = (currentFilterType === 'all' || module.MODULETYPE === currentFilterType); 
 
             // ENHANCEMENT 4: Search for theme as well as title
             const matchesSearch = (
@@ -550,8 +570,8 @@ if (moduleData.DESCRIPTION) {
         }
 
         filtered.forEach(moduleData => {
-            // MODIFIED CALL: Pass null for parentTypeInDisplay for top-level items
-            const li = renderModuleListItem(moduleData, 0, currentModuleIds, null);
+            // renderModuleListItem already uses currentModuleIds to set the checkbox state
+            const li = renderModuleListItem(moduleData, 0, currentModuleIds, null); // Top-level items have no parent in display
             if (availableModulesList) { availableModulesList.appendChild(li); }
 
             // Attach checkbox event listener (existing logic)
