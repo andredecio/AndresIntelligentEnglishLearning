@@ -260,14 +260,14 @@
                 }
                 // Corrected and added PRESENT_SIMPLE_3RD_PERSON_SINGULAR
                 if (moduleData.PRESENT_SIMPLE_3RD_PERSON_SINGULAR) {
-                    verbForms.push(`Pres. 3rd: ${moduleData.PRESENT_SIMPLE_3RD_PERSON_SINGULAR}`);
+                    verbForms.push(`Pres.3rd: ${moduleData.PRESENT_SIMPLE_3RD_PERSON_SINGULAR}`);
                 }
                 // Corrected display for SIMPLE_PAST
                 if (moduleData.SIMPLE_PAST) {
                     verbForms.push(`Simple Past: ${moduleData.SIMPLE_PAST}`);
                 }
                 if (moduleData.PAST_PARTICIPLE) {
-                    verbForms.push(`PP: ${moduleData.PAST_PARTICIPLE}`);
+                    verbForms.push(`Past Part.: ${moduleData.PAST_PARTICIPLE}`);
                 }
 
                 if (verbForms.length > 0) {
