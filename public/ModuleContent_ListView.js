@@ -165,8 +165,12 @@
 
     /**
      * Renders an individual list item for the larger availableModulesList.
+     * @param {Object} moduleData - The data for the module to render.
+     * @param {number} level - The hierarchical level of the module (0 for top-level).
+     * @param {string[]} currentModuleIds - Array of module IDs currently included in the active record.
+     * @param {string|null} parentTypeInDisplay - The MODULETYPE of the parent being displayed, if this is a child.
      */
-    function renderModuleListItem(moduleData, level, currentModuleIds) {
+    function renderModuleListItem(moduleData, level, currentModuleIds, parentTypeInDisplay = null) { // MODIFIED SIGNATURE
         const li = document.createElement('li');
         li.classList.add('module-item');
         li.classList.add(`module-type-${moduleData.MODULETYPE.toLowerCase().replace(/_/g, '-')}`);
@@ -175,7 +179,6 @@
             li.classList.add(`level-${level}`);
             li.dataset.level = level;
         }
-
 
         // --- 1. Checkbox ---
         const checkbox = document.createElement('input');
@@ -186,11 +189,23 @@
         }
         li.appendChild(checkbox);
 
+        // NEW LOGIC: Hide checkbox for children of LESSONs when active record is a COURSE
+        const activeRecord = window.getCurrentActiveRecord();
+        const isCurrentActiveRecordCourse = activeRecord && activeRecord.MODULETYPE === 'COURSE';
+        const isChildOfLessonBeingDisplayed = (level > 0 && parentTypeInDisplay === 'LESSON');
+
+        if (isCurrentActiveRecordCourse && isChildOfLessonBeingDisplayed) {
+            checkbox.style.display = 'none'; // Hide the checkbox visually
+            checkbox.disabled = true;        // Disable it to prevent interaction
+        }
+        // END NEW LOGIC
+
         // --- 2. Main Content Wrapper ---
         const contentWrapper = document.createElement('div');
         contentWrapper.classList.add('module-item-content');
         li.appendChild(contentWrapper);
 
+        // This declaration MUST be before any usage of titleWrapper
         const titleWrapper = document.createElement('div');
         titleWrapper.classList.add('module-item-title-wrapper');
         contentWrapper.appendChild(titleWrapper);
@@ -205,12 +220,14 @@
         typeIndicator.textContent = `${moduleData.MODULETYPE.replace(/_/g, ' ')}`;
         titleWrapper.appendChild(typeIndicator);
 		
+        // MODIFIED: Only display CEFR if it exists, the module type is meant to have it,
+        // AND the module type is NOT VOCABULARY or VOCABULARY_GROUP.
 		if (moduleData.CEFR && typesWithCEFR.includes(moduleData.MODULETYPE) &&
             !['VOCABULARY', 'VOCABULARY_GROUP'].includes(moduleData.MODULETYPE)) {
             const cefrElement = document.createElement('span');
             cefrElement.classList.add('module-item-detail', 'module-item-cefr');
             cefrElement.textContent = `  CEFR: ${moduleData.CEFR}`;
-            titleWrapper.appendChild(cefrElement); // Third use, now safe because titleWrapper is declared above
+            titleWrapper.appendChild(cefrElement);
         }
 		
         // Conditional fields (Theme, Description, CEFR, Meaning Origin)
@@ -393,7 +410,8 @@ if (moduleData.DESCRIPTION) {
         } else {
             let currentNodeToInsertAfter = parentLi;
             children.forEach(childData => {
-                const childLi = renderModuleListItem(childData, level, selectedModuleIds);
+                // MODIFIED CALL: Pass parentModuleType to renderModuleListItem
+                const childLi = renderModuleListItem(childData, level, selectedModuleIds, parentModuleType);
                 currentNodeToInsertAfter.after(childLi);
                 currentNodeToInsertAfter = childLi;
             });
@@ -532,13 +550,13 @@ if (moduleData.DESCRIPTION) {
         }
 
         filtered.forEach(moduleData => {
-            // renderModuleListItem already uses currentModuleIds to set the checkbox state
-            const li = renderModuleListItem(moduleData, 0, currentModuleIds);
+            // MODIFIED CALL: Pass null for parentTypeInDisplay for top-level items
+            const li = renderModuleListItem(moduleData, 0, currentModuleIds, null);
             if (availableModulesList) { availableModulesList.appendChild(li); }
 
             // Attach checkbox event listener (existing logic)
             const checkbox = li.querySelector('input[type="checkbox"]');
-            if (checkbox && !checkbox.disabled) {
+            if (checkbox && !checkbox.disabled) { // Checkbox might be disabled by new logic
                 checkbox.addEventListener('change', (event) => {
                     const moduleId = event.target.dataset.moduleId;
                     // Assumed to be globally available from ModuleContent_Editor.js
