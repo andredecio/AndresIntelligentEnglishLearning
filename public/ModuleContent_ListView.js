@@ -245,6 +245,39 @@
             contentWrapper.appendChild(meaningOriginElement);
         }
 
+        // NEW LOGIC: Display WORD_TYPE for VOCABULARY modules and verb forms if applicable
+        if (moduleData.MODULETYPE === 'VOCABULARY' && moduleData.WORD_TYPE) {
+            const wordTypeElement = document.createElement('div');
+            wordTypeElement.classList.add('module-item-detail', 'module-item-word-type');
+            wordTypeElement.textContent = `Word Type: ${moduleData.WORD_TYPE}`;
+            contentWrapper.appendChild(wordTypeElement);
+
+            // If WORD_TYPE is 'verb', display verb forms
+            if (moduleData.WORD_TYPE.toLowerCase() === 'verb') {
+                const verbForms = [];
+                if (moduleData.PRESENT_SIMPLE) {
+                    verbForms.push(`Pres: ${moduleData.PRESENT_SIMPLE}`);
+                }
+                if (moduleData['3RD_PERSON_SINGULAR']) { // Use bracket notation for keys with numbers
+                    verbForms.push(`3rd: ${moduleData['3RD_PERSON_SINGULAR']}`);
+                }
+                if (moduleData.SIMPLE_PAST) {
+                    verbForms.push(`Past: ${moduleData.SIMPLE_PAST}`);
+                }
+                if (moduleData.PAST_PARTICIPLE) {
+                    verbForms.push(`PP: ${moduleData.PAST_PARTICIPLE}`);
+                }
+
+                if (verbForms.length > 0) {
+                    const verbFormsElement = document.createElement('div');
+                    verbFormsElement.classList.add('module-item-detail', 'module-item-verb-forms');
+                    verbFormsElement.innerHTML = `Verb Forms: ${verbForms.join(', ')}`;
+                    contentWrapper.appendChild(verbFormsElement);
+                }
+            }
+        }
+        // END NEW LOGIC
+
 if (moduleData.DESCRIPTION) {
     const descriptionElement = document.createElement('p');
     descriptionElement.classList.add('module-item-detail', 'module-item-description');
