@@ -475,43 +475,62 @@ if (moduleData.DESCRIPTION) {
 
         let modulesToConsider = [...allAvailableModules]; // Start with all fetched modules
 
-        // --- Filtering modules based on active record ---
-        // Default: Do not show COURSE moduletypes in the larger view module list generally.
+        // Always exclude COURSE from general selection list as it's a parent container
         modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE !== 'COURSE');
 
         // --- Manage filter UI and module list based on active record type ---
-        if (filterModuleTypeSelect) { // Ensure the select element exists before manipulating it
-            // Reset state first to ensure clean updates
-            filterModuleTypeSelect.disabled = false;
+        if (filterModuleTypeSelect) {
+            // Step 1: Reset filter select to default state
+            filterModuleTypeSelect.disabled = false; // Always re-enable unless explicitly disabled for COURSE
             Array.from(filterModuleTypeSelect.options).forEach(option => {
-                option.style.display = ''; // Make all options visible by default
+                option.style.display = ''; // Show all options initially
             });
 
-            if (activeRecord && activeRecord.MODULETYPE === 'COURSE') {
-                modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE === 'LESSON');
-                filterModuleTypeSelect.value = 'LESSON';
-                filterModuleTypeSelect.disabled = true;
-                Array.from(filterModuleTypeSelect.options).forEach(option => {
-                    if (option.value !== 'LESSON' && option.value !== 'all') {
-                        option.style.display = 'none'; // Hide irrelevant options
-                    }
-                });
-            } else if (activeRecord && activeRecord.MODULETYPE === 'LESSON') {
-                modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE !== 'LESSON'); // Exclude LESSONs from selectable list
-                filterModuleTypeSelect.disabled = true; // Disable filter control
-                
-                // If 'LESSON' was selected, reset to 'all'
-                if (filterModuleTypeSelect.value === 'LESSON') {
-                    filterModuleTypeSelect.value = 'all';
+            // Step 2: Apply specific UI/data filtering based on active record type
+            if (activeRecord) {
+                // Scenario 1: Active record is COURSE
+                if (activeRecord.MODULETYPE === 'COURSE') {
+                    modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE === 'LESSON');
+                    filterModuleTypeSelect.value = 'LESSON'; // Force selection to LESSON
+                    filterModuleTypeSelect.disabled = true; // User can't change filter for a COURSE
+                    Array.from(filterModuleTypeSelect.options).forEach(option => {
+                        if (option.value !== 'LESSON' && option.value !== 'all') { // Keep 'all' as it's a default option, but LESSON is forced
+                            option.style.display = 'none';
+                        }
+                    });
                 }
+                // Scenario 2: Active record is LESSON
+                else if (activeRecord.MODULETYPE === 'LESSON') {
+                    modulesToConsider = modulesToConsider.filter(module => module.MODULETYPE !== 'LESSON'); // Exclude LESSONs from selectable list
+                    // filterModuleTypeSelect.disabled remains false as per new requirement
 
-                Array.from(filterModuleTypeSelect.options).forEach(option => {
-                    if (option.value === 'LESSON') {
-                        option.style.display = 'none'; // Hide the LESSON option
+                    // If 'LESSON' was selected, reset filter to 'all' because LESSONs are no longer in list
+                    if (filterModuleTypeSelect.value === 'LESSON') {
+                        filterModuleTypeSelect.value = 'all';
                     }
-                });
+
+                    // For LESSON active record, LESSON option should NOT be available in the filter dropdown.
+                    Array.from(filterModuleTypeSelect.options).forEach(option => {
+                        if (option.value === 'LESSON') {
+                            option.style.display = 'none';
+                        }
+                    });
+                }
+                // Scenario 3: Active record is SEMANTIC_GROUP
+                else if (activeRecord.MODULETYPE === 'SEMANTIC_GROUP') {
+                    // LESSON option SHOULD be available here. No special filtering/hiding for filter options.
+                    // modulesToConsider not modified beyond initial filter.
+                }
+                // Scenario 4: Any other active record type (LESSON option should NOT be available)
+                else {
+                    Array.from(filterModuleTypeSelect.options).forEach(option => {
+                        if (option.value === 'LESSON') {
+                            option.style.display = 'none';
+                        }
+                    });
+                }
             }
-            // If neither COURSE nor LESSON is active, the initial reset (disabled=false, display='') handles it.
+            // If no activeRecord, then filter is fully enabled and all options visible (initial reset)
         }
 
 
