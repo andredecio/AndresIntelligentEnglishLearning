@@ -15,3 +15,6 @@ v1.006r  LISTENINGSPEAKING module fixed to update learningContent with the audio
 v1.006s  Created ModuleContent screen to attach/remove lessons from course, and display modules in frienly fashion for selection.
 v1.006t  ModuleContent now shows description an origin meaning, and editible top level and can assign modules to modules
 v1.006u  Try to make syllabification more accurate and comprehensive
+v1.006v  Modularised front end. Split Modulecontent.js into separate files for list handling, editing, and Google Classroom material export.
+v1.006x  Fixed Classroom Token generation process (when revoked or expired).
+v1.007   Formatted ModuleCotent list view, Export to Google Classroom, modularized front end.

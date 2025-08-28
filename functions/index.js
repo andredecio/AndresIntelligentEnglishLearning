@@ -1,4 +1,4 @@
-// functions/index.js Modified today 12/7/25
+// functions/index.js Modified today 28/8/25
 // --- 1. Module Imports, Firebase Admin SDK Initialization, Gemini Model Initialization, and Schema Definition ---
 
 const functions = require("firebase-functions/v1"); // Main Firebase Functions module MUST BE V1.
@@ -8,7 +8,7 @@ const admin = require('firebase-admin'); // Firebase Admin SDK
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); 
 const textToSpeechClient = new TextToSpeechClient();
 
-functions.logger.info('Firebase Functions code deployed: v1.006w');  //Post modularisation set v1
+functions.logger.info('Firebase Functions code deployed: v1.007');  //Post modularisation, Classroom export
 
 // Direct initialization of Firebase Admin SDK. This is the most robust way. ---
 admin.initializeApp();

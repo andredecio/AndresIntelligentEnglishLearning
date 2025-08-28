@@ -1,4 +1,5 @@
 // your-cloud-function-root/generateCourseForClassroom.js
+// Version v1.006x for autoregenerate access tokens when revoked/expired
 
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
@@ -35,13 +36,14 @@ function getOAuth2Client() {
 // Defines which Firestore collections to search for children given a parent's MODULETYPE.
 const COLLECTIONS_TO_SEARCH_FOR_CHILDREN = {
     'COURSE': ['LESSON'],
-    'LESSON': ['learningContent', 'syllables', 'phonemes'],
-    'SEMANTIC_GROUP': ['learningContent', 'LESSON', 'syllables', 'phonemes'],
+    // --- START OF REQUIRED CHANGE: Removed 'syllables' and 'phonemes' from children lists ---
+    'LESSON': ['learningContent'], // Removed 'syllables', 'phonemes'
+    'SEMANTIC_GROUP': ['learningContent', 'LESSON'], // Removed 'syllables', 'phonemes'
     'VOCABULARY_GROUP': ['learningContent'], // children are VOCABULARY, which live in 'learningContent'
-    'VOCABULARY': ['syllables'],
-    'syllables': ['phonemes'],
+    'VOCABULARY': [], // Removed 'syllables' as children for Classroom export
     // Note: phonemes don't have children in this model, so no entry needed for them.
     // Ensure all possible parent MODULETYPEs that can have MODULEID_ARRAY are listed here.
+    // --- END OF REQUIRED CHANGE ---
 };
 
 /**
@@ -99,8 +101,23 @@ async function getModuleDocument(moduleId, parentModuleType) {
  * @returns {object} The request body for Classroom API.
  */
 function mapFirestoreToClassroomBody(data, moduleType, topicId) {
-    //let title = data.TITLE || `Untitled ${moduleType} Module`;
-	let title = moduleType + " " + data.TITLE || `Untitled ${moduleType} Module`;
+    // Normalize moduleType to ensure consistent matching, handling potential null/undefined and trimming whitespace.
+    const normalizedModuleType = moduleType ? String(moduleType).trim() : '';
+
+    // For debugging, confirm what moduleType is actually being processed here
+    console.log(`[DEBUG_SKIP] mapFirestoreToClassroomBody received original moduleType: "${moduleType}", normalized: "${normalizedModuleType}"`);
+
+    // Define module types that should NOT be created as CourseWorkMaterials in Classroom.
+    // Keep 'syllables' and 'phonemes' here as a fail-safe, even if they aren't directly fetched.
+    const MODULE_TYPES_TO_SKIP_AS_MATERIAL = ['syllables', 'phonemes', 'VOCABULARY_GROUP', 'LESSON', 'SEMANTIC_GROUP'];
+
+    // Check if the normalized module type is in the skip list
+    if (MODULE_TYPES_TO_SKIP_AS_MATERIAL.includes(normalizedModuleType)) {
+        console.log(`Skipping material creation for module type: ${normalizedModuleType} as it is in the skip list.`);
+        return null; // Return null to indicate no Classroom material should be created for this module.
+    }
+
+    let title = normalizedModuleType + " " + data.TITLE || `Untitled ${normalizedModuleType} Module`; // Use normalizedType for title prefix too for consistency
 
     let description = data.DESCRIPTION || '';
     const materials = []; // For attachments (links to external resources)
@@ -111,11 +128,9 @@ function mapFirestoreToClassroomBody(data, moduleType, topicId) {
     if (data.MEANING_ORIGIN) description += `\nMeaning Origin: ${data.MEANING_ORIGIN}`;
 
     // Type-specific fields for the description based on your requirements
-    switch (moduleType) {
+    // Use normalizedModuleType here for consistency
+    switch (normalizedModuleType) {
         case 'COURSE':
-        case 'LESSON':
-        case 'SEMANTIC_GROUP':
-        case 'VOCABULARY_GROUP':
             // These types' relevant fields (TITLE, DESCRIPTION, CEFR, THEME) are already handled
             // by the common fields or default assignment.
             break;
@@ -132,17 +147,16 @@ function mapFirestoreToClassroomBody(data, moduleType, topicId) {
         case 'LISTENINGSPEAKING':
         case 'READING-WRITING':
         case 'CONVERSATION':
-        case 'syllables':
-        case 'phonemes':
             // These types' relevant fields (DESCRIPTION, THEME, TITLE) are handled by common fields or default.
             // Specific attachments are handled below.
             break;
         default:
-            console.warn(`mapFirestoreToClassroomBody: Unrecognized MODULETYPE: ${moduleType}.`);
+            console.warn(`mapFirestoreToClassroomBody: Unrecognized or skipped MODULETYPE: ${normalizedModuleType}.`);
     }
 
-    // Attachments (IMAGEURL and audioURL based on moduleType)
-    if (data.IMAGEURL && (['VOCABULARY', 'GRAMMAR', 'READING-WRITING', 'LISTENINGSPEAKING', 'CONVERSATION' ].includes(moduleType))) {
+    // Attachments (IMAGEURL and audioUrl based on moduleType)
+    // Use normalizedModuleType for filtering here
+    if (data.IMAGEURL && (['VOCABULARY', 'GRAMMAR', 'READING-WRITING', 'LISTENINGSPEAKING', 'CONVERSATION' ].includes(normalizedModuleType))) {
         materials.push({
             link: {
                 url: data.IMAGEURL,
@@ -151,10 +165,13 @@ function mapFirestoreToClassroomBody(data, moduleType, topicId) {
         });
     }
 
-    if (data.audioURL && (['VOCABULARY', 'LISTENINGSPEAKING', 'syllables', 'phonemes'].includes(moduleType))) {
+    // The audioUrl check for 'syllables' and 'phonemes' below will still technically execute
+    // but because the function returns null for those types, this part won't be reached
+    // for actual material creation. This is good, as you don't want the material itself.
+    if (data.audioUrl && (['VOCABULARY', 'LISTENINGSPEAKING', 'syllables', 'phonemes'].includes(normalizedModuleType))) { // Use normalizedModuleType here too
         materials.push({
             link: {
-                url: data.audioURL,
+                url: data.audioUrl,
                 title: `${title} Audio` // Provide a meaningful title for the link
             }
         });
@@ -177,19 +194,27 @@ function mapFirestoreToClassroomBody(data, moduleType, topicId) {
  * @param {string} classroomCourseId - The ID of the Google Classroom course.
  * @param {string|null} currentClassroomTopicId - The Google Classroom Topic ID of the direct parent, if it's a Topic.
  * @param {object} classroomApiInstance - The authenticated Google Classroom API client (e.g., google.classroom({ version: 'v1', auth: oAuth2Client }))
+ * @param {Set<string>} processedModuleIds - A set to track module IDs that have already been processed in this export run. // ADDED PARAMETER
  */
 async function processChildren(
     moduleIds,
     parentModuleType,
     classroomCourseId,
     currentClassroomTopicId,
-    classroomApiInstance
+    classroomApiInstance,
+    processedModuleIds // ADDED PARAMETER
 ) {
     if (!moduleIds || moduleIds.length === 0) {
         return; // Base case: no children to process
     }
 
     for (const moduleId of moduleIds) {
+        // IMPORTANT: Skip if this moduleId has already been processed by another path in the tree // ADDED LOGIC
+        if (processedModuleIds.has(moduleId)) {
+            console.log(`Skipping already processed module ID: ${moduleId}`);
+            continue;
+        }
+
         const moduleDoc = await getModuleDocument(moduleId, parentModuleType);
 
         if (!moduleDoc) {
@@ -223,11 +248,15 @@ async function processChildren(
             }
         }
 
+        // Mark the current module as processed *before* creating its material // ADDED LOGIC
+        processedModuleIds.add(moduleId);
+
         // --- Logic for Creating Google Classroom CourseWorkMaterials ---
         // All other module types typically become CourseWorkMaterials.
         const requestBody = mapFirestoreToClassroomBody(data, currentModuleType, effectiveClassroomTopicId);
 
-        if (requestBody) { // Only create material if a valid request body can be formed
+        // The key check: only create material if mapFirestoreToClassroomBody returned a valid request body
+        if (requestBody) {
             try {
                 await classroomApiInstance.courses.courseWorkMaterials.create({
                     courseId: classroomCourseId,
@@ -240,20 +269,84 @@ async function processChildren(
             }
         }
 
-        // --- Recursively process children of the current module ---
+        // --- NEW LOGIC: Special Handling for VOCABULARY_GROUP and its entire subtree ---
+        // If this is a VOCABULARY_GROUP, its MODULEID_ARRAY points to VOCABULARY words.
+        // We process these immediately and then *their* children (syllables/phonemes) recursively.
+        // Even though VOCABULARY_GROUP itself won't be a material, its child processing is crucial.
+        if (currentModuleType === 'VOCABULARY_GROUP' && data.MODULEID_ARRAY && data.MODULEID_ARRAY.length > 0) {
+            console.log(`Processing direct VOCABULARY children for VOCABULARY_GROUP: ${data.TITLE}`);
+            for (const vocabId of data.MODULEID_ARRAY) {
+                // IMPORTANT: Check if this VOCABULARY item has already been processed (prevents duplicates)
+                if (processedModuleIds.has(vocabId)) {
+                    console.log(`Skipping already processed VOCABULARY ID: ${vocabId} (as child of VOCABULARY_GROUP)`);
+                    continue;
+                }
+
+                // Fetch the individual VOCABULARY document.
+                const vocabDoc = await getModuleDocument(vocabId, 'VOCABULARY_GROUP'); // Use VOCABULARY_GROUP as parent for lookup
+
+                // Ensure it's a valid VOCABULARY document before proceeding
+                if (vocabDoc && vocabDoc.moduleType === 'VOCABULARY') {
+                    // Mark this VOCABULARY module as processed // ADDED LOGIC
+                    processedModuleIds.add(vocabId);
+
+                    const vocabRequestBody = mapFirestoreToClassroomBody(vocabDoc.data, vocabDoc.moduleType, effectiveClassroomTopicId);
+                    if (vocabRequestBody) {
+                        try {
+                            await classroomApiInstance.courses.courseWorkMaterials.create({
+                                courseId: classroomCourseId,
+                                requestBody: vocabRequestBody,
+                            });
+                            console.log(`----> Created Classroom CourseWorkMaterial for VOCABULARY: "${vocabRequestBody.title}"`);
+                        } catch (error) {
+                            console.error(`Failed to create Classroom material for VOCABULARY ${vocabId}. Error:`, error.errors ? JSON.stringify(error.errors) : error.message);
+                        }
+                    }
+
+                    // CRUCIAL FOR ORDER: Recursively process the children of *this VOCABULARY word*
+                    // This will fetch syllables, and then phonemes for each vocabulary word, immediately after the word itself.
+                    // The 'VOCABULARY' entry in COLLECTIONS_TO_SEARCH_FOR_CHILDREN is now empty, so this will effectively stop further recursion down this path for Classroom.
+                    if (vocabDoc.data.MODULEID_ARRAY && vocabDoc.data.MODULEID_ARRAY.length > 0) {
+                        await processChildren(
+                            vocabDoc.data.MODULEID_ARRAY,
+                            vocabDoc.moduleType, // The parent type for these children (syllables) is 'VOCABULARY'
+                            classroomCourseId,
+                            effectiveClassroomTopicId, // Syllables and Phonemes should be under the same topic as the VOCABULARY word
+                            classroomApiInstance,
+                            processedModuleIds // PASS THE SET
+                        );
+                    }
+                } else {
+                    console.warn(`Child ID ${vocabId} of VOCABULARY_GROUP was not a VOCABULARY document or not found. Skipping.`);
+                }
+            }
+        }
+      
+
+        // --- General Recursion for other module types (excluding VOCABULARY_GROUP) --- // MODIFIED COMMENT
+        // This handles cases like COURSE -> LESSON, LESSON -> SEMANTIC_GROUP,
+        // or a LESSON directly linking to a VOCABULARY item that is NOT part of a group.
+        // It's also where SYLLABLES and PHONEMES would be processed if their VOCABULARY parent
+        // wasn't part of a VOCABULARY_GROUP's specific processing flow.
         if (data.MODULEID_ARRAY && data.MODULEID_ARRAY.length > 0) {
-            await processChildren(
-                data.MODULEID_ARRAY,
-                currentModuleType, // The type of the current module becomes the parent type for its children's lookup
-                classroomCourseId,
-                effectiveClassroomTopicId, // Pass the newly created topic ID (or parent's topic ID)
-                classroomApiInstance
-            );
+            // Only recurse if the current module type is NOT VOCABULARY_GROUP, // ADDED CONDITION
+            // as its children (and their children) are handled in the special block above.
+            if (currentModuleType !== 'VOCABULARY_GROUP') { // ADDED CONDITION
+                await processChildren(
+                    data.MODULEID_ARRAY,
+                    currentModuleType, // The type of the current module becomes the parent type for its children's lookup
+                    classroomCourseId,
+                    effectiveClassroomTopicId, // Pass the newly created topic ID (or parent's topic ID)
+                    classroomApiInstance,
+                    processedModuleIds // PASS THE SET
+                );
+            } else { // ADDED ELSE BLOCK
+                console.log(`Skipping general recursion for VOCABULARY_GROUP ${data.TITLE} as its subtree was handled directly.`);
+            }
         }
     }
 }
 
-// 09/08 - NEW CODE ENDS HERE
 
 // --- The actual Cloud Function ---
 // Export this function so it can be imported and exposed by index.js
@@ -416,16 +509,19 @@ exports.generateCourseForClassroom = functions.region('asia-southeast1').runWith
         }
 
         // 09/08 - NEW CODE
+        // Initialize the set to track processed module IDs for this *entire* export run // ADDED LOGIC
+        const processedModuleIdsForRun = new Set(); // ADDED LOGIC
+
         // --- Process and Export all Child Data to Google Classroom ---
         console.log(`[${firebaseAuthUid}] Starting recursive export of child modules for Classroom Course ID: ${classroomCourseId}`);
         if (courseData.MODULEID_ARRAY && courseData.MODULEID_ARRAY.length > 0) {
             await processChildren(
                 courseData.MODULEID_ARRAY,
-				
                 'COURSE', // The type of the very top-level parent for initial lookup
                 classroomCourseId,
                 null, // No parent topic for these top-level children (LESSONs will be topics)
-                classroom // Pass the authenticated classroom API instance
+                classroom, // Pass the authenticated classroom API instance
+                processedModuleIdsForRun // PASS THE SET
             );
             console.log(`[${firebaseAuthUid}] Finished recursive export of child modules.`);
         } else {
@@ -439,7 +535,6 @@ exports.generateCourseForClassroom = functions.region('asia-southeast1').runWith
             classroomCourseId: classroomCourseId, // Ensure the final Classroom ID is stored
             exportedAt: admin.firestore.FieldValue.serverTimestamp(), // Add a timestamp for audit
         });
-        // 09/08 - NEW CODE
 
         // Return a success response to the frontend
         return {
@@ -451,33 +546,43 @@ exports.generateCourseForClassroom = functions.region('asia-southeast1').runWith
     } catch (error) {
         console.error(`[${firebaseAuthUid}] Error in generateCourseForClassroom:`, error);
 
-        // Standardized error handling for callable functions
-        if (error.code) {
-            // If it's already an HttpsError, re-throw it directly
-            throw error;
-        } else if (error.response && error.response.data && error.response.data.error) {
-            // Specific handling for Google API errors
-            console.error(`[${firebaseAuthUid}] Google API Error Details:`, JSON.stringify(error.response.data.error));
+        // 1. Check for specific Google API errors like 'invalid_grant' from GaxiosError
+        //    This covers errors thrown by `google.classroom` API calls directly.
+        if (error.response && error.response.data && error.response.data.error) {
+            const apiError = error.response.data.error; // This is the Google API error object
+            console.error(`[${firebaseAuthUid}] Google API Error Details:`, JSON.stringify(apiError));
+
+            if (apiError.error === 'invalid_grant' || (apiError.error_description && apiError.error_description.includes('Token has been revoked'))) {
+                // If the Google API explicitly says 'invalid_grant', it means the token (access or refresh) is bad.
+                // We must invalidate the stored refresh token to force re-authorization.
+                const userTokensRef = db.collection('userClassroomTokens').doc(firebaseAuthUid);
+                await userTokensRef.delete(); // Clear invalid tokens from Firestore
+                throw new functions.https.HttpsError(
+                    'unauthenticated',
+                    'Your Google Classroom authorization has expired or been revoked. Please re-authorize through the app.'
+                );
+            }
+            // For other Google API errors (e.g., permissions, not found, etc.), classify as internal
             throw new functions.https.HttpsError(
                 'internal',
-                `Google Classroom API error: ${error.response.data.error.message || 'Unknown API error'}. Please check permissions.`,
-                error.response.data.error
-            );
-        } else if (error.message && error.message.includes('redirect_uri_mismatch')) {
+                `Google Classroom API error: ${apiError.message || apiError.error_description || 'Unknown API error'}. Please check permissions.`,
+                apiError
+            );f
+        }
+        // 2. Check for other specific known errors by message that might not be GaxiosErrors
+        else if (error.message && error.message.includes('redirect_uri_mismatch')) {
              throw new functions.https.HttpsError(
                 'invalid-argument',
                 'OAuth redirect URI mismatch. Ensure your Firebase Hosting URL is correctly configured in Google Cloud Console OAuth Client ID.',
                 error.message
             );
-        } else if (error.message.includes('Token has been revoked') || error.message.includes('invalid_grant')) {
-             throw new functions.https.HttpsError(
-                'unauthenticated',
-                'Google Classroom token revoked or invalid. Please re-authorize through the app.',
-                error.message
-            );
         }
+        // 3. If it's already an HttpsError (e.g., from the token refresh block we discussed), re-throw it directly.
+        else if (error.code) { // HttpsError objects have a 'code' property
+            throw error;
+        }
+        // 4. Catch-all for any other unexpected errors
         else {
-            // Catch-all for any other unexpected errors
             throw new functions.https.HttpsError(
                 'internal',
                 'Failed to integrate course with Google Classroom due to an unexpected error.',

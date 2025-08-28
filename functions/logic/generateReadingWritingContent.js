@@ -67,6 +67,7 @@ Generate a JSON array of ${numItems} ReadingWriting  exercises for CEFR ${cefrLe
 			- "imagePrompt": String. A concise, descriptive instruction for an AI image generator to create an image based on the subject of the passage in the DESCRIPTION field, and/or the theme. 
 
         **Crucial Rules for Generation:**
+		- The entire response MUST be a single, perfectly valid JSON array, strictly conforming to JSON syntax (e.g., correct commas, brackets, and quotes). Any deviation from standard JSON syntax will render the output unusable.
 		- **MODULETYPE:** You MUST create a unique READING-WRITING MODULETYPE document for EACH distinct and complete Reading-Writing passage.      
 		- **DESCRIPTION** You MUST create an interesting and topical passage that is related to the TITLE but also exemplifying the THEME if it is a grammatical THEME.This MUST be followed by 5 numbered comprehension questions about the passge, appropriate for the CEFR level of this module.
 		- **CEFR Hierarchy:** For All READING-WRITING modules, their 'CEFR' level MUST be used to decide on the degree of sophistication of the exercise detailed in DESCRIPTION.

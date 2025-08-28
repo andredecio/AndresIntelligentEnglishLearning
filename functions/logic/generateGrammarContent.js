@@ -68,6 +68,7 @@ const generateGrammarContent = functions.region('asia-southeast1').runWith({ tim
 			- "imagePrompt": String. A concise, descriptive instruction for an AI image generator to create an image based on the grammar teaching point(s) in the DESCRIPTION field. 
 
         **Crucial Rules for Generation:**
+		- The entire response MUST be a single, perfectly valid JSON array, strictly conforming to JSON syntax (e.g., correct commas, brackets, and quotes). Any deviation from standard JSON syntax will render the output unusable.
 		- **MODULETYPE:** You MUST create a unique GRAMMAR MODULETYPE document for EACH distinct grammar teaching point. For example 'ed' is the common ending for the Past Participle form of regular verbs.      
 		- **CEFR Hierarchy:** For All GRAMMAR modules, their 'CEFR' level MUST be used to decide on the grammar teaching point degree of sophistication.
         - **Output Format:** Provide ONLY the JSON array. Do not include any introductory or concluding text.

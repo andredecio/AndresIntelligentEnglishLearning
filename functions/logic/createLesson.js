@@ -21,7 +21,7 @@ const createLesson = functions.region('asia-southeast1').runWith({ timeoutSecond
     const lessonData = {
       MODULETYPE: "LESSON",
       MODULEID,
-      TITLE: "",
+	  TITLE: theme ? "Lesson Theme: " + theme : "New Lesson",
       THEME: theme || "",
       CEFR_LEVEL: cefr || "",
       EXPECTED_MODULE_COUNT: expectedModuleCount || 0,
