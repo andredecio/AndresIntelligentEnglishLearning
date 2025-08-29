@@ -26,9 +26,8 @@
     // These constants will no longer conflict with constants of the same name in other files.
     const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY', 'SYLLABLE'];
 
-    // MODIFICATION START: Emptied this array to allow PHONEMEs to be selectable.
+    // This array is now empty to allow PHONEMEs to be selectable.
     const NON_SELECTABLE_LEAF_MODULE_TYPES = [];
-    // MODIFICATION END
 
     const moduleTypes = {
         'COURSE': 'COURSE',
@@ -48,13 +47,33 @@
     const typesWithMeaningOrigin = ['VOCABULARY_GROUP', 'VOCABULARY'];
 
     // Added a missing constant from the fetchAndPopulateTopLevelNavigation function
-    const topLevelLearningContentTypes = [ // This was missing in the global scope of the last version.
+    const topLevelLearningContentTypes = [
         'SEMANTIC_GROUP', 'VOCABULARY', 'VOCABULARY_GROUP', 'GRAMMAR', 'CONVERSATION', 'READING-WRITING', 'LISTENINGSPEAKING'
     ];
 
 
     // --- Callbacks to Orchestrator (ModuleContent.js) ---
     let onRecordSelectedCallback = () => {};
+
+
+    /**
+     * Helper function to get the singular module type from a collection name.
+     * Ensures consistent MODULETYPE strings even if the document itself doesn't have one.
+     */
+    function getSingularModuleTypeFromCollection(collectionName) {
+        switch (collectionName) {
+            case 'syllables': return 'SYLLABLE';
+            case 'phonemes': return 'PHONEME';
+            case 'COURSE': return 'COURSE';
+            case 'LESSON': return 'LESSON';
+            case 'learningContent':
+                // For learningContent, if no MODULETYPE is explicitly set,
+                // we might need a default or expect all documents to have it.
+                // For safety, defaulting to a generic 'LEARNINGCONTENT'
+                return 'LEARNINGCONTENT';
+            default: return collectionName.toUpperCase(); // Fallback for any other collection
+        }
+    }
 
 
     /**
@@ -113,14 +132,14 @@
                     await loadSelectedModuleIntoEditor();
                     updateNavigationButtons();
 				} else {
-				 		 console.log("DEBUG LV: Already at the last record."); // ADD THIS LINE
+				 		 console.log("DEBUG LV: Already at the last record.");
                 }
             });
         }
 
         if (nextRecordBtn) {
             nextRecordBtn.addEventListener('click', async () => {
-				  console.log("DEBUG LV: Next button clicked."); // ADD THIS LINE
+				  console.log("DEBUG LV: Next button clicked.");
                 if (currentTopLevelModuleIndex < filteredNavigationList.length - 1) {
                     currentTopLevelModuleIndex++;
                     await loadSelectedModuleIntoEditor();
@@ -135,19 +154,19 @@
      * into the editor via the orchestrator's callback.
      */
     async function loadSelectedModuleIntoEditor() {
-		console.log("DEBUG LV: loadSelectedModuleIntoEditor entered."); // ADD THIS LINE
+		console.log("DEBUG LV: loadSelectedModuleIntoEditor entered.");
         const selectedModule = filteredNavigationList[currentTopLevelModuleIndex];
-		console.log("DEBUG LV: Selected module for editor:", selectedModule); // ADD THIS LINE
+		console.log("DEBUG LV: Selected module for editor:", selectedModule);
         if (selectedModule) {
             try {
                 // Accessing global 'db' object
                 const moduleSnap = await window.db.collection(selectedModule.collection).doc(selectedModule.id).get();
                 if (moduleSnap.exists) {
-					 console.log("DEBUG LV: Module data fetched successfully."); // ADD THIS LINE
+					 console.log("DEBUG LV: Module data fetched successfully.");
                     onRecordSelectedCallback({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
-					console.log("DEBUG LV: onRecordSelectedCallback called from ListView."); // ADD THIS LINE
+					console.log("DEBUG LV: onRecordSelectedCallback called from ListView.");
                 } else {
-				console.warn("DEBUG LV: Selected module not found in Firestore. Refreshing navigation."); // ADD THIS LINE
+				console.warn("DEBUG LV: Selected module not found in Firestore. Refreshing navigation.");
                     // Accessing global 'showAlert' function
                     window.showAlert(statusMessageSpan, statusAlert, "Selected module not found. Refreshing navigation.", true);
                     await fetchAndPopulateTopLevelNavigation();
@@ -155,13 +174,13 @@
                 }
             } catch (error) {
 				
-                 console.error("DEBUG LV: Error fetching selected module for editor (Firestore query failed):", error); // ADD THIS LINE
+                 console.error("DEBUG LV: Error fetching selected module for editor (Firestore query failed):", error);
                 // Accessing global 'showAlert' function
                 window.showAlert(statusMessageSpan, statusAlert, `Error loading module: ${error.message}`, true);
             }
         } else {
             // Assumed to be globally available from ModuleContent_Editor.js
-			console.log("DEBUG LV: No selected module (null/undefined) to load. Clearing editor."); // ADD THIS LINE
+			console.log("DEBUG LV: No selected module (null/undefined) to load. Clearing editor.");
 			onRecordSelectedCallback(null, null);
         }
     }
@@ -177,6 +196,7 @@
     function renderModuleListItem(moduleData, level, currentModuleIds, parentTypeInDisplay = null) { // MODIFIED SIGNATURE
         const li = document.createElement('li');
         li.classList.add('module-item');
+        // This line is where the TypeError occurs if moduleData.MODULETYPE is undefined/null
         li.classList.add(`module-type-${moduleData.MODULETYPE.toLowerCase().replace(/_/g, '-')}`);
         li.dataset.moduleId = moduleData.id;
         if (level > 0) {
@@ -404,8 +424,17 @@ if (moduleData.DESCRIPTION) {
                 for (const col of collectionsToSearch) {
                     docSnap = await window.db.collection(col).doc(childId).get();
                     if (docSnap.exists) {
-                        console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} found in '${col}'.`);
-                        return { id: docSnap.id, ...docSnap.data(), collection: col };
+                        // MODIFICATION START: Infer MODULETYPE for childData if not present in doc.data()
+                        const childData = docSnap.data();
+                        const inferredModuleType = childData.MODULETYPE || getSingularModuleTypeFromCollection(col);
+                        console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} found in '${col}', inferred MODULETYPE: ${inferredModuleType}.`);
+                        return {
+                            id: docSnap.id,
+                            ...childData,
+                            MODULETYPE: inferredModuleType, // Ensure MODULETYPE is set
+                            collection: col
+                        };
+                        // MODIFICATION END
                     }
                 }
                 console.warn(`DEBUG: Child module with ID ${childId} not found in any expected collection for parent type ${parentModuleType}.`);
@@ -458,21 +487,29 @@ if (moduleData.DESCRIPTION) {
         try {
             const allFetchedModules = [];
 
-            // MODIFICATION START: Added 'syllables' and 'phonemes' to collectionsToFetch
+            // Collections to fetch for the main selectable list, now explicitly including syllables and phonemes
             const collectionsToFetch = ['COURSE', 'LESSON', 'learningContent', 'syllables', 'phonemes'];
-            // MODIFICATION END
 
             for (const colName of collectionsToFetch) {
                 // Accessing global 'db' object
                 const snapshot = await window.db.collection(colName).get();
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    // This check now uses the (potentially empty) NON_SELECTABLE_LEAF_MODULE_TYPES.
-                    // If PHONEME is removed from it, it won't be skipped here.
-                    if (colName === 'learningContent' && data.MODULETYPE && NON_SELECTABLE_LEAF_MODULE_TYPES.includes(data.MODULETYPE)) {
-                        return; // Skip if it's a non-selectable leaf type within 'learningContent'
+                    // Ensure MODULETYPE is set, falling back to an inferred type from the collection name
+                    const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection(colName);
+                    
+                    // The NON_SELECTABLE_LEAF_MODULE_TYPES check is still present, but if it's empty, it won't prevent any modules.
+                    // This is to maintain existing structure if you decide to add types back to NON_SELECTABLE_LEAF_MODULE_TYPES later.
+                    if (NON_SELECTABLE_LEAF_MODULE_TYPES.includes(inferredModuleType)) {
+                       return; // Skip if it's a non-selectable leaf type
                     }
-                    allFetchedModules.push({ id: doc.id, ...data, collection: colName });
+
+                    allFetchedModules.push({
+                        id: doc.id,
+                        ...data,
+                        MODULETYPE: inferredModuleType, // Use the (potentially inferred) singular module type
+                        collection: colName
+                    });
                 });
             }
 
@@ -773,14 +810,22 @@ if (moduleData.DESCRIPTION) {
         try {
             const allTopLevelModules = [];
 
-            // Updated topLevelCollections to also include 'syllables'
+            // Collections to fetch for the top-level navigation, including syllables
             const topLevelCollections = ['COURSE', 'LESSON', 'syllables'];
 
             for (const col of topLevelCollections) {
                 // Accessing global 'db' object
                 const snapshot = await window.db.collection(col).get();
                 snapshot.forEach(doc => {
-                    allTopLevelModules.push({ id: doc.id, ...doc.data(), MODULETYPE: doc.data().MODULETYPE || col, collection: col });
+                    const data = doc.data();
+                    // Infer MODULETYPE for consistency if not explicitly set in doc.data()
+                    const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection(col);
+                    allTopLevelModules.push({
+                        id: doc.id,
+                        ...data,
+                        MODULETYPE: inferredModuleType,
+                        collection: col
+                    });
                 });
             }
 
@@ -788,9 +833,16 @@ if (moduleData.DESCRIPTION) {
             const learningContentSnapshot = await window.db.collection('learningContent').get();
             learningContentSnapshot.forEach(doc => {
                 const data = doc.data();
+                // Infer MODULETYPE for learningContent items if not explicitly set
+                const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
                 // topLevelLearningContentTypes is now a const inside this IIFE.
-                if (topLevelLearningContentTypes.includes(data.MODULETYPE)) {
-                    allTopLevelModules.push({ id: doc.id, ...data, collection: 'learningContent' });
+                if (topLevelLearningContentTypes.includes(inferredModuleType)) {
+                    allTopLevelModules.push({
+                        id: doc.id,
+                        ...data,
+                        MODULETYPE: inferredModuleType,
+                        collection: 'learningContent'
+                    });
                 }
             });
 
@@ -842,7 +894,7 @@ if (moduleData.DESCRIPTION) {
     window.applyModuleTypeFilter = applyModuleTypeFilter;
     window.fetchAndPopulateTopLevelNavigation = fetchAndPopulateTopLevelNavigation;
     window.updateNavigationButtons = updateNavigationButtons;
-	window.filteredNavigationList = filteredNavigationList; // ADD THIS LINE
-	window.currentTopLevelModuleIndex = currentTopLevelModuleIndex; // ADD THIS LINE
+	window.filteredNavigationList = filteredNavigationList;
+	window.currentTopLevelModuleIndex = currentTopLevelModuleIndex;
 
 })(); // End IIFE for ModuleContent_ListView.js
