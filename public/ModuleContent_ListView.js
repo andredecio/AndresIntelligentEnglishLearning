@@ -262,8 +262,7 @@
                 if (moduleData.PRESENT_SIMPLE_3RD_PERSON_SINGULAR) {
                     verbForms.push(`Pres.3rd: ${moduleData.PRESENT_SIMPLE_3RD_PERSON_SINGULAR}`);
                 }
-                // Corrected display for SIMPLE_PAST
-                if (moduleData.SIMPLE_PAST) {
+                if (moduleData.SIMPLE_PAST) { // Corrected display for SIMPLE_PAST
                     verbForms.push(`Simple Past: ${moduleData.SIMPLE_PAST}`);
                 }
                 if (moduleData.PAST_PARTICIPLE) {
@@ -349,9 +348,7 @@ if (moduleData.DESCRIPTION) {
                 } else {
                     const childIds = moduleData.MODULEID_ARRAY || [];
                     // Assumed to be globally available from ModuleContent_Editor.js
-                    // START OF MODIFICATION
                     await fetchAndRenderChildren(moduleData.id, childIds, level + 1, li, window.getCurrentActiveRecord()?.MODULEID_ARRAY || [], moduleData.MODULETYPE);
-                    // END OF MODIFICATION
                 }
             });
         } else {
@@ -364,10 +361,8 @@ if (moduleData.DESCRIPTION) {
     /**
      * Fetches and renders child modules for a given parent.
      */
-    // START OF MODIFICATION
     async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selectedModuleIds, parentModuleType) {
         console.log(`--- fetchAndRenderChildren called for parent: ${parentId} (Type: ${parentModuleType}), level: ${level} ---`);
-    // END OF MODIFICATION
         console.log(`Child IDs to fetch:`, childIds);
 
         if (!childIds || childIds.length === 0) {
@@ -383,7 +378,6 @@ if (moduleData.DESCRIPTION) {
             let docSnap = null;
             let collectionsToSearch = []; // Initialize here
 
-            // START OF MODIFICATION
             // Define the specific collections to search based on the parent's type
             if (parentModuleType === 'SYLLABLE') {
                 collectionsToSearch = ['phonemes']; // A SYLLABLE should ONLY have PHONEMES as direct children
@@ -400,11 +394,9 @@ if (moduleData.DESCRIPTION) {
                 // you can keep a more general search, but be mindful of performance.
                 collectionsToSearch = ['learningContent', 'syllables', 'phonemes', 'COURSE', 'LESSON'];
             }
-            // END OF MODIFICATION
 
             try {
                 // Accessing global 'db' object
-                // START OF MODIFICATION
                 for (const col of collectionsToSearch) {
                     docSnap = await window.db.collection(col).doc(childId).get();
                     if (docSnap.exists) {
@@ -415,14 +407,11 @@ if (moduleData.DESCRIPTION) {
                 console.warn(`DEBUG: Child module with ID ${childId} not found in any expected collection for parent type ${parentModuleType}.`);
                 // Accessing global 'showAlert' function
                 window.showAlert(statusMessageSpan, statusAlert, `Child module ${childId} not found in appropriate collection for parent type ${parentModuleType}.`, true);
-                // END OF MODIFICATION
                 return null;
             } catch (error) {
-                // START OF MODIFICATION
                 console.error(`DEBUG: Error fetching child ${childId} for parent type ${parentModuleType}:`, error);
                 // Accessing global 'showAlert' function
                 window.showAlert(statusMessageSpan, statusAlert, `Permission denied for child module ${childId}. Check Firestore Rules.`, true);
-                // END OF MODIFICATION
                 return null;
             }
         });
@@ -775,7 +764,10 @@ if (moduleData.DESCRIPTION) {
         try {
             const allTopLevelModules = [];
 
-            const topLevelCollections = ['COURSE', 'LESSON'];
+            // MODIFICATION START: Added 'syllables' to topLevelCollections
+            const topLevelCollections = ['COURSE', 'LESSON', 'syllables'];
+            // MODIFICATION END
+
             for (const col of topLevelCollections) {
                 // Accessing global 'db' object
                 const snapshot = await window.db.collection(col).get();
