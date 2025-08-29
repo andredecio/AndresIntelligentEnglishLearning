@@ -25,7 +25,11 @@
     // --- Module-Specific Constants (now private to this IIFE scope) ---
     // These constants will no longer conflict with constants of the same name in other files.
     const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY', 'SYLLABLE'];
-    const NON_SELECTABLE_LEAF_MODULE_TYPES = ['PHONEME'];
+
+    // MODIFICATION START: Emptied this array to allow PHONEMEs to be selectable.
+    const NON_SELECTABLE_LEAF_MODULE_TYPES = [];
+    // MODIFICATION END
+
     const moduleTypes = {
         'COURSE': 'COURSE',
         'LESSON': 'LESSON',
@@ -454,14 +458,19 @@ if (moduleData.DESCRIPTION) {
         try {
             const allFetchedModules = [];
 
-            const collectionsToFetch = ['COURSE', 'LESSON', 'learningContent'];
+            // MODIFICATION START: Added 'syllables' and 'phonemes' to collectionsToFetch
+            const collectionsToFetch = ['COURSE', 'LESSON', 'learningContent', 'syllables', 'phonemes'];
+            // MODIFICATION END
+
             for (const colName of collectionsToFetch) {
                 // Accessing global 'db' object
                 const snapshot = await window.db.collection(colName).get();
                 snapshot.forEach(doc => {
                     const data = doc.data();
+                    // This check now uses the (potentially empty) NON_SELECTABLE_LEAF_MODULE_TYPES.
+                    // If PHONEME is removed from it, it won't be skipped here.
                     if (colName === 'learningContent' && data.MODULETYPE && NON_SELECTABLE_LEAF_MODULE_TYPES.includes(data.MODULETYPE)) {
-                        return;
+                        return; // Skip if it's a non-selectable leaf type within 'learningContent'
                     }
                     allFetchedModules.push({ id: doc.id, ...data, collection: colName });
                 });
@@ -764,9 +773,8 @@ if (moduleData.DESCRIPTION) {
         try {
             const allTopLevelModules = [];
 
-            // MODIFICATION START: Added 'syllables' to topLevelCollections
+            // Updated topLevelCollections to also include 'syllables'
             const topLevelCollections = ['COURSE', 'LESSON', 'syllables'];
-            // MODIFICATION END
 
             for (const col of topLevelCollections) {
                 // Accessing global 'db' object
