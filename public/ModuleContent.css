@@ -135,6 +135,17 @@ body {
     background-color: #c82333;
 }
 
+#activeRecordTypeSelect {
+    color: #333333; /* Darker text color (a common dark grey) */
+    background-color: #FFFFFF; /* Ensure a solid white background, or pick a light, contrasting color */
+    border: 1px solid #CCCCCC; /* Add or adjust border for better definition */
+    /* Optional: increase font weight if the current font is too thin */
+    /* font-weight: 500; */
+    /* Optional: padding for better visual spacing */
+    padding: 8px 10px;
+}
+
+
 /* --- Current children list styling --- */
 .current-children-list {
     margin-top: 30px;
