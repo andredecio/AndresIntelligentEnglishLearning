@@ -76,62 +76,37 @@ body {
 
 /* --- Form styling within the single record view --- */
 .record-form {
-    padding: 0;
+    /* Removed problematic line-height: 7.0 here */
+    padding: 0; /* Adjusted from 1px 0 */
     margin: 0;
 }
 
 .record-form label {
     display: block;
-    margin-top: 10px; /* Reduced from 15px */
-    margin-bottom: 5px; /* Reduced from 8px */
+    margin-bottom: 8px;
+    margin-top: 15px;
     font-weight: bold;
     color: #555;
-    line-height: 1.5;
+    line-height: 1.5; /* Ensure reasonable line height */
 }
 
-/* Global input/textarea/select styling (adjusting margins here for overall reduction) */
 .record-form input[type="text"],
 .record-form textarea,
-.record-form select {
+.record-form select { /* Added select for consistency */
     width: calc(100% - 24px); /* Account for padding and border */
     padding: 12px;
-    margin-bottom: 10px; /* Reduced from 15px */
+    margin-bottom: 15px;
     border: 1px solid #ced4da;
     border-radius: 6px;
     box-sizing: border-box;
     font-size: 1em;
-    line-height: 1.5;
-}
-
-/* Specific styling for Module Type display field (now a span) */
-#activeRecordTypeSelect { /* Targeting the span by its ID */
-    display: block; /* Make it behave like a block-level input */
-    background-color: #f9f9f9; /* A very light grey background */
-    border: 1px solid #ddd;   /* A clear border */
-    color: #333;              /* Darker text for visibility */
-    font-weight: bold;        /* Make the text stand out */
-    padding: 12px;            /* Ensure padding is consistent with inputs */
-    line-height: 1.5;         /* Consistent line height */
-    min-height: 48px;         /* Ensure height is similar to other inputs with padding */
-    box-sizing: border-box;   /* Include padding and border in sizing */
-    margin-bottom: 5px;       /* Reduced vertical gap below Module Type field */
-}
-
-
-/* Specific styling for the recordTitle textarea to display two lines */
-#recordTitle {
-    resize: vertical; /* Allow vertical resizing */
-    overflow-y: auto; /* Show scrollbar if content exceeds visible lines */
-    min-height: calc(2 * 1.5em + 24px); /* Approx 2 lines (1.5em line-height) + padding. Adjust 1.5em if your actual line-height is different. */
-    margin-bottom: 5px; /* Reduced vertical gap below Title field */
+    line-height: 1.5; /* Ensure reasonable line height */
 }
 
 .record-form textarea {
-    /* min-height property is now specific to #recordTitle,
-       but keeping this general one for other textareas if any */
-    min-height: 80px; /* Default for other textareas if not #recordTitle */
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 80px;
 }
-
 
 /* Form actions (Save/Delete buttons) */
 .record-form .actions {
@@ -143,13 +118,13 @@ body {
 
 .record-form .actions button {
     flex: 1;
-    margin: 0;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
+    margin: 0; /* Override common.css margin */
+    padding: 10px 15px; /* Ensure padding */
+    border: none; /* Ensure no border */
+    border-radius: 4px; /* Ensure border-radius */
+    cursor: pointer; /* Ensure cursor */
+    font-size: 1em; /* Ensure font-size */
+    transition: background-color 0.2s ease; /* Ensure transition */
 }
 
 .record-form .actions .delete-btn {
@@ -174,7 +149,7 @@ body {
 }
 
 #currentChildrenDisplay {
-    font-size: 0.5em;
+	  font-size: 0.5em
     list-style: none;
     padding: 2px;
     margin: 2px;
@@ -184,7 +159,7 @@ body {
     padding: 8px 0;
     border-bottom: 1px dashed #eee;
     color: #666;
-    line-height: 1.0;
+    line-height: 1.0; /* Adjusted for better spacing */
 }
 
 #currentChildrenDisplay li:last-child {
@@ -197,10 +172,11 @@ body {
     flex: 2; /* Allows it to take up more space */
     min-width: 400px; /* Minimum width before wrapping */
     background-color: #ffffff;
-    padding: 25px;
+    padding: 25px; /* Adjusted from 1px 0 */
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
+    /* Removed problematic line-height: 7.0 here */
 }
 
 .larger-list-view h2 {
@@ -218,7 +194,7 @@ body {
     gap: 10px;
     margin-bottom: 20px;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
 }
 
 .module-filter-search select,
@@ -228,7 +204,7 @@ body {
     border-radius: 6px;
     font-size: 1em;
     flex: 1;
-    min-width: 150px;
+    min-width: 150px; /* Ensure inputs don't become too small */
 }
 
 /* --- Module List Styling --- */
@@ -236,7 +212,7 @@ body {
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 600px;
+    max-height: 600px; /* Make the list scrollable if it gets too long */
     overflow-y: auto;
     border: 1px solid #eee;
     border-radius: 6px;
@@ -245,13 +221,13 @@ body {
 
 /* Individual module list item (li) */
 .module-item {
-    padding: 8px 10px;
+    padding: 8px 10px; /* Adjusted padding from 12px 15px */
     border-bottom: 1px solid #eee;
     display: flex;
-    align-items: flex-start;
+    align-items: flex-start; /* Align checkbox to top of content */
     transition: background-color 0.2s ease;
-    font-size: 0.85em;
-    line-height: 1.3;
+    font-size: 0.85em; /* Slightly smaller overall font for list items */
+    line-height: 1.3; /* Optimized line height for list item details */
 }
 
 .module-item:last-child {
@@ -263,85 +239,88 @@ body {
 }
 
 .module-item.selected {
-    background-color: #e0f7fa;
+    background-color: #e0f7fa; /* Light blue background for selected items */
     border-left: 5px solid #007bff;
-    padding-left: 5px;
+    padding-left: 5px; /* Adjust padding due to border-left */
 }
 
 .module-item input[type="checkbox"] {
     margin-right: 10px;
-    transform: scale(1.1);
-    flex-shrink: 0;
-    margin-top: 4px;
+    transform: scale(1.1); /* Slightly larger checkbox, adjusted from 1.2 */
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+    margin-top: 4px; /* Align checkbox with top of content */
 }
 
 /* Content wrapper within the module item */
 .module-item-content {
     flex-grow: 1;
-    display: block;
+    display: block; /* Changed to block for stacked details */
+    /* Removed align-items: center; gap: 10px; from original */
 }
 
+/* New wrapper for Title and Type to keep them on one line (flex) */
 .module-item-title-wrapper {
     display: flex;
-    align-items: baseline;
-    margin-bottom: 2px;
+    align-items: baseline; /* Align text baselines */
+    margin-bottom: 2px; /* Small space after title/type line */
 }
 
 .module-item-content .title {
     font-weight: bold;
     color: #333;
-    font-size: 1em;
+    font-size: 1em; /* Relative to module-item's font-size */
     line-height: 1.2;
 }
 
 .module-item-content .type {
-    font-size: 0.8em;
+    font-size: 0.8em; /* Relative to title's font-size */
     color: #666;
     background-color: #e9ecef;
-    padding: 1px 4px;
+    padding: 1px 4px; /* Reduced padding */
     border-radius: 3px;
-    margin-left: 8px;
-    line-height: 1;
+    margin-left: 8px; /* Space from title */
+    line-height: 1; /* Tighter line height for badge */
 }
 
 /* New classes for Theme, Description, CEFR details */
 .module-item-detail {
-    font-size: 0.9em;
+    font-size: 0.9em; /* Slightly larger than list item base, smaller than title */
     color: #555;
-    margin-top: 4px;
-    line-height: 1.4;
+    margin-top: 4px; /* Small vertical spacing between detail lines */
+    line-height: 1.4; /* Comfortable line height for details */
 }
 
 .module-item-description {
-   max-height: 100px;
-  	min-height: 0;
-	overflow-y: auto;
-	overflow-x: hidden;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-	flex: 1 1 auto;
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 10px;
-    border: 1px solid #ccc;
+   max-height: 100px; /* Adjust this height as needed to show a few lines before scrolling */
+  	min-height: 0;    /* avoids flexbox from preventing scroll */   
+	overflow-y: auto; /* This enables the vertical scrollbar when content overflows */
+	overflow-x: hidden; 
+    white-space: pre-wrap; /* Ensures that text wraps and preserves line breaks from your data */
+    word-wrap: break-word; /* Prevents long words from overflowing the container */
+	flex: 1 1 auto;   /* allows it to expand inside the flexbox */
+    /* Additional properties you *might* need, depending on your layout: */
+    display: block; /* Ensure it's a block-level element that respects height/width */
+    width: 100%; /* Make sure it takes up available width to trigger wrapping */
+    box-sizing: border-box; /* To ensure padding and border are included in the element's total width/height */
+    padding: 10px; /* Give it a little internal space so text isn't stuck to edges */
+    border: 1px solid #ccc; /* Helps you visualize the container's boundaries for debugging */
 }
 .module-item-description::-webkit-scrollbar {
-  width: 8px;
+  width: 8px;                 /* scrollbar thickness */
 }
 .module-item-description::-webkit-scrollbar-track {
-  background: #f0f8ff;
+  background: #f0f8ff;         /* light background (AliceBlue) */
 }
 
 .module-item-description::-webkit-scrollbar-thumb {
-  background-color: #87cefa;
-  border-radius: 6px;
-  border: 2px solid #f0f8ff;
+  background-color: #87cefa;   /* light sky blue */
+  border-radius: 6px;          /* rounded corners */
+  border: 2px solid #f0f8ff;   /* adds some spacing around */
 }
 .module-item-cefr {
     font-weight: bold;
     color: #329b83e8;
-    font-size: 0.85em;
+    font-size: 0.85em; /* Slightly smaller for CEFR */
 }
 
 /* Original expand toggle and media styles */
@@ -350,18 +329,18 @@ body {
     font-size: 1.2em;
     color: #007bff;
     margin-left: 10px;
-    user-select: none;
+    user-select: none; /* Prevent text selection on toggle */
     transition: transform 0.2s ease;
-    flex-shrink: 0;
-    margin-top: 4px;
+    flex-shrink: 0; /* Prevent shrinking */
+    margin-top: 4px; /* Align with top of content */
 }
 
 .module-item .expand-toggle.expanded {
-    transform: rotate(90deg);
+    transform: rotate(90deg); /* Rotate arrow when expanded */
 }
 
 /* Indentation for nested modules */
-.module-item.level-1 { padding-left: 30px; }
+.module-item.level-1 { padding-left: 30px; } /* Base indentation */
 .module-item.level-2 { padding-left: 50px; }
 .module-item.level-3 { padding-left: 70px; }
 .module-item.level-4 { padding-left: 90px; }
@@ -373,9 +352,9 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-left: auto;
-    flex-shrink: 0;
-    margin-top: 4px;
+    margin-left: auto; /* Push media to the right */
+    flex-shrink: 0; /* Prevent shrinking */
+    margin-top: 4px; /* Align with top of content */
 }
 
 .module-media img.thumbnail {
@@ -387,7 +366,7 @@ body {
 }
 
 .module-media .audio-player-btn {
-    background-color: #17a2b8;
+    background-color: #17a2b8; /* Info blue for audio */
     color: white;
     padding: 6px 10px;
     border-radius: 4px;
@@ -412,77 +391,80 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    line-height: 1.5;
+    line-height: 1.5; /* Ensure proper line height */
 }
 
 /* --- Specific styles for inline spinners --- */
 .spinner.spinner-inline {
-    width: 18px;
+    width: 18px; /* Slightly smaller than default */
     height: 18px;
-    border-width: 3px;
-    margin-left: 10px;
-    display: inline-block;
-    vertical-align: middle;
+    border-width: 3px; /* Thinner border */
+    margin-left: 10px; /* Space it out from the toggle/title */
+    display: inline-block; /* Ensure it stays in line with content */
+    vertical-align: middle; /* Align nicely with text */
 }
 
-/* --- Specific form-group for Module Type selector group --- */
-.new-record-type-selector-group {
-  margin-bottom: 5px;
+/* --- Basic styling for the new module type selector --- */
+/* This assumes your CEFR elements are wrapped in a div with class 'cefr-fields' as discussed */
+.cefr-fields {
+    /* Add any specific styles for the container if needed */
+    margin-bottom: 15px; /* Adjust spacing as per form fields */
 }
 
 .new-record-type-selector-group label {
   display: block;
-  margin-top: 10px;
+  margin-top: 15px; /* Add some space above */
   margin-bottom: 5px;
   font-weight: bold;
 }
 
-/* --- Adjustments for CEFR form group to reduce its spacing --- */
-.form-group.cefr-fields {
-    margin-top: 5px;
-    margin-bottom: 10px;
+.new-record-type-selector-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 /* --- Responsive adjustments --- */
 @media (max-width: 768px) {
     .content-wrapper {
         flex-direction: column;
-        padding: 0 10px;
+        padding: 0 10px; /* Reduce padding on small screens */
     }
     .single-record-view,
     .larger-list-view {
-        min-width: unset;
+        min-width: unset; /* Remove min-width to allow full width */
         width: 100%;
-        padding: 15px;
+        padding: 15px; /* Reduce padding on small screens */
     }
     .record-form input[type="text"],
     .record-form textarea,
     .record-form select {
-        width: 100%;
+        width: 100%; /* Ensure full width on small screens */
     }
     .module-filter-search {
         flex-direction: column;
-        align-items: stretch;
+        align-items: stretch; /* Stretch items to fill width */
     }
     .module-filter-search select,
     .module-filter-search input[type="text"] {
         width: 100%;
     }
     .module-item {
-        flex-wrap: wrap;
+        flex-wrap: wrap; /* Allow content to wrap within list item */
     }
     .module-item input[type="checkbox"] {
-        margin-top: 0;
-        margin-bottom: 5px;
+        margin-top: 0; /* Reset margin top */
+        margin-bottom: 5px; /* Add space below checkbox */
     }
     .module-item-content {
-        width: calc(100% - 30px);
+        width: calc(100% - 30px); /* Adjust width to account for checkbox */
     }
     .module-item .expand-toggle,
     .module-media {
-        margin-top: 0;
-        margin-left: 0;
-        width: 100%;
-        justify-content: flex-end;
+        margin-top: 0; /* Reset margin top */
+        margin-left: 0; /* Reset margin left */
+        width: 100%; /* Take full width below content */
+        justify-content: flex-end; /* Push media/toggle to the right if they wrap */
     }
 }

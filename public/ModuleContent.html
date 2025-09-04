@@ -40,16 +40,27 @@
             <div class="record-form">
                 <input type="hidden" id="activeRecordId">
                 <input type="hidden" id="activeRecordCollection">
+                <!-- NEW: Replaces hidden activeRecordType. This will be shown/hidden/disabled by JS -->
                 <div class="form-group new-record-type-selector-group">
                     <label for="activeRecordTypeSelect">Module Type:</label>
-                    <!-- IMPORTANT: Changed from <select> to <span>.
-                         It keeps the same ID: 'activeRecordTypeSelect'. -->
-                    <span id="activeRecordTypeSelect" class="form-control"></span>
+                    <select id="activeRecordTypeSelect" class="form-control">
+                        <option value="COURSE">Course</option>
+                        <option value="LESSON">Lesson</option>
+                        <option value="SEMANTIC_GROUP">Semantic Group</option>
+                        <option value="VOCABULARY_GROUP">Vocabulary Group</option>
+                        <option value="VOCABULARY">Vocabulary</option>
+                        <option value="SYLLABLE">Syllable</option>
+                        <option value="PHONEME">Phoneme</option>
+                        <option value="GRAMMAR">Grammar</option>
+                        <option value="CONVERSATION">Conversation</option>
+                        <option value="READING-WRITING">Reading & Writing</option>
+                        <option value="LISTENINGSPEAKING">Listening & Speaking</option>
+                    </select>
                 </div>
+                <!-- The existing label and input for recordTitle will now follow this block -->
 
                 <label for="recordTitle">Title:</label>
-                <textarea id="recordTitle" rows="2" placeholder="Module Title" required></textarea>
-				
+                <input type="text" id="recordTitle" placeholder="Module Title" required>
 				<div class="form-group cefr-fields hidden">
 					<label for="cefrInput">CEFR Level:</label>
 					<input type="text" id="cefrInput" placeholder="e.g., A1, B2, C1">
