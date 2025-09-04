@@ -48,7 +48,7 @@
 
         activeRecordIdInput = document.getElementById('activeRecordId');
         activeRecordCollectionInput = document.getElementById('activeRecordCollection');
-        activeRecordTypeSelect.textContent = document.getElementById('activeRecordTypeSelect');
+        activeRecordTypeSelect = document.getElementById('activeRecordTypeSelect');
         newRecordTypeSelectorGroup = document.querySelector('.new-record-type-selector-group');
         recordTitleInput = document.getElementById('recordTitle');
         recordDescriptionTextarea = document.getElementById('recordDescription');
