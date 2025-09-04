@@ -40,22 +40,14 @@
             <div class="record-form">
                 <input type="hidden" id="activeRecordId">
                 <input type="hidden" id="activeRecordCollection">
-                <!-- IMPORTANT: Keeping the ID and element type (<select>) as requested.
-                     Adding 'disabled' to make it non-interactive for display.
-                     CSS will style it to look like a display field. -->
                 <div class="form-group new-record-type-selector-group">
                     <label for="activeRecordTypeSelect">Module Type:</label>
-                    <select id="activeRecordTypeSelect" class="form-control" disabled>
-                        <!-- Your JavaScript will need to set the value of this select
-                             to display the current module type. For example:
-                             document.getElementById('activeRecordTypeSelect').value = 'COURSE';
-                             or add a single <option> dynamically. -->
-                    </select>
+                    <!-- IMPORTANT: Changed from <select> to <span>.
+                         It keeps the same ID: 'activeRecordTypeSelect'. -->
+                    <span id="activeRecordTypeSelect" class="form-control"></span>
                 </div>
 
                 <label for="recordTitle">Title:</label>
-                <!-- IMPORTANT: Keeping the ID. Changed from <input type="text"> to <textarea>
-                     This is necessary for true multi-line display. -->
                 <textarea id="recordTitle" rows="2" placeholder="Module Title" required></textarea>
 				
 				<div class="form-group cefr-fields hidden">

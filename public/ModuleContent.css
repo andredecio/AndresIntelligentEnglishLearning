@@ -82,7 +82,6 @@ body {
 
 .record-form label {
     display: block;
-    /* Adjusting label margins for reduced spacing */
     margin-top: 10px; /* Reduced from 15px */
     margin-bottom: 5px; /* Reduced from 8px */
     font-weight: bold;
@@ -104,24 +103,20 @@ body {
     line-height: 1.5;
 }
 
-/* Specific styling for Module Type selector to make it display-only */
-#activeRecordTypeSelect[disabled] {
-    -webkit-appearance: none; /* Remove default dropdown arrow for Chrome/Safari */
-    -moz-appearance: none;    /* Remove default dropdown arrow for Firefox */
-    appearance: none;         /* Standard property for removing default arrow */
-    background-image: none;   /* Remove any custom arrow images that might be applied */
-
-    /* Visuals for display-only look */
-    background-color: #f9f9f9; /* A very light grey background, less transparent */
+/* Specific styling for Module Type display field (now a span) */
+#activeRecordTypeSelect { /* Targeting the span by its ID */
+    display: block; /* Make it behave like a block-level input */
+    background-color: #f9f9f9; /* A very light grey background */
     border: 1px solid #ddd;   /* A clear border */
     color: #333;              /* Darker text for visibility */
     font-weight: bold;        /* Make the text stand out */
     padding: 12px;            /* Ensure padding is consistent with inputs */
     line-height: 1.5;         /* Consistent line height */
-    cursor: default;          /* Indicate it's not interactive */
-    pointer-events: none;     /* Prevent any mouse events */
     min-height: 48px;         /* Ensure height is similar to other inputs with padding */
+    box-sizing: border-box;   /* Include padding and border in sizing */
+    margin-bottom: 5px;       /* Reduced vertical gap below Module Type field */
 }
+
 
 /* Specific styling for the recordTitle textarea to display two lines */
 #recordTitle {
@@ -432,21 +427,20 @@ body {
 
 /* --- Specific form-group for Module Type selector group --- */
 .new-record-type-selector-group {
-  /* Reduces the margin-bottom for the group containing the Module Type selector */
-  margin-bottom: 5px; /* Reduced from default form field margin */
+  margin-bottom: 5px;
 }
 
 .new-record-type-selector-group label {
   display: block;
-  margin-top: 10px; /* Aligns with other label adjustments */
+  margin-top: 10px;
   margin-bottom: 5px;
   font-weight: bold;
 }
 
 /* --- Adjustments for CEFR form group to reduce its spacing --- */
 .form-group.cefr-fields {
-    margin-top: 5px; /* Reduced top margin to decrease gap to Title field */
-    margin-bottom: 10px; /* Adjusted bottom margin to align with general form field spacing */
+    margin-top: 5px;
+    margin-bottom: 10px;
 }
 
 /* --- Responsive adjustments --- */
