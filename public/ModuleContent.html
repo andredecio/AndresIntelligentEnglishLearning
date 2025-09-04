@@ -40,27 +40,24 @@
             <div class="record-form">
                 <input type="hidden" id="activeRecordId">
                 <input type="hidden" id="activeRecordCollection">
-                <!-- NEW: Replaces hidden activeRecordType. This will be shown/hidden/disabled by JS -->
+                <!-- IMPORTANT: Keeping the ID and element type (<select>) as requested.
+                     Adding 'disabled' to make it non-interactive for display.
+                     CSS will style it to look like a display field. -->
                 <div class="form-group new-record-type-selector-group">
                     <label for="activeRecordTypeSelect">Module Type:</label>
-                    <select id="activeRecordTypeSelect" class="form-control">
-                        <option value="COURSE">Course</option>
-                        <option value="LESSON">Lesson</option>
-                        <option value="SEMANTIC_GROUP">Semantic Group</option>
-                        <option value="VOCABULARY_GROUP">Vocabulary Group</option>
-                        <option value="VOCABULARY">Vocabulary</option>
-                        <option value="SYLLABLE">Syllable</option>
-                        <option value="PHONEME">Phoneme</option>
-                        <option value="GRAMMAR">Grammar</option>
-                        <option value="CONVERSATION">Conversation</option>
-                        <option value="READING-WRITING">Reading & Writing</option>
-                        <option value="LISTENINGSPEAKING">Listening & Speaking</option>
+                    <select id="activeRecordTypeSelect" class="form-control" disabled>
+                        <!-- Your JavaScript will need to set the value of this select
+                             to display the current module type. For example:
+                             document.getElementById('activeRecordTypeSelect').value = 'COURSE';
+                             or add a single <option> dynamically. -->
                     </select>
                 </div>
-                <!-- The existing label and input for recordTitle will now follow this block -->
 
                 <label for="recordTitle">Title:</label>
-                <input type="text" id="recordTitle" placeholder="Module Title" required>
+                <!-- IMPORTANT: Keeping the ID. Changed from <input type="text"> to <textarea>
+                     This is necessary for true multi-line display. -->
+                <textarea id="recordTitle" rows="2" placeholder="Module Title" required></textarea>
+				
 				<div class="form-group cefr-fields hidden">
 					<label for="cefrInput">CEFR Level:</label>
 					<input type="text" id="cefrInput" placeholder="e.g., A1, B2, C1">
