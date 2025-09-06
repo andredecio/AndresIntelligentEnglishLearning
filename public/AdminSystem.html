@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase AI Vocabulary Content Generator</title>
-    <!-- Global & Page-Specific Styles -->
-    <!-- It's good practice to link CSS in the <head> -->
+    <title>Firebase AI Module Generator</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="AdminSystem.css" />
 </head>
@@ -29,7 +27,7 @@
 			
         <!-- Section for Content Generator (Visible only after successful admin login) -->
         <div id="generatorSection">
-            <h1>Generate Vocabulary Content</h1>
+            <h1>Generate Modules </h1>
             <button id="logoutButton" type="button">Log Out</button>
 			<button id="manageContentBtn" type="button">Manage Module Content</button>
             <form id="contentGeneratorForm">
@@ -44,15 +42,16 @@
                 </select>
                 <label for="ModuleType">Module Type:</label>
                 <select id="ModuleType" required>
-                    <option value="VOCABULARY">VOCABULARY</option>
+                    <option value="LESSON">LESSON</option>
+					<option value="VOCABULARY">VOCABULARY</option>
                     <option value="GRAMMAR">GRAMMAR</option>
                     <option value="CONVERSATION">CONVERSATION</option>
                     <option value="LISTENINGSPEAKING">LISTENINGSPEAKING</option>
                     <option value="READING-WRITING">READING-WRITING</option>
                     <option value="GAME">GAME</option>
                     <option value="EXAM">EXAM</option>
-                    <option value="LESSON">LESSON</option>
-					
+		            <option value="QUIZ">QUIZ</option>
+			
                 </select>
 					<div class="input-pair">
 						<div>
