@@ -1,12 +1,9 @@
 // js/AdminSystem_Auth.js (Remodified for standard script loading - NO 'import' or 'export')
-// Handles authentication, authorization (admin claims), and UI state for the Admin System.
+// Handles authentication, authorization (admin claims, payment plan, credit), and UI state for the Admin System.
 
-// Removed: import { auth, app, functions } from './firebase-services.js';
-// Removed: import { displayError } from './ui-utilities.js';
-
-document.addEventListener('DOMContentLoaded', () => { // Retained from original AdminSystem.js.
+document.addEventListener('DOMContentLoaded', () => {
     // 'auth', 'app', 'functions' are now globally available from firebase-services.js.
-    // 'displayError' is now globally available from ui-utilities.js.
+    // 'displayError', 'showErrorPopup', 'showAlert' are now globally available from ui-utilities.js.
 
     // --- References to HTML Elements (Auth and Section Toggling) ---
     // Auth Section elements
@@ -24,28 +21,59 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
 
     // --- Firebase Authentication State Listener ---
     // Accessing global 'auth' object
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
+    // The callback now receives the augmentedUser from firebase-services.js
+    observeAuthState(async (augmentedUser) => { // Use observeAuthState which now provides augmentedUser
+        if (augmentedUser) {
             try {
-                const idTokenResult = await user.getIdTokenResult();
-                if (idTokenResult.claims.admin) {
+                const customClaims = augmentedUser.customClaims;
+                const userProfile = augmentedUser.profile; // The user's Firestore profile data
+
+                // --- NEW PAYMENT SYSTEM LOGIC ---
+                // Rule: Adminsystem requires sign in for participating userids whose accounts are in credit.
+                //       Users in payment option 5 (G0 plans) will have to sign in directly to ModuleContent page rather than via AdminSystem.
+
+                const isAdmin = customClaims.admin;
+                const paymentPlanId = userProfile ? userProfile.paymentPlanId : null;
+                const currentBalance = userProfile ? userProfile.currentBalance : 0; // Assume 0 if no profile or balance
+
+                // Determine if user has a G0 plan (no module creation/update allowed)
+                const isG0Plan = paymentPlanId && paymentPlanId.endsWith('G0');
+
+                // Determine if user is in credit (a simplified check for now)
+                // You might define "in credit" as currentBalance > 0, or above a minimum threshold.
+                const isInCredit = currentBalance > 0; // Assuming a positive balance means "in credit"
+
+                if (isAdmin) {
+                    // Admin users always have full access to AdminSystem
                     authSection.style.display = 'none';
                     generatorSection.style.display = 'block';
                     loginErrorDiv.textContent = '';
                     console.log("Admin user logged in and authorized.");
+                } else if (isG0Plan) {
+                    // Users on G0 plans are explicitly denied AdminSystem access
+                    console.warn(`User (${augmentedUser.email}) is on a G0 plan (${paymentPlanId}) and cannot access AdminSystem.`);
+                    showErrorPopup('Users on G0 plans cannot access this Admin System. Please navigate to Module Content directly.');
+                    await signOutCurrentUser(); // Use global signOutCurrentUser
+                } else if (!isInCredit) {
+                    // Users not in credit (and not G0 plan) are denied AdminSystem access
+                    console.warn(`User (${augmentedUser.email}) is out of credit and cannot access AdminSystem.`);
+                    showErrorPopup('Your account is out of credit. Please top up to access the Admin System.');
+                    await signOutCurrentUser(); // Use global signOutCurrentUser
                 } else {
-                    console.warn("User logged in but is not authorized as admin. Logging out.");
-                    loginErrorDiv.textContent = 'You do not have administrative access. Logging out.';
-                    // Accessing global 'auth' object
-                    await auth.signOut();
+                    // Regular participating user in credit
+                    authSection.style.display = 'none';
+                    generatorSection.style.display = 'block';
+                    loginErrorDiv.textContent = '';
+                    console.log(`Participating user (${augmentedUser.email}) logged in, in credit, and authorized.`);
                 }
+
             } catch (error) {
-                console.error("Error checking custom claims:", error);
+                console.error("Error processing user data or custom claims:", error);
                 loginErrorDiv.textContent = `Error during authorization check: ${error.message}`;
-                // Accessing global 'auth' object
-                await auth.signOut();
+                await signOutCurrentUser(); // Use global signOutCurrentUser
             }
         } else {
+            // User signed out or no user found
             const responseDiv = document.getElementById('response');
             const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
             if (responseDiv) responseDiv.textContent = '';
@@ -68,12 +96,13 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
         loginErrorDiv.textContent = ''; // Clear error before new attempt
 
         try {
-            // Accessing global 'auth' object
-            await auth.signInWithEmailAndPassword(email, password);
-            console.log("Login successful.");
+            // Accessing global 'signInUserWithEmailAndPassword' function
+            await signInUserWithEmailAndPassword(email, password);
+            console.log("Login attempt successful. Waiting for auth state change to process.");
         } catch (error) {
             console.error("Login Error:", error);
-            loginErrorDiv.textContent = `Login failed: ${error.message}`;
+            // Using global 'displayError'
+            displayError(loginErrorDiv, `Login failed: ${error.message}`);
         }
     });
 
@@ -81,8 +110,8 @@ document.addEventListener('DOMContentLoaded', () => { // Retained from original 
     // --- Logout Button Handler ---
     logoutButton.addEventListener('click', async () => {
         try {
-            // Accessing global 'auth' object
-            await auth.signOut();
+            // Accessing global 'signOutCurrentUser' function
+            await signOutCurrentUser();
             console.log("User logged out successfully.");
         } catch (error) {
             console.error("Logout Error:", error);

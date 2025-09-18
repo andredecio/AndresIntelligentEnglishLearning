@@ -11,12 +11,11 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 // 1. Get the Firebase App instance.
 // This is crucial because the .functions() method with a region is called OFF the app instance.
-const app = firebase.app(); 
+const app = firebase.app();
 
 // 2. Get the Functions instance, specifying the region on the 'app' object.
 // This is the correct v8 way to define the functions object with a region.
-const functions = app.functions('asia-southeast1'); // Then you can get the storage service like this:
-// const storage = firebase.storage();
+const functions = app.functions('asia-southeast1');
 
 // IMPORTANT: Replace "YOUR_GOOGLE_CLIENT_ID_FOR_OAUTH" with your actual Google OAuth Client ID
 // This is used by ModuleContent_Classroom.js for Google Classroom integration.
@@ -25,8 +24,37 @@ const GOOGLE_CLIENT_ID = "190391960875-g53jhbjrkbp0u42bg7bb9trufjjbmk1d.apps.goo
 
 // --- Firebase Authentication Helper Functions ---
 
+// Modified: observeAuthState now fetches custom claims and user profile data
 function observeAuthState(callback) {
-  return auth.onAuthStateChanged(callback);
+  return auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      try {
+        // Force refresh ID token to ensure custom claims are up-to-date
+        const idTokenResult = await user.getIdTokenResult(true);
+        const customClaims = idTokenResult.claims;
+
+        // Fetch user's profile document from Firestore - CHANGED TO 'users' COLLECTION
+        const userProfile = await getDocument('users', user.uid); // <--- CHANGE IS HERE
+
+        // Augment the user object with claims and profile data
+        const augmentedUser = {
+          ...user,
+          customClaims: customClaims,
+          profile: userProfile // This will contain currentBalance, paymentPlanId, Currency, etc.
+        };
+        console.log("Augmented user data:", augmentedUser);
+        callback(augmentedUser);
+      } catch (error) {
+        console.error("Error fetching user claims or profile:", error.message);
+        // Even if an error occurs, pass the basic user object to avoid blocking
+        callback(user);
+      }
+    } else {
+      // User is signed out
+      console.log("User is signed out.");
+      callback(null);
+    }
+  });
 }
 
 async function signInUserWithEmailAndPassword(email, password) {
@@ -56,7 +84,7 @@ async function getDocument(collectionName, docId) {
   try {
     const docSnap = await docRef.get();
     if (docSnap.exists) {
-      console.log(`Document '${docId}' from '${collectionName}' data:`, docSnap.data());
+      // console.log(`Document '${docId}' from '${collectionName}' data:`, docSnap.data()); // Suppress verbose logging here
       return docSnap.data();
     } else {
       console.log(`No such document '${docId}' in collection '${collectionName}'!`);
@@ -109,7 +137,6 @@ async function getLearningContentByCriteria(moduleType, imageStatus) {
 window.auth = auth;
 window.db = db;
 window.functions = functions; // Added: Expose the functions service
-// window.storage = storage; // Uncomment if you add storage service above
 
 window.observeAuthState = observeAuthState;
 window.signInUserWithEmailAndPassword = signInUserWithEmailAndPassword;
