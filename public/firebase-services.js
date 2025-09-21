@@ -28,30 +28,37 @@ const GOOGLE_CLIENT_ID = "190391960875-g53jhbjrkbp0u42bg7bb9trufjjbmk1d.apps.goo
 function observeAuthState(callback) {
   return auth.onAuthStateChanged(async (user) => {
     if (user) {
+      let augmentedUser = { // Initialize augmentedUser here for fallbacks
+        ...user,
+        customClaims: {},
+        profile: null
+      };
+
       try {
         // Force refresh ID token to ensure custom claims are up-to-date
         const idTokenResult = await user.getIdTokenResult(true);
-        const customClaims = idTokenResult.claims;
+        augmentedUser.customClaims = idTokenResult.claims;
+        console.log("DEBUG FS: Custom claims fetched:", augmentedUser.customClaims); // ADDED
 
         // Fetch user's profile document from Firestore - CHANGED TO 'users' COLLECTION
-        const userProfile = await getDocument('users', user.uid); // <--- CHANGE IS HERE
+        console.log("DEBUG FS: Attempting to fetch user profile for UID:", user.uid); // ADDED
+        augmentedUser.profile = await getDocument('users', user.uid);
+        console.log("DEBUG FS: Fetched user profile (raw data from Firestore):", augmentedUser.profile); // ADDED
 
-        // Augment the user object with claims and profile data
-        const augmentedUser = {
-          ...user,
-          customClaims: customClaims,
-          profile: userProfile // This will contain currentBalance, paymentPlanId, Currency, etc.
-        };
-        console.log("Augmented user data:", augmentedUser);
+        // Final check before sending to callback
+        console.log("DEBUG FS: Final Augmented user object before callback:", augmentedUser); // ADDED
+        console.log("DEBUG FS: Profile's currentBalance:", augmentedUser.profile ? augmentedUser.profile.currentBalance : "Profile is null or has no currentBalance field."); // ADDED
+
         callback(augmentedUser);
       } catch (error) {
-        console.error("Error fetching user claims or profile:", error.message);
-        // Even if an error occurs, pass the basic user object to avoid blocking
-        callback(user);
+        console.error("DEBUG FS: Error fetching user claims or profile:", error.message); // MODIFIED
+        // If an error occurs, pass the partially constructed augmentedUser with defaults
+        console.log("DEBUG FS: Augmented user data (with error fallback):", augmentedUser); // ADDED
+        callback(augmentedUser);
       }
     } else {
       // User is signed out
-      console.log("User is signed out.");
+      console.log("DEBUG FS: User is signed out."); // ADDED
       callback(null);
     }
   });
@@ -67,7 +74,6 @@ async function signInUserWithEmailAndPassword(email, password) {
     throw error;
   }
 }
-
 async function signOutCurrentUser() {
   try {
     await auth.signOut();
@@ -84,14 +90,16 @@ async function getDocument(collectionName, docId) {
   try {
     const docSnap = await docRef.get();
     if (docSnap.exists) {
-      // console.log(`Document '${docId}' from '${collectionName}' data:`, docSnap.data()); // Suppress verbose logging here
-      return docSnap.data();
+      console.log(`DEBUG FS: Document '${docId}' from '${collectionName}' found.`); // MODIFIED
+      const data = docSnap.data();
+      console.log(`DEBUG FS: Document data for '${docId}':`, data); // ADDED: Log the actual data
+      return data;
     } else {
-      console.log(`No such document '${docId}' in collection '${collectionName}'!`);
+      console.warn(`DEBUG FS: No such document '${docId}' in collection '${collectionName}'!`); // MODIFIED to warn
       return null;
     }
   } catch (error) {
-    console.error(`Error getting document '${docId}' from '${collectionName}':`, error.message);
+    console.error(`DEBUG FS: Error getting document '${docId}' from '${collectionName}':`, error.message); // MODIFIED
     throw error;
   }
 }
@@ -104,10 +112,10 @@ async function getCollectionDocs(collectionName) {
     querySnapshot.forEach((doc) => {
       docs.push({ id: doc.id, ...doc.data() });
     });
-    console.log(`Fetched ${docs.length} documents from collection '${collectionName}'.`);
+    console.log(`DEBUG FS: Fetched ${docs.length} documents from collection '${collectionName}'.`); // MODIFIED
     return docs;
   } catch (error) {
-    console.error(`Error getting documents from collection '${collectionName}':`, error.message);
+    console.error(`DEBUG FS: Error getting documents from collection '${collectionName}':`, error.message); // MODIFIED
     throw error;
   }
 }
@@ -124,10 +132,10 @@ async function getLearningContentByCriteria(moduleType, imageStatus) {
     querySnapshot.forEach((doc) => {
       content.push({ id: doc.id, ...doc.data() });
     });
-    console.log(`Fetched ${content.length} learning content documents for MODULETYPE: ${moduleType}, imageStatus: ${imageStatus}.`);
+    console.log(`DEBUG FS: Fetched ${content.length} learning content documents for MODULETYPE: ${moduleType}, imageStatus: ${imageStatus}.`); // MODIFIED
     return content;
   } catch (error) {
-    console.error("Error querying learning content:", error.message);
+    console.error("DEBUG FS: Error querying learning content:", error.message); // MODIFIED
     throw error;
   }
 }
