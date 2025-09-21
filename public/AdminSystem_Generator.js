@@ -1,14 +1,15 @@
 // js/AdminSystem_Generator.js (Remodified for standard script loading - NO 'import' or 'export')
 // Handles content generation forms and Cloud Function calls for the Admin System.
 
-// IMPORTANT: updateGeneratorUI and clearGeneratorUI must be globally accessible
-// (i.e., defined at the top level, not inside DOMContentLoaded, and not with 'const'/'let')
+// IMPORTANT: updateGeneratorUI and clearGeneratorUI must be globally accessible.
+// We are explicitly attaching them to the window object because 'type="module"' prevents
+// automatic global scope exposure.
 
 /**
  * Stores the current authenticated user's augmented data, including profile and custom claims.
  * This is populated by AdminSystem_Auth.js.
  */
-let currentAuthenticatedUserData = null; // Renamed for clarity vs the function parameter
+let currentAuthenticatedUserData = null;
 
 /**
  * Updates the Generator UI based on the user's payment plan and credit status.
@@ -16,17 +17,17 @@ let currentAuthenticatedUserData = null; // Renamed for clarity vs the function 
  *
  * @param {object} augmentedUser The augmented user object containing firebaseUser, profile, and customClaims.
  */
-function updateGeneratorUI(augmentedUser) {
+window.updateGeneratorUI = function(augmentedUser) { // <--- CHANGE: Attached to window
     // Update the global reference
     currentAuthenticatedUserData = augmentedUser;
 
     const contentGeneratorForm = document.getElementById('contentGeneratorForm');
-    const generateButton = contentGeneratorForm.querySelector('button[type="submit"]');
+    const generateButton = contentGeneratorForm ? contentGeneratorForm.querySelector('button[type="submit"]') : null;
     const userPaymentStatusDiv = document.getElementById('userPaymentStatus');
 
     if (!currentAuthenticatedUserData || !generateButton) {
         // No user data or essential UI elements missing, disable everything
-        clearGeneratorUI(); // Reset UI to a logged-out/unauthorized state
+        window.clearGeneratorUI(); // <--- CHANGE: Call via window
         if (userPaymentStatusDiv) userPaymentStatusDiv.innerHTML = 'Please log in to use the generator.';
         return;
     }
@@ -73,18 +74,17 @@ function updateGeneratorUI(augmentedUser) {
 
     const responseDiv = document.getElementById('response');
     if (disableForm) {
-        showAlert(responseDiv, null, `Module generation is disabled: ${reason}`, true); // Pass null for loadingDiv if not directly controlling
+        showAlert(responseDiv, null, `Module generation is disabled: ${reason}`, true);
     } else {
-        if (responseDiv) responseDiv.textContent = ''; // Clear any previous errors if enabled
-        // You might want to display an estimated cost dynamically here as inputs change
+        if (responseDiv) responseDiv.textContent = '';
     }
-}
+}; // <--- CHANGE: Use semicolon here for window attachment
 
 /**
  * Resets the Generator UI to a default (logged-out or unauthorized) state.
  * This function is called by AdminSystem_Auth.js when no user is logged in or they are unauthorized.
  */
-function clearGeneratorUI() {
+window.clearGeneratorUI = function() { // <--- CHANGE: Attached to window
     currentAuthenticatedUserData = null; // Clear the stored user data
 
     const contentGeneratorForm = document.getElementById('contentGeneratorForm');
@@ -98,13 +98,13 @@ function clearGeneratorUI() {
         contentGeneratorForm.querySelectorAll('input, select, textarea').forEach(el => {
             el.disabled = true;
         });
-        contentGeneratorForm.reset(); // Clear form inputs
+        contentGeneratorForm.reset();
     }
 
     if (userPaymentStatusDiv) userPaymentStatusDiv.innerHTML = 'No user logged in.';
     if (responseDiv) responseDiv.textContent = '';
     if (skippedWordsDisplay) skippedWordsDisplay.textContent = '';
-}
+}; // <--- CHANGE: Use semicolon here for window attachment
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -123,9 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeInput = document.getElementById('theme');
     const ModuleTypeSelect = document.getElementById('ModuleType');
     const responseDiv = document.getElementById('response');
-    const loadingDiv = document.getElementById('loading'); // Assumed element for loading overlay
+    const loadingDiv = document.getElementById('loading');
     const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
-    const loadingSpinner = document.getElementById('loadingSpinner'); // Assumed spinner element
+    const loadingSpinner = document.getElementById('loadingSpinner');
 
     // --- Firebase Callable Cloud Function References ---
     const createLesson = functions.httpsCallable('createLesson');
@@ -157,22 +157,18 @@ document.addEventListener('DOMContentLoaded', () => {
             showErrorPopup('Your payment plan does not permit module creation.');
             return;
         }
-        if (currentBalance <= 0) { // Again, a client-side check
+        if (currentBalance <= 0) {
             showErrorPopup(`Your balance (${currentBalance.toFixed(2)} ${userCurrency}) is too low to create modules. Please top up.`);
             return;
         }
-        // At this point, you might also check moduleCreationLimits from customClaims
-        // e.g., if(numVItems > customClaims.moduleCreationLimits.vocabulary) { showErrorPopup(...) }
-        // For simplicity, we'll let the Cloud Function enforce fine-grained limits.
+        // ... rest of pre-submit check
         // --- END PRE-SUBMIT PAYMENT/PERMISSION CHECK ---
-
 
         let numVItems, numGItems, numCItems, numRWItems, numLSItems;
 
         const ModuleType = ModuleTypeSelect.value;
         const cefrLevel = cefrLevelSelect.value;
 
-        // --- MODIFIED VALIDATION: Allow 0 for all counts ---
         numVItems = parseInt(numVItemsInput.value, 10);
         if (isNaN(numVItems) || numVItems < 0 || numVItems > 100) {
             showAlert(responseDiv, loadingDiv, 'Please enter a number of Vocab items between 0 and 100.', true);
@@ -198,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert(responseDiv, loadingDiv, 'Please enter a number of Listening-Speaking items between 0 and 100.', true);
             return;
         }
-        // --- END MODIFIED VALIDATION ---
 
         const theme = themeInput.value;
 
@@ -216,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (excount === 0) {
                     showAlert(responseDiv, loadingDiv, "Cannot create a LESSON with 0 expected modules. Please specify at least one module count greater than 0.", true);
-                    hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on client-side validation error
+                    hideSpinner(loadingDiv, loadingSpinner);
                     return;
                 }
 
@@ -235,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (resultl.data && resultl.data.success === false) {
                         const errorMsg = resultl.data.error || "Unknown error creating LESSON document.";
                         showAlert(responseDiv, loadingDiv, `Error creating LESSON document: ${errorMsg}`, true);
-                        hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
+                        hideSpinner(loadingDiv, loadingSpinner);
                         return;
                     }
                     const { success, MODULEID, error } = resultl.data;
@@ -246,14 +241,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         console.error("Failed to create LESSON document:", error);
                         showAlert(responseDiv, loadingDiv, `Error creating LESSON document: ${error}`, true);
-                        hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
+                        hideSpinner(loadingDiv, loadingSpinner);
                         return;
                     }
                 } catch (error) {
                     console.error("Error calling createLesson Cloud Function:", error);
                     const errorMessage = error.details?.message || error.message;
                     showAlert(responseDiv, loadingDiv, `An unexpected error occurred during LESSON creation: ${errorMessage}`, true);
-                    hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
+                    hideSpinner(loadingDiv, loadingSpinner);
                     return;
                 }
             }
@@ -314,12 +309,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (moduleData.count > 0) {
                         console.log(`Generating ${type} modules...`);
                         const res = await moduleData.generator();
-                        result[type] = res; // Store full result
+                        result[type] = res;
                         if (res.data && res.data.success === false) {
                             showAlert(responseDiv, loadingDiv, `Error generating ${type}: ${res.data.error}`, true);
                             console.error(`Error generating ${type}: ${res.data.error}`);
-                            // Decide if you want to stop processing other modules or continue
-                            // For now, we'll continue but log the error
                         }
                         const skipped = res?.data?.skippedWords || [];
                         if (skipped.length > 0) {
@@ -335,11 +328,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const selectedModuleData = moduleGenerators[ModuleType];
                 if (selectedModuleData.count > 0) {
                     const res = await selectedModuleData.generator();
-                    result = res; // Store full result
+                    result = res;
                     if (res.data && res.data.success === false) {
                         showAlert(responseDiv, loadingDiv, `Error generating ${ModuleType}: ${res.data.error}`, true);
-                        hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
-                        return; // Stop on single module generation error
+                        hideSpinner(loadingDiv, loadingSpinner);
+                        return;
                     }
                     const skipped = res?.data?.skippedWords || [];
                     if (skipped.length > 0) {
@@ -347,60 +340,49 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else {
                     showAlert(responseDiv, loadingDiv, `Cannot generate ${ModuleType} modules if count is 0. Please specify a count greater than 0.`, true);
-                    hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on client-side validation error
+                    hideSpinner(loadingDiv, loadingSpinner);
                     return;
                 }
             } else {
                 const errorMessage = `Unsupported ModuleType: ${ModuleType}`;
                 showAlert(responseDiv, loadingDiv, errorMessage, true);
-                hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
+                hideSpinner(loadingDiv, loadingSpinner);
                 throw new Error(errorMessage);
             }
 
             // --- Display Results and Skipped Words ---
             if (Object.values(result).some(res => res.data && res.data.success === false)) {
-                // If any generation failed, show a general failure message
                 showAlert(responseDiv, loadingDiv, 'Some modules failed to generate. Check console for details.', true);
             } else {
-                // Otherwise, show success
                 showAlert(responseDiv, loadingDiv, 'Success! Content generation complete.', false);
             }
 
             if (allSkippedWords.length > 0) {
                 const skippedWordsList = allSkippedWords.join(', ');
                 skippedWordsDisplay.textContent = `The following items were skipped as duplicates: ${skippedWordsList}.`;
-                skippedWordsDisplay.style.color = 'orange'; // Keep this style if you like
+                skippedWordsDisplay.style.color = 'orange';
             } else {
                 skippedWordsDisplay.textContent = '';
             }
 
             // After successful generation, the user's balance might have changed.
-            // Force a refresh of the auth token to get updated custom claims (if any).
-            // Then, re-fetch the user's profile to get the most current balance.
             if (currentAuthenticatedUserData && currentAuthenticatedUserData.firebaseUser) {
-                 await currentAuthenticatedUserData.firebaseUser.getIdTokenResult(true); // Force token refresh for custom claims
-                 // Re-fetch profile from Firestore to ensure latest balance
-                 // Assuming 'getDocument' function is globally available from firebase-services.js
+                 await currentAuthenticatedUserData.firebaseUser.getIdTokenResult(true);
                  const updatedProfile = await getDocument('userProfiles', currentAuthenticatedUserData.firebaseUser.uid);
                  if (updatedProfile) {
-                     currentAuthenticatedUserData.profile = updatedProfile; // Update the profile in our stored user data
-                     updateGeneratorUI(currentAuthenticatedUserData); // Re-render UI with new balance
+                     currentAuthenticatedUserData.profile = updatedProfile;
+                     window.updateGeneratorUI(currentAuthenticatedUserData); // <--- CHANGE: Call via window
                  } else {
                      console.warn("Could not re-fetch user profile after content generation. Balance display might be outdated.");
-                     updateGeneratorUI(currentAuthenticatedUserData); // Re-render anyway, even if profile couldn't be updated
+                     window.updateGeneratorUI(currentAuthenticatedUserData); // <--- CHANGE: Call via window
                  }
             }
-
-
         } catch (error) {
             console.error("Error during content generation process:", error);
             const errorMessage = error.details?.message || error.message || "An unknown error occurred.";
-            showErrorPopup(`Error generating content: ${errorMessage}`); // Use showErrorPopup for critical errors
+            showErrorPopup(`Error generating content: ${errorMessage}`);
         } finally {
             hideSpinner(loadingDiv, loadingSpinner);
         }
     });
-
-    // No initial UI update call here. AdminSystem_Auth.js will handle the first call to updateGeneratorUI
-    // after determining the user's authentication and authorization state.
 });
