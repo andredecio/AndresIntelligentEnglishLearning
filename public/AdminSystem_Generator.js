@@ -1,9 +1,116 @@
 // js/AdminSystem_Generator.js (Remodified for standard script loading - NO 'import' or 'export')
 // Handles content generation forms and Cloud Function calls for the Admin System.
 
+// IMPORTANT: updateGeneratorUI and clearGeneratorUI must be globally accessible
+// (i.e., defined at the top level, not inside DOMContentLoaded, and not with 'const'/'let')
+
+/**
+ * Stores the current authenticated user's augmented data, including profile and custom claims.
+ * This is populated by AdminSystem_Auth.js.
+ */
+let currentAuthenticatedUserData = null; // Renamed for clarity vs the function parameter
+
+/**
+ * Updates the Generator UI based on the user's payment plan and credit status.
+ * This function is called by AdminSystem_Auth.js after authentication and authorization.
+ *
+ * @param {object} augmentedUser The augmented user object containing firebaseUser, profile, and customClaims.
+ */
+function updateGeneratorUI(augmentedUser) {
+    // Update the global reference
+    currentAuthenticatedUserData = augmentedUser;
+
+    const contentGeneratorForm = document.getElementById('contentGeneratorForm');
+    const generateButton = contentGeneratorForm.querySelector('button[type="submit"]');
+    const userPaymentStatusDiv = document.getElementById('userPaymentStatus');
+
+    if (!currentAuthenticatedUserData || !generateButton) {
+        // No user data or essential UI elements missing, disable everything
+        clearGeneratorUI(); // Reset UI to a logged-out/unauthorized state
+        if (userPaymentStatusDiv) userPaymentStatusDiv.innerHTML = 'Please log in to use the generator.';
+        return;
+    }
+
+    const customClaims = currentAuthenticatedUserData.customClaims;
+    const userProfile = currentAuthenticatedUserData.profile;
+
+    const isAdmin = customClaims.admin;
+    const canCreateModule = customClaims.canCreateModule || isAdmin; // Admins can always create
+    const paymentPlanId = userProfile ? userProfile.paymentPlanId : 'N/A';
+    // Safely get currentBalance, defaulting to 0 for display if not found or not a number
+    const currentBalance = userProfile && typeof userProfile.currentBalance === 'number' ? userProfile.currentBalance : 0;
+    const userCurrency = userProfile ? userProfile.currency || 'USD' : 'USD'; // Default to USD
+
+    // Display user's payment info
+    if (userPaymentStatusDiv) {
+        userPaymentStatusDiv.innerHTML = `
+            <strong>Payment Plan:</strong> ${paymentPlanId} <br>
+            <strong>Current Balance:</strong> ${currentBalance.toFixed(2)} ${userCurrency}
+        `;
+    }
+
+    // Disable/Enable the form elements and generate button
+    let disableForm = false;
+    let reason = '';
+
+    if (!canCreateModule) {
+        disableForm = true;
+        reason = 'Your current plan does not allow module creation.';
+    } else if (currentBalance <= 0) { // Assuming 0 or negative means out of credit for creation
+        disableForm = true;
+        reason = `Your balance (${currentBalance.toFixed(2)} ${userCurrency}) is insufficient to create modules.`;
+    }
+
+    if (generateButton) generateButton.disabled = disableForm;
+    if (contentGeneratorForm) {
+        contentGeneratorForm.querySelectorAll('input, select, textarea').forEach(el => {
+            // Only disable content generation inputs, not buttons like logout (if it were part of this form)
+            if (el !== generateButton) {
+                el.disabled = disableForm;
+            }
+        });
+    }
+
+    const responseDiv = document.getElementById('response');
+    if (disableForm) {
+        showAlert(responseDiv, null, `Module generation is disabled: ${reason}`, true); // Pass null for loadingDiv if not directly controlling
+    } else {
+        if (responseDiv) responseDiv.textContent = ''; // Clear any previous errors if enabled
+        // You might want to display an estimated cost dynamically here as inputs change
+    }
+}
+
+/**
+ * Resets the Generator UI to a default (logged-out or unauthorized) state.
+ * This function is called by AdminSystem_Auth.js when no user is logged in or they are unauthorized.
+ */
+function clearGeneratorUI() {
+    currentAuthenticatedUserData = null; // Clear the stored user data
+
+    const contentGeneratorForm = document.getElementById('contentGeneratorForm');
+    const generateButton = contentGeneratorForm ? contentGeneratorForm.querySelector('button[type="submit"]') : null;
+    const userPaymentStatusDiv = document.getElementById('userPaymentStatus');
+    const responseDiv = document.getElementById('response');
+    const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
+
+    if (generateButton) generateButton.disabled = true;
+    if (contentGeneratorForm) {
+        contentGeneratorForm.querySelectorAll('input, select, textarea').forEach(el => {
+            el.disabled = true;
+        });
+        contentGeneratorForm.reset(); // Clear form inputs
+    }
+
+    if (userPaymentStatusDiv) userPaymentStatusDiv.innerHTML = 'No user logged in.';
+    if (responseDiv) responseDiv.textContent = '';
+    if (skippedWordsDisplay) skippedWordsDisplay.textContent = '';
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
     // 'functions' is now globally available from firebase-services.js.
     // 'displayError', 'showAlert', 'showSpinner', 'hideSpinner', 'showErrorPopup' are globally available from ui-utilities.js.
+    // 'getDocument' is assumed to be globally available from firebase-services.js as well.
 
     // --- References to HTML Elements (Content Generator) ---
     const contentGeneratorForm = document.getElementById('contentGeneratorForm');
@@ -20,12 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const skippedWordsDisplay = document.getElementById('skippedWordsDisplay');
     const loadingSpinner = document.getElementById('loadingSpinner'); // Assumed spinner element
 
-    // NEW UI elements for payment info
-    const userPaymentStatusDiv = document.getElementById('userPaymentStatus'); // A div to display user's plan/balance
-    const generateButton = contentGeneratorForm.querySelector('button[type="submit"]'); // Assuming the submit button for generation
-
     // --- Firebase Callable Cloud Function References ---
-    // Accessing global 'functions' object
     const createLesson = functions.httpsCallable('createLesson');
     const generateVocabularyContent = functions.httpsCallable('generateVocabularyContent');
     const generateGrammarContent = functions.httpsCallable('generateGrammarContent');
@@ -33,93 +135,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateReadingWritingContent = functions.httpsCallable('generateReadingWritingContent');
     const generateListeningSpeakingContent = functions.httpsCallable('generateListeningSpeakingContent');
 
-    // Store the current authenticated user's augmented data
-    let currentUser = null;
-
-    // --- Auth State Listener to update UI and set current user ---
-    // The callback now receives the augmentedUser from firebase-services.js
-    observeAuthState(async (augmentedUser) => {
-        currentUser = augmentedUser;
-        updateGeneratorUI(); // Update UI based on current user's state
-    });
-
-    // --- Function to update the Generator UI based on user's payment plan and credit ---
-    function updateGeneratorUI() {
-        if (!currentUser || !generateButton) {
-            // No user or essential UI elements missing, disable everything
-            if (generateButton) generateButton.disabled = true;
-            if (contentGeneratorForm) contentGeneratorForm.querySelectorAll('input, select').forEach(el => el.disabled = true);
-            userPaymentStatusDiv.innerHTML = 'Please log in.';
-            return;
-        }
-
-        const customClaims = currentUser.customClaims;
-        const userProfile = currentUser.profile;
-
-        const isAdmin = customClaims.admin;
-        const canCreateModule = customClaims.canCreateModule || isAdmin; // Admins can always create
-        const paymentPlanId = userProfile ? userProfile.paymentPlanId : 'N/A';
-        const currentBalance = userProfile ? userProfile.currentBalance : 0;
-        const userCurrency = userProfile ? userProfile.Currency || 'USD' : 'USD'; // Default to USD
-
-        // Display user's payment info
-        userPaymentStatusDiv.innerHTML = `
-            <strong>Payment Plan:</strong> ${paymentPlanId} <br>
-            <strong>Current Balance:</strong> ${currentBalance.toFixed(2)} ${userCurrency}
-        `;
-
-        // Disable/Enable the form elements and generate button
-        let disableForm = false;
-        let reason = '';
-
-        if (!canCreateModule) {
-            disableForm = true;
-            reason = 'Your current plan does not allow module creation.';
-        } else if (currentBalance <= 0) { // Assuming 0 or negative means out of credit for creation
-            disableForm = true;
-            reason = `Your balance (${currentBalance.toFixed(2)} ${userCurrency}) is insufficient to create modules.`;
-        }
-
-        generateButton.disabled = disableForm;
-        contentGeneratorForm.querySelectorAll('input, select, textarea').forEach(el => {
-            // Keep the logout button enabled if it's part of the form and not other elements
-            if (el !== generateButton) { // Ensure generateButton is not disabled twice.
-                el.disabled = disableForm;
-            }
-        });
-
-        if (disableForm) {
-            showAlert(responseDiv, loadingDiv, `Module generation is disabled: ${reason}`, true);
-        } else {
-            clearError(responseDiv); // Clear any previous errors if enabled
-            // You might want to display an estimated cost dynamically here as inputs change
-        }
-    }
-
-
-    // --- Content Generator Form Submission Handler ---
+    // --- contentGeneratorForm Event Listener ---
     contentGeneratorForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         // --- PRE-SUBMIT PAYMENT/PERMISSION CHECK ---
-        if (!currentUser) {
+        if (!currentAuthenticatedUserData) {
             showErrorPopup('You must be logged in to generate content.');
             return;
         }
 
-        const customClaims = currentUser.customClaims;
-        const userProfile = currentUser.profile;
+        const customClaims = currentAuthenticatedUserData.customClaims;
+        const userProfile = currentAuthenticatedUserData.profile;
 
         const isAdmin = customClaims.admin;
         const canCreateModule = customClaims.canCreateModule || isAdmin;
-        const currentBalance = userProfile ? userProfile.currentBalance : 0;
+        const currentBalance = userProfile && typeof userProfile.currentBalance === 'number' ? userProfile.currentBalance : 0;
+        const userCurrency = userProfile ? userProfile.currency || 'USD' : 'USD';
 
         if (!canCreateModule) {
             showErrorPopup('Your payment plan does not permit module creation.');
             return;
         }
         if (currentBalance <= 0) { // Again, a client-side check
-            showErrorPopup(`Your balance (${currentBalance.toFixed(2)} ${userProfile.Currency || 'USD'}) is too low to create modules. Please top up.`);
+            showErrorPopup(`Your balance (${currentBalance.toFixed(2)} ${userCurrency}) is too low to create modules. Please top up.`);
             return;
         }
         // At this point, you might also check moduleCreationLimits from customClaims
@@ -164,8 +203,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const theme = themeInput.value;
 
         responseDiv.textContent = '';
-        showAlert(responseDiv, loadingDiv, 'Generating content...', false); // Use showAlert for consistent messaging
-        showSpinner(loadingDiv, loadingSpinner); // Assuming loadingDiv is the container and loadingSpinner is the global spinner
+        showAlert(responseDiv, loadingDiv, 'Generating content...', false);
+        showSpinner(loadingDiv, loadingSpinner);
 
         try {
             console.log("cefrLevel:", cefrLevel);
@@ -177,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (excount === 0) {
                     showAlert(responseDiv, loadingDiv, "Cannot create a LESSON with 0 expected modules. Please specify at least one module count greater than 0.", true);
+                    hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on client-side validation error
                     return;
                 }
 
@@ -192,16 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const resultl = await createLesson(lessonCreationData);
 
-                    // If the Cloud Function throws an error (e.g., insufficient funds),
-                    // it will be caught by the outer catch block.
-                    // If the function returns an error object as data, handle it here.
                     if (resultl.data && resultl.data.success === false) {
-                         // Specific error from Cloud Function, e.g., credit check failed
                         const errorMsg = resultl.data.error || "Unknown error creating LESSON document.";
                         showAlert(responseDiv, loadingDiv, `Error creating LESSON document: ${errorMsg}`, true);
+                        hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
                         return;
                     }
-                    const { success, MODULEID, error } = resultl.data; // Destructure after checking for internal errors
+                    const { success, MODULEID, error } = resultl.data;
 
                     if (success) {
                         console.log("Lesson created successfully! MODULEID:", MODULEID);
@@ -209,12 +246,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         console.error("Failed to create LESSON document:", error);
                         showAlert(responseDiv, loadingDiv, `Error creating LESSON document: ${error}`, true);
+                        hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
                         return;
                     }
                 } catch (error) {
                     console.error("Error calling createLesson Cloud Function:", error);
-                    const errorMessage = error.details?.message || error.message; // Firebase Functions errors have .details
+                    const errorMessage = error.details?.message || error.message;
                     showAlert(responseDiv, loadingDiv, `An unexpected error occurred during LESSON creation: ${errorMessage}`, true);
+                    hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
                     return;
                 }
             }
@@ -278,9 +317,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         result[type] = res; // Store full result
                         if (res.data && res.data.success === false) {
                             showAlert(responseDiv, loadingDiv, `Error generating ${type}: ${res.data.error}`, true);
+                            console.error(`Error generating ${type}: ${res.data.error}`);
                             // Decide if you want to stop processing other modules or continue
                             // For now, we'll continue but log the error
-                            console.error(`Error generating ${type}: ${res.data.error}`);
                         }
                         const skipped = res?.data?.skippedWords || [];
                         if (skipped.length > 0) {
@@ -299,6 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     result = res; // Store full result
                     if (res.data && res.data.success === false) {
                         showAlert(responseDiv, loadingDiv, `Error generating ${ModuleType}: ${res.data.error}`, true);
+                        hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
                         return; // Stop on single module generation error
                     }
                     const skipped = res?.data?.skippedWords || [];
@@ -307,10 +347,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else {
                     showAlert(responseDiv, loadingDiv, `Cannot generate ${ModuleType} modules if count is 0. Please specify a count greater than 0.`, true);
+                    hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on client-side validation error
                     return;
                 }
             } else {
-                throw new Error(`Unsupported ModuleType: ${ModuleType}`);
+                const errorMessage = `Unsupported ModuleType: ${ModuleType}`;
+                showAlert(responseDiv, loadingDiv, errorMessage, true);
+                hideSpinner(loadingDiv, loadingSpinner); // Hide spinner on error
+                throw new Error(errorMessage);
             }
 
             // --- Display Results and Skipped Words ---
@@ -331,25 +375,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // After successful generation, the user's balance might have changed.
-            // Force a refresh of the auth token to get updated profile data (including balance)
-            // This assumes your custom claims function updates custom claims AND your profile document.
-            if (currentUser && currentUser.getIdTokenResult) {
-                 await currentUser.getIdTokenResult(true); // Force token refresh
-                 // Re-fetch profile to ensure latest balance if it's not in claims
-                 currentUser.profile = await getDocument('users', currentUser.uid);
-                 updateGeneratorUI(); // Update UI with new balance
+            // Force a refresh of the auth token to get updated custom claims (if any).
+            // Then, re-fetch the user's profile to get the most current balance.
+            if (currentAuthenticatedUserData && currentAuthenticatedUserData.firebaseUser) {
+                 await currentAuthenticatedUserData.firebaseUser.getIdTokenResult(true); // Force token refresh for custom claims
+                 // Re-fetch profile from Firestore to ensure latest balance
+                 // Assuming 'getDocument' function is globally available from firebase-services.js
+                 const updatedProfile = await getDocument('userProfiles', currentAuthenticatedUserData.firebaseUser.uid);
+                 if (updatedProfile) {
+                     currentAuthenticatedUserData.profile = updatedProfile; // Update the profile in our stored user data
+                     updateGeneratorUI(currentAuthenticatedUserData); // Re-render UI with new balance
+                 } else {
+                     console.warn("Could not re-fetch user profile after content generation. Balance display might be outdated.");
+                     updateGeneratorUI(currentAuthenticatedUserData); // Re-render anyway, even if profile couldn't be updated
+                 }
             }
 
+
         } catch (error) {
-            console.error("Error calling Cloud Function:", error);
-            // Firebase Callable Functions can return specific error details in `error.details`
+            console.error("Error during content generation process:", error);
             const errorMessage = error.details?.message || error.message || "An unknown error occurred.";
-            showAlert(responseDiv, loadingDiv, `Error generating content: ${errorMessage}`, true);
+            showErrorPopup(`Error generating content: ${errorMessage}`); // Use showErrorPopup for critical errors
         } finally {
             hideSpinner(loadingDiv, loadingSpinner);
         }
     });
 
-    // Initial UI update on load (before user is observed, it might show "Please log in.")
-    updateGeneratorUI();
+    // No initial UI update call here. AdminSystem_Auth.js will handle the first call to updateGeneratorUI
+    // after determining the user's authentication and authorization state.
 });
