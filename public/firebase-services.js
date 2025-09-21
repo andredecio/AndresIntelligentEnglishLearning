@@ -38,27 +38,41 @@ function observeAuthState(callback) {
         // Force refresh ID token to ensure custom claims are up-to-date
         const idTokenResult = await user.getIdTokenResult(true);
         augmentedUser.customClaims = idTokenResult.claims;
-        console.log("DEBUG FS: Custom claims fetched:", augmentedUser.customClaims); // ADDED
+        console.log("DEBUG FS: Custom claims fetched:", augmentedUser.customClaims);
 
-        // Fetch user's profile document from Firestore - CHANGED TO 'users' COLLECTION
-        console.log("DEBUG FS: Attempting to fetch user profile for UID:", user.uid); // ADDED
-        augmentedUser.profile = await getDocument('users', user.uid);
-        console.log("DEBUG FS: Fetched user profile (raw data from Firestore):", augmentedUser.profile); // ADDED
+        // Fetch user's profile document from Firestore
+        console.log("DEBUG FS: Attempting to fetch user profile for UID:", user.uid);
+        const rawUserProfile = await getDocument('users', user.uid); // Fetch raw profile
 
-        // Final check before sending to callback
-        console.log("DEBUG FS: Final Augmented user object before callback:", augmentedUser); // ADDED
-        console.log("DEBUG FS: Profile's currentBalance:", augmentedUser.profile ? augmentedUser.profile.currentBalance : "Profile is null or has no currentBalance field."); // ADDED
+        // --- MAPPING LOGIC START ---
+        if (rawUserProfile) {
+            augmentedUser.profile = {
+                ...rawUserProfile, // Keep all other fields from the raw profile
+                // Map the Firestore field 'planid' to 'paymentPlanId' for application consistency
+                paymentPlanId: rawUserProfile.planid || null, // Use 'planid' from Firestore, default to null if not found
+                // Map the Firestore field 'Currency' to 'currency' for application consistency
+                currency: rawUserProfile.Currency || 'USD' // Use 'Currency' from Firestore, default to 'USD'
+            };
+        } else {
+            augmentedUser.profile = null; // No raw profile, so augmented profile is null
+        }
+        // --- MAPPING LOGIC END ---
+
+        console.log("DEBUG FS: Fetched user profile (raw data from Firestore):", rawUserProfile);
+        console.log("DEBUG FS: Final Augmented user object before callback:", augmentedUser);
+        console.log("DEBUG FS: Profile's currentBalance:", augmentedUser.profile ? augmentedUser.profile.currentBalance : "Profile is null or has no currentBalance field.");
+        console.log("DEBUG FS: Profile's paymentPlanId (mapped from planid):", augmentedUser.profile ? augmentedUser.profile.paymentPlanId : "Profile is null or has no paymentPlanId field."); // Specific log for paymentPlanId
+        console.log("DEBUG FS: Profile's currency (mapped from Currency):", augmentedUser.profile ? augmentedUser.profile.currency : "Profile is null or has no currency field."); // Specific log for currency
 
         callback(augmentedUser);
       } catch (error) {
-        console.error("DEBUG FS: Error fetching user claims or profile:", error.message); // MODIFIED
-        // If an error occurs, pass the partially constructed augmentedUser with defaults
-        console.log("DEBUG FS: Augmented user data (with error fallback):", augmentedUser); // ADDED
+        console.error("DEBUG FS: Error fetching user claims or profile:", error.message);
+        // If an error fetching claims/profile, log it, but still pass the (partially) augmented user object
+        console.log("DEBUG FS: Augmented user data (with error fallback):", augmentedUser);
         callback(augmentedUser);
       }
     } else {
-      // User is signed out
-      console.log("DEBUG FS: User is signed out."); // ADDED
+      console.log("DEBUG FS: User is signed out.");
       callback(null);
     }
   });
@@ -90,17 +104,19 @@ async function getDocument(collectionName, docId) {
   try {
     const docSnap = await docRef.get();
     if (docSnap.exists) {
-      console.log(`DEBUG FS: Document '${docId}' from '${collectionName}' found.`); // MODIFIED
+      console.log(`DEBUG FS: Document '${docId}' from '${collectionName}' found.`);
       const data = docSnap.data();
-      console.log(`DEBUG FS: Document data for '${docId}':`, data); // ADDED: Log the actual data
-         console.log(`DEBUG FS: Value of 'currentBalance' property in fetched data:`, data.currentBalance);
-	  return data;
+      console.log(`DEBUG FS: Document data for '${docId}':`, data);
+      console.log(`DEBUG FS: Value of 'currentBalance' property in fetched data:`, data.currentBalance);
+      console.log(`DEBUG FS: Value of 'planid' property in fetched data:`, data.planid); // Specific log for 'planid' from Firestore
+      console.log(`DEBUG FS: Value of 'Currency' property in fetched data:`, data.Currency); // Specific log for 'Currency' from Firestore
+      return data;
     } else {
-      console.warn(`DEBUG FS: No such document '${docId}' in collection '${collectionName}'!`); // MODIFIED to warn
+      console.warn(`DEBUG FS: No such document '${docId}' in collection '${collectionName}'!`);
       return null;
     }
   } catch (error) {
-    console.error(`DEBUG FS: Error getting document '${docId}' from '${collectionName}':`, error.message); // MODIFIED
+    console.error(`DEBUG FS: Error getting document '${docId}' from '${collectionName}':`, error.message);
     throw error;
   }
 }
@@ -113,10 +129,10 @@ async function getCollectionDocs(collectionName) {
     querySnapshot.forEach((doc) => {
       docs.push({ id: doc.id, ...doc.data() });
     });
-    console.log(`DEBUG FS: Fetched ${docs.length} documents from collection '${collectionName}'.`); // MODIFIED
+    console.log(`DEBUG FS: Fetched ${docs.length} documents from collection '${collectionName}'.`);
     return docs;
   } catch (error) {
-    console.error(`DEBUG FS: Error getting documents from collection '${collectionName}':`, error.message); // MODIFIED
+    console.error(`DEBUG FS: Error getting documents from collection '${collectionName}':`, error.message);
     throw error;
   }
 }
@@ -133,10 +149,10 @@ async function getLearningContentByCriteria(moduleType, imageStatus) {
     querySnapshot.forEach((doc) => {
       content.push({ id: doc.id, ...doc.data() });
     });
-    console.log(`DEBUG FS: Fetched ${content.length} learning content documents for MODULETYPE: ${moduleType}, imageStatus: ${imageStatus}.`); // MODIFIED
+    console.log(`DEBUG FS: Fetched ${content.length} learning content documents for MODULETYPE: ${moduleType}, imageStatus: ${imageStatus}.`);
     return content;
   } catch (error) {
-    console.error("DEBUG FS: Error querying learning content:", error.message); // MODIFIED
+    console.error("DEBUG FS: Error querying learning content:", error.message);
     throw error;
   }
 }
