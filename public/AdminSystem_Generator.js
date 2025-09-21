@@ -74,7 +74,7 @@ window.updateGeneratorUI = function(augmentedUser) { // <--- CHANGE: Attached to
 
     const responseDiv = document.getElementById('response');
     if (disableForm) {
-        showAlert(responseDiv, null, `Module generation is disabled: ${reason}`, true);
+        showAlert(responseDiv, loadingDiv, `Module generation is disabled: ${reason}`, true);
     } else {
         if (responseDiv) responseDiv.textContent = '';
     }
