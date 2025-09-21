@@ -5,7 +5,7 @@
 // If it's not global, you'll need to pass it or make it accessible.
 // For now, let's assume it's global and accepts the augmentedUser object.
 // We also need to declare it, so the linter doesn't complain (if any)
-declare function updateGeneratorUI(augmentedUser: any): void; // This is a TypeScript-style declaration, for clarity of intent. In plain JS, just know it's there.
+//declare function updateGeneratorUI(augmentedUser: any): void; // This is a TypeScript-style declaration, for clarity of intent. In plain JS, just know it's there.
 
 
 document.addEventListener('DOMContentLoaded', () => {
