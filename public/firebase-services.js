@@ -93,7 +93,8 @@ async function getDocument(collectionName, docId) {
       console.log(`DEBUG FS: Document '${docId}' from '${collectionName}' found.`); // MODIFIED
       const data = docSnap.data();
       console.log(`DEBUG FS: Document data for '${docId}':`, data); // ADDED: Log the actual data
-      return data;
+         console.log(`DEBUG FS: Value of 'currentBalance' property in fetched data:`, data.currentBalance);
+	  return data;
     } else {
       console.warn(`DEBUG FS: No such document '${docId}' in collection '${collectionName}'!`); // MODIFIED to warn
       return null;
