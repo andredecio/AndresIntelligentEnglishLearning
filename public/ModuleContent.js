@@ -65,7 +65,7 @@
 
     // --- Cloud Functions Callable ---
     // Access window.functions and its httpsCallable method
-    const generatePdfCallable = window.functions.httpsCallable('generateModulePdf');
+    const generatePdfCallable = window.firebase.functions().httpsCallable('generateModulePdf'); // Corrected way to access callable function
 
     // --- Function to update the state of the PDF button ---
     async function updatePdfButtonState(moduleType, pdfButtonElement) {
@@ -250,15 +250,33 @@
 
                 try {
                     const result = await generatePdfCallable({ moduleId: moduleId, moduleType: moduleType });
-                    const { success, pdfUrl } = result.data;
+                    // --- START OF CLIENT-SIDE CHANGE ---
+                    // The Cloud Function now returns 'downloadUrl' for the temporary link
+                    const { success, downloadUrl } = result.data; 
 
-                    if (success) {
-                        // Now this call to window.showStatusMessage should work!
-                        window.showStatusMessage(`PDF generated successfully! <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer">View PDF</a>`, 'success', 10000);
+                    if (success && downloadUrl) {
+                        // Create a temporary link element and click it to trigger download
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.target = '_blank'; // Opens in a new tab/window to display the PDF or initiate download
+                        
+                        // Suggest a filename for the download. You can make this more dynamic.
+                        // Example: "lesson-someid-document.pdf" or "course-someid-document.pdf"
+                        a.download = `${moduleType.toLowerCase()}-${moduleId}-document.pdf`; 
+                        
+                        document.body.appendChild(a); // Append to body (necessary for some browsers like Firefox)
+                        a.click(); // Programmatically click the link
+                        document.body.removeChild(a); // Clean up the element
+
+                        window.showStatusMessage('PDF generated and download initiated successfully!', 'success', 10000);
+                        console.log('PDF download initiated successfully using signed URL.');
+                    } else if (success && !downloadUrl) {
+                        // This case shouldn't happen if the Cloud Function always returns downloadUrl on success
+                        window.showStatusMessage('PDF generated successfully, but no download URL was provided.', 'warning');
                     } else {
-                        // Now this call to window.showStatusMessage should work!
                         window.showStatusMessage('PDF generation failed. Please try again.', 'error');
                     }
+                    // --- END OF CLIENT-SIDE CHANGE ---
                 } catch (error) {
                     console.error("Error calling generateModulePdf Cloud Function:", error);
                     let errorMessage = 'An unexpected error occurred during PDF generation.';
@@ -288,7 +306,7 @@
 
         // NEW: Initial auth state check to set button visibility immediately
         // Access window.auth and its onAuthStateChanged method
-        window.auth.onAuthStateChanged(async (user) => {
+        window.firebase.auth().onAuthStateChanged(async (user) => { // Corrected access to auth()
             if (user) {
                 // After initial login or refresh, ensure button states are correct for the active record
                 const currentRecordType = activeRecordCollectionInput.value;
