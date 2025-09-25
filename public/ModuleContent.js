@@ -36,6 +36,39 @@
     let loadingSpinner = null;
     let singleRecordView = null;
     let generateClassroomBtn = null;
+    let generatePdfBtn = null; // NEW: Reference for the PDF button
+
+
+    // --- Cloud Functions Callable ---
+    // Access window.functions and its httpsCallable method
+    const generatePdfCallable = window.functions.httpsCallable('generateModulePdf');
+
+    // --- Function to update the state of the PDF button ---
+    async function updatePdfButtonState(moduleType, pdfButtonElement) {
+        const currentUser = window.auth.currentUser; // Access global auth object
+        let canGeneratePdf = false;
+
+        if (currentUser) {
+            try {
+                // Get fresh ID token to ensure custom claims are up-to-date
+                const idTokenResult = await currentUser.getIdTokenResult(true);
+                canGeneratePdf = idTokenResult.claims.canGeneratepdf === true;
+            } catch (error) {
+                console.error("Error fetching user claims for PDF button:", error);
+                window.showStatusMessage('Error checking PDF permissions.', 'error'); // Access global showStatusMessage
+            }
+        }
+
+        const isApplicableModuleType = (moduleType === 'COURSE' || moduleType === 'LESSON');
+
+        if (canGeneratePdf && isApplicableModuleType) {
+            pdfButtonElement.style.display = 'inline-block';
+            pdfButtonElement.disabled = false;
+        } else {
+            pdfButtonElement.style.display = 'none';
+            pdfButtonElement.disabled = true; // Always disable if not displayed or no permission
+        }
+    }
 
 
     // --- DOMContentLoaded Listener: The Orchestration Start Point ---
@@ -68,6 +101,7 @@
         saveRecordBtn = document.getElementById('saveRecordBtn');
         deleteRecordBtn = document.getElementById('deleteRecordBtn');
         generateClassroomBtn = document.getElementById('generateClassroomBtn');
+        generatePdfBtn = document.getElementById('generatePdfBtn'); // NEW: Get reference here
 
         currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
 
@@ -93,37 +127,31 @@
                 // IMPORTANT: Ensure the very latest saved data is immediately displayed in the editor.
                 // This call will trigger updateCurrentChildrenDisplay, updateClassroomButtonState, etc.
                 // It's the primary way to update the editor UI after a save.
-                // This replaces the previous logic that tried to manually set currentTopLevelModuleIndex
-                // and then call loadRecordIntoEditor with getCurrentActiveRecord.
                 window.loadRecordIntoEditor(savedRecord, savedRecord.collection);
 
                 // Re-fetch and re-filter navigation lists.
-                // applyModuleTypeFilter will now correctly try to preserve the saved record's position.
-                // It should NOT call loadSelectedModuleIntoEditor() internally if the record is already
-                // being handled by the explicit loadRecordIntoEditor call above.
                 await window.fetchAndPopulateTopLevelNavigation();
                 await window.applyModuleTypeFilter();
 
                 // After updating navigation and editor, refresh the larger selectable modules list.
-                // This ensures it reflects the updated MODULEID_ARRAY in the now-active record.
                 window.displayFilteredModules();
+
+                // NEW: Update PDF button state after saving a record
+                updatePdfButtonState(savedRecord.MODULETYPE, generatePdfBtn);
             },
             onRecordDeleted: async () => {
-                // These functions are assumed to be globally available
                 await window.fetchAndPopulateTopLevelNavigation();
-                // applyModuleTypeFilter will call loadSelectedModuleIntoEditor(null) if list becomes empty,
-                // or load the first record if list has items.
                 await window.applyModuleTypeFilter();
 
-                // updateClassroomButtonState will need to query the *new* current record.
-                // getCurrentActiveRecord is important here as it reflects the state after applyModuleTypeFilter.
+                // Assuming window.updateClassroomButtonState and window.getCurrentActiveRecord are globally available
                 window.updateClassroomButtonState(window.getCurrentActiveRecord()?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
+                // NEW: Update PDF button state after deleting a record (will hide if no active record)
+                updatePdfButtonState(window.getCurrentActiveRecord()?.MODULETYPE, generatePdfBtn);
 
-                // Ensure the larger list of selectable modules is refreshed.
                 window.displayFilteredModules();
             }
         };
-        // setupEditor is assumed to be globally available from ModuleContent_Editor.js
+        // Assuming window.setupEditor is globally available from ModuleContent_Editor.js
         window.setupEditor({
             activeRecordIdInput, activeRecordCollectionInput, activeRecordTypeSelect, newRecordTypeSelectorGroup,
             recordTitleInput, recordDescriptionTextarea, recordThemeInput, themeFields,
@@ -135,16 +163,16 @@
 
         const listViewCallbacks = {
             onRecordSelected: (recordData, collectionName) => {
-                // Calling loadRecordIntoEditor will handle updating the editor fields
-                // and will internally trigger updateCurrentChildrenDisplay.
+                // Assuming window.loadRecordIntoEditor and window.updateClassroomButtonState are globally available
                 window.loadRecordIntoEditor(recordData, collectionName);
                 window.updateClassroomButtonState(recordData?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
-                // REMOVED REDUNDANT CALL: window.updateCurrentChildrenDisplay(); (already handled by loadRecordIntoEditor)
-                // Calling displayFilteredModules will also refresh the available modules list
+                // NEW: Update PDF button state when a new record is selected
+                updatePdfButtonState(recordData?.MODULETYPE, generatePdfBtn);
+
                 window.displayFilteredModules();
             }
         };
-        // setupListView is assumed to be globally available from ModuleContent_ListView.js
+        // Assuming window.setupListView is globally available from ModuleContent_ListView.js
         window.setupListView({
             prevRecordBtn, newRecordBtn, nextRecordBtn,
             moduleTypeFilterSelect, filterModuleTypeSelect, searchModulesInput, availableModulesList,
@@ -155,7 +183,7 @@
         // --- 3. Setup Google Classroom Button Listener ---
         if (generateClassroomBtn) {
             generateClassroomBtn.addEventListener('click', () => {
-                // getCurrentActiveRecord is assumed to be globally available from ModuleContent_Editor.js
+                // Assuming window.getCurrentActiveRecord and window.initiateGoogleClassroomExport are globally available
                 const currentRecord = window.getCurrentActiveRecord();
 
                 let selectedCourseId = '';
@@ -166,7 +194,6 @@
                     selectedCourseTitle = currentRecord.TITLE || currentRecord.name;
                 }
 
-                // initiateGoogleClassroomExport is assumed to be globally available from ModuleContent_Classroom.js
                 window.initiateGoogleClassroomExport(
                     selectedCourseId,
                     selectedCourseTitle,
@@ -177,12 +204,71 @@
             });
         }
 
+        // --- 4. Setup Generate PDF Button Listener (NEW) ---
+        if (generatePdfBtn) {
+            generatePdfBtn.addEventListener('click', async () => {
+                const moduleId = activeRecordIdInput.value;
+                const moduleType = activeRecordCollectionInput.value; // This holds the collection name (COURSE/LESSON)
 
-        // --- 4. Initial Page Load Actions ---
-        // These functions are assumed to be globally available from ModuleContent_ListView.js
+                if (!moduleId || (!moduleType || (moduleType !== 'LESSON' && moduleType !== 'COURSE'))) {
+                    window.showStatusMessage('Please select a valid Course or Lesson to generate a PDF.', 'error');
+                    return;
+                }
+
+                generatePdfBtn.disabled = true;
+                generatePdfBtn.textContent = 'Generating...';
+                window.showStatusMessage('Starting PDF generation, this may take a moment...', 'info');
+
+                try {
+                    const result = await generatePdfCallable({ moduleId: moduleId, moduleType: moduleType });
+                    const { success, pdfUrl } = result.data;
+
+                    if (success) {
+                        window.showStatusMessage(`PDF generated successfully! <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer">View PDF</a>`, 'success', 10000);
+                    } else {
+                        window.showStatusMessage('PDF generation failed. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    console.error("Error calling generateModulePdf Cloud Function:", error);
+                    let errorMessage = 'An unexpected error occurred during PDF generation.';
+                    // Firebase Callable Function errors have specific structure
+                    if (error.code && error.message) {
+                        errorMessage = `PDF Generation Failed: ${error.message}`;
+                        if (error.details && error.details.message) {
+                            errorMessage += ` - ${error.details.message}`;
+                        }
+                    }
+                    window.showStatusMessage(errorMessage, 'error');
+                } finally {
+                    generatePdfBtn.disabled = false;
+                    generatePdfBtn.textContent = 'Generate PDF';
+                }
+            });
+        }
+
+
+        // --- 5. Initial Page Load Actions ---
+        // Assuming window.fetchAndPopulateTopLevelNavigation, window.applyModuleTypeFilter,
+        // and window.loadAllAvailableModules are globally available from ModuleContent_ListView.js
         await window.fetchAndPopulateTopLevelNavigation();
         await window.applyModuleTypeFilter(); // This will handle initial load into editor.
         await window.loadAllAvailableModules();
+
+        // NEW: Initial auth state check to set button visibility immediately
+        // Access window.auth and its onAuthStateChanged method
+        window.auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // After initial login or refresh, ensure button states are correct for the active record
+                const currentRecordType = activeRecordCollectionInput.value;
+                updatePdfButtonState(currentRecordType, generatePdfBtn);
+                // Assuming window.updateClassroomButtonState is globally available
+                window.updateClassroomButtonState(currentRecordType, generateClassroomBtn, activeRecordTypeSelect);
+            } else {
+                // If logged out, hide all permission-based buttons
+                updatePdfButtonState(null, generatePdfBtn);
+                window.updateClassroomButtonState(null, generateClassroomBtn, activeRecordTypeSelect);
+            }
+        });
     });
 
 })(); // End IIFE for ModuleContent.js
