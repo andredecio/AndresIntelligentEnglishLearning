@@ -52,7 +52,9 @@
             try {
                 // Get fresh ID token to ensure custom claims are up-to-date
                 const idTokenResult = await currentUser.getIdTokenResult(true);
-                canGeneratePdf = idTokenResult.claims.canGeneratepdf === true;
+                // --- MODIFICATION HERE: Changed 'canGeneratepdf' to 'admin' ---
+                canGeneratePdf = idTokenResult.claims.admin === true; 
+                // -----------------------------------------------------------
             } catch (error) {
                 console.error("Error fetching user claims for PDF button:", error);
                 window.showStatusMessage('Error checking PDF permissions.', 'error'); // Access global showStatusMessage
