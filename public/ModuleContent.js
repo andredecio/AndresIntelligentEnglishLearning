@@ -38,6 +38,30 @@
     let generateClassroomBtn = null;
     let generatePdfBtn = null; // NEW: Reference for the PDF button
 
+    // --- NEW: Define showStatusMessage function globally ---
+    // It uses the statusAlert and statusMessageSpan elements
+    window.showStatusMessage = function(message, type = 'info', duration = 5000) {
+        if (statusAlert && statusMessageSpan) {
+            // Clear previous classes
+            statusAlert.classList.remove('alert-info', 'alert-success', 'alert-warning', 'alert-error');
+            statusAlert.classList.add(`alert-${type}`); // Add type class for styling (e.g., Bootstrap alerts)
+            statusMessageSpan.innerHTML = message;
+            statusAlert.style.display = 'block';
+
+            if (duration > 0) {
+                setTimeout(() => {
+                    statusAlert.style.display = 'none';
+                }, duration);
+            }
+        } else {
+            console.warn("Status alert elements not found for showStatusMessage:", message);
+            // Fallback to console if elements aren't ready
+            if (type === 'error') console.error("STATUS ERROR:", message);
+            else if (type === 'warning') console.warn("STATUS WARNING:", message);
+            else console.log("STATUS INFO:", message);
+        }
+    };
+
 
     // --- Cloud Functions Callable ---
     // Access window.functions and its httpsCallable method
@@ -52,12 +76,13 @@
             try {
                 // Get fresh ID token to ensure custom claims are up-to-date
                 const idTokenResult = await currentUser.getIdTokenResult(true);
-                // --- MODIFICATION HERE: Changed 'canGeneratepdf' to 'admin' ---
+                // --- FIX IS HERE (already made from previous step) ---
                 canGeneratePdf = idTokenResult.claims.admin === true; 
-                // -----------------------------------------------------------
+                // ---------------------------------------------------
             } catch (error) {
                 console.error("Error fetching user claims for PDF button:", error);
-                window.showStatusMessage('Error checking PDF permissions.', 'error'); // Access global showStatusMessage
+                // Now this call to window.showStatusMessage should work!
+                window.showStatusMessage('Error checking PDF permissions.', 'error'); 
             }
         }
 
@@ -112,8 +137,8 @@
         searchModulesInput = document.getElementById('searchModules');
         availableModulesList = document.getElementById('availableModulesList');
 
-        statusAlert = document.getElementById('statusAlert');
-        statusMessageSpan = document.getElementById('statusMessage');
+        statusAlert = document.getElementById('statusAlert'); // Make sure this is correctly querying your HTML
+        statusMessageSpan = document.getElementById('statusMessage'); // Make sure this is correctly querying your HTML
         if (availableModulesList) {
             loadingSpinner = availableModulesList.querySelector('.spinner') || document.querySelector('.page-spinner');
         }
@@ -213,12 +238,14 @@
                 const moduleType = activeRecordCollectionInput.value; // This holds the collection name (COURSE/LESSON)
 
                 if (!moduleId || (!moduleType || (moduleType !== 'LESSON' && moduleType !== 'COURSE'))) {
+                    // Now this call to window.showStatusMessage should work!
                     window.showStatusMessage('Please select a valid Course or Lesson to generate a PDF.', 'error');
                     return;
                 }
 
                 generatePdfBtn.disabled = true;
                 generatePdfBtn.textContent = 'Generating...';
+                // Now this call to window.showStatusMessage should work!
                 window.showStatusMessage('Starting PDF generation, this may take a moment...', 'info');
 
                 try {
@@ -226,8 +253,10 @@
                     const { success, pdfUrl } = result.data;
 
                     if (success) {
+                        // Now this call to window.showStatusMessage should work!
                         window.showStatusMessage(`PDF generated successfully! <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer">View PDF</a>`, 'success', 10000);
                     } else {
+                        // Now this call to window.showStatusMessage should work!
                         window.showStatusMessage('PDF generation failed. Please try again.', 'error');
                     }
                 } catch (error) {
@@ -240,6 +269,7 @@
                             errorMessage += ` - ${error.details.message}`;
                         }
                     }
+                    // Now this call to window.showStatusMessage should work!
                     window.showStatusMessage(errorMessage, 'error');
                 } finally {
                     generatePdfBtn.disabled = false;
