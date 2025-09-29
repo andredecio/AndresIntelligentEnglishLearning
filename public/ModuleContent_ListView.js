@@ -1,4 +1,4 @@
-// js/ModuleContent_ListView.js (FULLY MODULARIZED)
+// js/ModuleContent_ListView.js (FULLY MODULARIZED AND CORRECTED)
 // Handles displaying, filtering, and navigating through module lists.
 
 // --- Import necessary Firebase modules ---
@@ -17,7 +17,7 @@ import { getCurrentActiveRecord, loadRecordIntoEditor } from './ModuleContent_Ed
 let topLevelModuleNavigationList = [];
 let filteredNavigationList = [];
 let currentTopLevelModuleIndex = 0;
-let allAvailableModules = [];
+let allAvailableModules = []; // This stores the list for the larger selection area
 
 // --- Global DOM Element References (now private to this module scope) ---
 let prevRecordBtn = null;
@@ -447,7 +447,7 @@ export async function loadAllAvailableModules() { // Exported
     if (availableModulesList) { availableModulesList.innerHTML = ''; }
 
     try {
-        const allFetchedModules = [];
+        const allFetchedModules = []; // This is the local array for *this* function.
 
         const collectionsToFetch = ['COURSE', 'LESSON', 'learningContent', 'syllables', 'phonemes'];
 
@@ -463,7 +463,7 @@ export async function loadAllAvailableModules() { // Exported
                    return;
                 }
 
-                allFetchedModules.push({
+                allFetchedModules.push({ // Correctly pushing to allFetchedModules
                     id: doc.id,
                     ...data,
                     MODULETYPE: inferredModuleType,
@@ -479,7 +479,9 @@ export async function loadAllAvailableModules() { // Exported
             const data = doc.data();
             const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
             if (topLevelLearningContentTypes.includes(inferredModuleType)) {
-                allTopLevelModules.push({
+                // *** FIX FOR ReferenceError: allTopLevelModules is not defined ***
+                // Should be pushing to allFetchedModules, not a non-existent allTopLevelModules
+                allFetchedModules.push({
                     id: doc.id,
                     ...data,
                     MODULETYPE: inferredModuleType,
@@ -490,7 +492,7 @@ export async function loadAllAvailableModules() { // Exported
 
         allFetchedModules.sort((a, b) => (a.TITLE || '').localeCompare(b.TITLE || ''));
 
-        allAvailableModules = allFetchedModules;
+        allAvailableModules = allFetchedModules; // Assign to module-level variable
         displayFilteredModules();
 
     } catch (error) {
@@ -763,7 +765,7 @@ export async function fetchAndPopulateTopLevelNavigation() { // Exported
             const data = doc.data();
             const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
             if (topLevelLearningContentTypes.includes(inferredModuleType)) {
-                allTopLevelModules.push({
+                allTopLevelModules.push({ // Correctly pushing to allTopLevelModules here
                     id: doc.id,
                     ...data,
                     MODULETYPE: inferredModuleType,
@@ -779,7 +781,7 @@ export async function fetchAndPopulateTopLevelNavigation() { // Exported
         updateNavigationButtons();
     } catch (error) {
         console.error("Error fetching top-level navigation:", error);
-        showAlert(statusMessageSpan, statusAlert, "Failed to load top-level navigation. " + error.message, true); // Use imported 'showAlert'
+        showAlert(statusMessageSpan, statusAlert, "Failed to load top-level navigation. " + error.message, true);
     }
 }
 
