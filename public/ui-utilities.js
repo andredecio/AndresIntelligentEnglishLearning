@@ -1,31 +1,37 @@
-// ui-utilities.js (Modified for standard script loading - NO 'import' or 'export')
+// ui-utilities.js (MODULARIZED VERSION)
+// This module provides reusable utility functions for UI interactions.
 
-// Reusable function for displaying errors in a specific HTML element.
-// @param {HTMLElement} errorMessageDiv - The div element to display the error in.
-// @param {string} message - The error message to display.
-// Removed 'export const'
-const displayError = (errorMessageDiv, message) => {
+// --- Exported functions ---
+
+/**
+ * Displays an error message in a designated HTML element.
+ * @param {HTMLElement} errorMessageDiv - The div element to display the error in.
+ * @param {string} message - The error message to display.
+ */
+export const displayError = (errorMessageDiv, message) => {
     if (errorMessageDiv) {
         errorMessageDiv.textContent = message;
         errorMessageDiv.style.display = 'block';
     }
 };
 
-// Reusable function for clearing error messages from a specific HTML element.
-// @param {HTMLElement} errorMessageDiv - The div element to clear.
-// Removed 'export const'
-const clearError = (errorMessageDiv) => {
+/**
+ * Clears error messages from a designated HTML element.
+ * @param {HTMLElement} errorMessageDiv - The div element to clear.
+ */
+export const clearError = (errorMessageDiv) => {
     if (errorMessageDiv) {
         errorMessageDiv.textContent = '';
         errorMessageDiv.style.display = 'none';
     }
 };
 
-// Reusable popup-style error display function.
-// Assumes HTML elements with IDs 'popup-error', 'popup-error-text', 'popup-error-close' exist.
-// @param {string} message - The error message to display in the popup.
-// Removed 'export'
-function showErrorPopup(message) {
+/**
+ * Shows a popup-style error message.
+ * Assumes HTML elements with IDs 'popup-error', 'popup-error-text', 'popup-error-close' exist.
+ * @param {string} message - The error message to display in the popup.
+ */
+export function showErrorPopup(message) {
     const popup = document.getElementById('popup-error');
     const text = document.getElementById('popup-error-text');
     const closeButton = document.getElementById('popup-error-close');
@@ -42,13 +48,10 @@ function showErrorPopup(message) {
         popup.style.display = 'none';
     };
 
-    // Your original setTimeout from onboarding.js is included here for completeness
     setTimeout(() => {
         popup.style.display = 'none';
     }, 10000);
 }
-
-// --- General Utility Functions (Moved from ModuleContent.js) ---
 
 /**
  * Shows a temporary alert message in a designated status area.
@@ -57,8 +60,7 @@ function showErrorPopup(message) {
  * @param {string} message The message to display.
  * @param {boolean} isError If true, styles as an error. Defaults to success.
  */
-// Removed 'export'
-function showAlert(statusMessageSpan, statusAlert, message, isError = false) {
+export function showAlert(statusMessageSpan, statusAlert, message, isError = false) {
     if (statusMessageSpan) {
         statusMessageSpan.textContent = message;
     } else {
@@ -97,8 +99,7 @@ function showAlert(statusMessageSpan, statusAlert, message, isError = false) {
  * @param {HTMLElement} targetElement - The element where the spinner should be displayed.
  * @param {HTMLElement} loadingSpinner - A specific spinner element to show/hide if global.
  */
-// Removed 'export'
-function showSpinner(targetElement, loadingSpinner = null) {
+export function showSpinner(targetElement, loadingSpinner = null) {
     if (targetElement) {
         targetElement.innerHTML = `<li class="loading-placeholder">Loading... <span class="spinner"></span></li>`;
         const spinnerElement = targetElement.querySelector('.spinner');
@@ -116,8 +117,7 @@ function showSpinner(targetElement, loadingSpinner = null) {
  * @param {HTMLElement} targetElement - The element from which the spinner should be hidden.
  * @param {HTMLElement} loadingSpinner - A specific spinner element to show/hide if global.
  */
-// Removed 'export'
-function hideSpinner(targetElement, loadingSpinner = null) {
+export function hideSpinner(targetElement, loadingSpinner = null) {
     if (targetElement) {
         const spinnerElement = targetElement.querySelector('.spinner');
         if (spinnerElement) {
@@ -138,13 +138,13 @@ function hideSpinner(targetElement, loadingSpinner = null) {
  * @param {string} gsUrl Google Cloud Storage URL (gs://bucket/path) or direct HTTPS URL.
  * @returns {HTMLAnchorElement | null} An anchor element containing the image.
  */
-// Removed 'export'
-function renderThumbnail(gsUrl) {
+export function renderThumbnail(gsUrl) {
     if (!gsUrl) return null;
     const img = document.createElement('img');
     img.className = 'thumbnail';
     // Assume gsUrl is a direct HTTPS URL for display or can be converted client-side.
     // If it's a gs:// path, you'd need server-side conversion or Firebase Storage SDK's getDownloadURL().
+    // For a simple gs:// to https://storage.googleapis.com/ conversion, this might work if objects are public.
     img.src = gsUrl.startsWith('gs://') ? gsUrl.replace('gs://', 'https://storage.googleapis.com/') : gsUrl;
     img.alt = 'Thumbnail';
     img.title = 'Click to view full image';
@@ -162,8 +162,7 @@ function renderThumbnail(gsUrl) {
  * @param {string} gsUrl Google Cloud Storage URL (gs://bucket/path) or direct HTTPS URL.
  * @returns {HTMLButtonElement | null} A button element that plays audio on click.
  */
-// Removed 'export'
-function renderAudioPlayer(gsUrl) {
+export function renderAudioPlayer(gsUrl) {
     if (!gsUrl) return null;
     const button = document.createElement('button');
     button.className = 'audio-player-btn';
@@ -174,22 +173,10 @@ function renderAudioPlayer(gsUrl) {
             await audio.play();
         } catch (error) {
             console.error("Error playing audio:", error);
-            // Assuming showAlert can be called with specific elements passed to it from the orchestrator
-            // showAlert(statusMessageSpan, statusAlert, "Could not play audio. Check file permissions or URL.", true);
+            // This `showAlert` call here would need to be imported or handled.
+            // For now, the global alert fallback remains.
             alert("Could not play audio. Check file permissions or URL."); // Fallback alert
         }
     };
     return button;
 }
-
-// OPTIONAL: Explicitly attach these functions to the window object for clarity.
-// This is not strictly necessary for functions defined with 'function' keyword at the top level
-// or const/let at top level, but it can make it clearer that they are globally accessible.
-window.displayError = displayError;
-window.clearError = clearError;
-window.showErrorPopup = showErrorPopup;
-window.showAlert = showAlert;
-window.showSpinner = showSpinner;
-window.hideSpinner = hideSpinner;
-window.renderThumbnail = renderThumbnail;
-window.renderAudioPlayer = renderAudioPlayer;

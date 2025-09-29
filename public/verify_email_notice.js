@@ -1,10 +1,17 @@
-// js/verify_email_notice.js (Remodified for standard script loading - NO 'import' or 'export')
+// js/verify_email_notice.js (MODULARIZED VERSION)
+// This module handles logic for the email verification notice page,
+// including resending verification emails.
 
-// Removed: import { auth } from './firebase-services.js';
+// --- Import necessary Firebase modules ---
+// Import the initialized 'auth' instance from your central Firebase services file.
+import { auth } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
+
+// Import specific functions from the Firebase Authentication SDK.
+import { sendEmailVerification } from 'firebase/auth';
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 'auth' is now globally available from firebase-services.js.
+    // 'auth' is now imported directly, so no need for global access.
 
     const resendEmailButton = document.getElementById('resendEmailButton');
     const resendMessage = document.getElementById('resendMessage');
@@ -27,11 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     resendEmailButton.addEventListener('click', async () => {
-        // Accessing global 'auth' object
+        // Access 'currentUser' directly from the imported 'auth' instance.
         const user = auth.currentUser;
         if (user && user.email) {
             try {
-                await user.sendEmailVerification();
+                // Use the modular 'sendEmailVerification' function.
+                await sendEmailVerification(user);
                 resendMessage.textContent = 'Verification email sent! Please check your inbox.';
                 setResendCooldown(60); // 60-second cooldown
                 console.log("Verification email resent to:", user.email);
@@ -41,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             resendMessage.textContent = 'No user or email found to resend verification. Please sign in again.';
-            // You might redirect them to the sign-in page here
+            // You might redirect them to the sign-in page here (e.g., window.location.href = 'index.html';)
         }
     });
 

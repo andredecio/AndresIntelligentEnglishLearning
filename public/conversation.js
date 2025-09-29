@@ -1,13 +1,19 @@
-// js/conversation.js (Remodified for standard script loading - NO 'import' or 'export')
+// js/conversation.js (MODULARIZED VERSION)
+// This module handles the conversation logic, including AI interaction via Cloud Functions,
+// and speech recognition/synthesis using browser APIs.
 
-// Removed: import { auth, functions } from './firebase-services.js';
+// --- Import necessary Firebase modules ---
+// Import the initialized 'auth' and 'functions' instances from your central Firebase services file.
+import { auth, functions } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
 
-// Get references to Firebase services from the global 'firebase' object.
-// These are assumed to be globally available from firebase-services.js.
-// 'auth' and 'functions' are now direct global variables.
-const chatWithGemini = functions.httpsCallable('chatWithGemini'); // Get your Callable Function
+// Import specific functions from the Firebase Authentication SDK.
+import { onAuthStateChanged } from 'firebase/auth';
+
+// Import specific functions from the Firebase Functions SDK.
+import { httpsCallable } from 'firebase/functions';
 
 
+// Get references to DOM elements
 const chatContainer = document.getElementById('chat-container');
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
@@ -15,17 +21,21 @@ const micButton = document.getElementById('mic-button');
 const loadingIndicator = document.getElementById('loading-indicator');
 const errorMessageDiv = document.getElementById('error-message');
 
+// Get the callable Cloud Function
+// 'functions' is now imported from firebase-services.js and is already configured with the region.
+const chatWithGemini = httpsCallable(functions, 'chatWithGemini');
+
 
 let isRecording = false;
 let recognition; // For Web Speech API SpeechRecognition
-const synth = window.speechSynthesis; // For Web Speech API SpeechSynthesis
+const synth = window.speechSynthesis; // For Web Speech API SpeechSynthesis (browser global)
 
 
-// Accessing global 'auth' object
-auth.onAuthStateChanged((user) => {
+// Access 'auth' object and use modular 'onAuthStateChanged'
+onAuthStateChanged(auth, (user) => {
     if (!user) {
         console.warn('No user authenticated. Redirecting to index...');
-        window.location.href = 'index.html';
+        window.location.href = 'index.html'; // window.location is a browser global
     }
 });
 
@@ -64,8 +74,7 @@ async function sendMessage() {
     errorMessageDiv.style.display = 'none'; // Hide previous errors
 
     try {
-        // Call the Cloud Function
-        // 'chatWithGemini' is a callable function object, already derived from global 'functions'
+        // Call the Cloud Function using the modular 'chatWithGemini' callable
         const result = await chatWithGemini({ message: message });
         const geminiResponse = result.data.response;
 
@@ -145,7 +154,7 @@ if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
 }
 
 // Initial welcome message from Gemini (already in HTML) can be spoken on page load
-// Moved to ensure synth is ready and elements are loaded
-window.addEventListener('DOMContentLoaded', () => {
+// Moved into DOMContentLoaded listener to ensure elements are ready
+document.addEventListener('DOMContentLoaded', () => {
     speakText("Hello! I'm Gemini, your English language tutor. What would you like to practice today?");
 });

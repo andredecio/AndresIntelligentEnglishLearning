@@ -1,8 +1,15 @@
-// common.js
+// common.js (MODULARIZED VERSION)
+// This module handles common authentication-related UI updates and sign-out logic.
+
+// --- Import necessary Firebase modules ---
+// Import the initialized 'auth' instance from your central Firebase services file.
+import { auth } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
+
+// Import specific functions from the Firebase Authentication SDK.
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+
 
 document.addEventListener('DOMContentLoaded', () => {
-    const auth = firebase.auth();
-
     const statusMessageSpan = document.getElementById('statusMessage');
     const loggedInUserEmailP = document.getElementById('loggedInUserEmail');
     const currentUserEmailSpan = document.getElementById('currentUserEmail');
@@ -15,7 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (button) {
             button.addEventListener('click', async () => {
                 try {
-                    await auth.signOut();
+                    // Use the modular 'signOut' function, passing the 'auth' instance
+                    await signOut(auth);
                     console.log("User signed out.");
                     alert('You have been successfully signed out!');
                 } catch (error) {
@@ -29,7 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     handleSignOut(signOutButtonIndex);
     handleSignOut(signOutButtonMain);
 
-    auth.onAuthStateChanged((user) => {
+    // Use the modular 'onAuthStateChanged' function, passing the 'auth' instance
+    onAuthStateChanged(auth, (user) => {
         const currentPage = window.location.pathname;
         const isIndexPage = currentPage.endsWith('index.html') || currentPage === '/';
         const isVerifyPage = currentPage.endsWith('verify_email_notice.html');

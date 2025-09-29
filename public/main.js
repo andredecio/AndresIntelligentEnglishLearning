@@ -1,7 +1,16 @@
-// js/main.js
-// This script contains logic specific to main.html.
+// js/main.js (MODULARIZED VERSION)
+// This script contains logic specific to main.html, now using Modular ES Modules.
 
-// Removed: import { auth } from './firebase-services.js'; // No imports when using standard script tags
+// --- Import necessary Firebase modules ---
+// Import the initialized 'auth' instance from your central Firebase services file.
+import { auth } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
+
+// Import specific functions from the Firebase Authentication SDK.
+import { onAuthStateChanged, deleteUser } from 'firebase/auth';
+
+// No direct imports for FirebaseUI as it's typically loaded as a global via CDN,
+// but it will consume our modular 'auth' instance.
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get references to the new buttons and the FirebaseUI container
@@ -11,22 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const optionsGrid = document.querySelector('.options-grid');
     const actionButtonsDiv = document.querySelector('.action-buttons'); // Assuming this wraps your signOut and delete buttons
 
-    // Access 'auth' directly from the global scope, assuming firebase-services.js has run
-    // and made it available (e.g., by making `auth` a global variable or attaching to `window`).
-    // Based on the last firebase-services.js, it defines 'const auth = firebase.auth();'
-    // and then exports it. Since we're removing 'type="module"', `export` won't work,
-    // so we assume `firebase-services.js` will make `auth` globally available,
-    // or you can explicitly use `window.auth` if needed.
-    // For now, let's assume `auth` is globally available.
-    // The previous `const auth = auth;` (which wasn't in main.js) was an error in my part.
-    // Your code correctly uses 'auth' directly.
-
     // Declare ui variable here so it's accessible in callbacks
     let ui;
 
     // --- Firebase Auth State Listener for specific main.html elements ---
-    // The 'auth' object here should now be the globally available one.
-    auth.onAuthStateChanged((user) => { // This 'auth' variable is expected to be global
+    // Use the modular 'onAuthStateChanged' function, passing the imported 'auth' instance.
+    onAuthStateChanged(auth, (user) => {
         if (user && !user.isAnonymous) {
             if (deleteAccountButton) {
                 deleteAccountButton.style.display = 'inline-block';
@@ -56,7 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Delete Account Functionality ---
     if (deleteAccountButton) {
         deleteAccountButton.addEventListener('click', async () => {
-            const user = auth.currentUser; // This 'auth' variable is expected to be global
+            // Access 'currentUser' directly from the imported 'auth' instance.
+            const user = auth.currentUser;
 
             if (!user) {
                 alert('No user is currently signed in to delete.');
@@ -70,7 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // --- STEP 2: DELETE AUTHENTICATION RECORD ---
-                await user.delete();
+                // Use the modular 'deleteUser' function.
+                await deleteUser(user);
                 console.log(`Auth user ${user.uid} deletion initiated successfully.`);
 
                 alert('Your account has been successfully deleted. Your data will be marked for retention per policy.');
@@ -83,10 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('For security, please sign in again to confirm account deletion.');
 
                     firebaseUiContainer.style.display = 'block';
-                    // FirebaseUI uses the global 'firebase' object, which is available
-                    // through the compat SDKs and firebase-services.js.
-                    // The 'auth' object here is the global one.
-                    ui = new firebaseui.auth.AuthUI(auth); // This 'auth' variable is expected to be global
+                    // Initialize FirebaseUI AuthUI, passing our modular 'auth' instance.
+                    // 'firebaseui' is assumed to be globally available from its CDN script.
+                    ui = new firebaseui.auth.AuthUI(auth);
 
                     const uiConfig = {
                         signInSuccessUrl: '/',
@@ -101,7 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (ui) { ui.reset(); }
                                 firebaseUiContainer.style.display = 'none';
 
-                                reauthenticatedUser.delete()
+                                // Use the modular 'deleteUser' function for the re-authenticated user.
+                                deleteUser(reauthenticatedUser)
                                     .then(() => {
                                         console.log(`Auth user ${reauthenticatedUser.uid} deleted successfully after re-auth.`);
                                         alert('Your account has been successfully deleted. Your data will be marked for retention per policy.');

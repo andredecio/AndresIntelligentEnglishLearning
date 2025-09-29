@@ -1,10 +1,47 @@
-// js/ModuleContent.js (Remodified with IIFE for private scope)
+// js/ModuleContent.js (MODULARIZED VERSION - COMPLETED)
 // This script acts as the main orchestrator for ModuleContent.html,
 // initializing functionalities from other specialized modules.
-// Version 1.006x
-(function() { // Start IIFE for ModuleContent.js
+// Version 1.007x - Fully modular, using Firebase Modular SDK and importing from peer modules.
+
+// --- Import necessary Firebase modules from your firebase-services.js and specific SDK paths ---
+// We import 'auth' and 'functions' directly from firebase-services.js
+// as they are our central initialized service instances.
+import { auth, functions } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
+
+// We import 'onAuthStateChanged' and 'httpsCallable' directly from their respective SDK modules,
+// as these are specific functions that operate on the imported service instances.
+import { onAuthStateChanged } from 'firebase/auth';
+import { httpsCallable } from 'firebase/functions';
+
+// --- Import functions from ui-utilities.js ---
+// ui-utilities.js is modular, so we import its exported showAlert function directly.
+import { showAlert } from './ui-utilities.js';
+// Assuming showSpinner and hideSpinner are also needed and exported from ui-utilities.js
+import { showSpinner, hideSpinner } from './ui-utilities.js'; // Added these imports
+
+// --- Import functions from ModuleContent_Classroom.js ---
+// ModuleContent_Classroom.js is modular, so we import its exported functions directly.
+import { initiateGoogleClassroomExport, updateClassroomButtonState } from './ModuleContent_Classroom.js';
+
+// --- Import functions from ModuleContent_Editor.js ---
+// These functions are now directly exported from ModuleContent_Editor.js.
+import { loadRecordIntoEditor, setupEditor, getCurrentActiveRecord, updateCurrentChildrenDisplay } from './ModuleContent_Editor.js';
+
+// --- Import functions from ModuleContent_ListView.js ---
+// These functions are now directly exported from ModuleContent_ListView.js.
+import {
+    fetchAndPopulateTopLevelNavigation,
+    applyModuleTypeFilter,
+    displayFilteredModules,
+    loadAllAvailableModules,
+    setupListView
+} from './ModuleContent_ListView.js';
+
+// No longer wrapped in an IIFE, as ES Modules provide their own scope
+// (function() { // REMOVED: Start IIFE for ModuleContent.js
 
     // --- Global DOM Element References (All main elements for the page) ---
+    // These are declared at the module level now, and will be assigned in DOMContentLoaded.
     let largerListView = null;
     let activeRecordIdInput = null;
     let activeRecordCollectionInput = null;
@@ -37,35 +74,15 @@
     let generateClassroomBtn = null;
     let generatePdfBtn = null;
 
-    window.showStatusMessage = function(message, type = 'info', duration = 5000) {
-        if (statusAlert && statusMessageSpan) {
-            statusAlert.classList.remove('alert-info', 'alert-success', 'alert-warning', 'alert-error');
-            statusAlert.classList.add(`alert-${type}`);
-            statusMessageSpan.innerHTML = message;
-            statusAlert.style.display = 'block';
-
-            if (duration > 0) {
-                setTimeout(() => {
-                    statusAlert.style.display = 'none';
-                }, duration);
-            }
-        } else {
-            console.warn("Status alert elements not found for showStatusMessage:", message);
-            if (type === 'error') console.error("STATUS ERROR:", message);
-            else if (type === 'warning') console.warn("STATUS WARNING:", message);
-            else console.log("STATUS INFO:", message);
-        }
-    };
-
     // --- Cloud Functions Callable ---
-    // Access window.firebase.functions and its httpsCallable method
-    // ** THE ESSENTIAL CHANGE IS HERE **
-    const functionsInstance = window.firebase.functions('asia-southeast1'); // <<< Specify your function's region!
-    const generatePdfCallable = functionsInstance.httpsCallable('generateModulePdf');
+    // 'functions' is now imported from firebase-services.js and is already configured with the region.
+    // Use the modular 'httpsCallable' function, passing the 'functions' instance.
+    const generatePdfCallable = httpsCallable(functions, 'generateModulePdf');
     // ----------------------------------------------------------------------------------
 
     async function updatePdfButtonState(moduleType, pdfButtonElement) {
-        const currentUser = window.firebase.auth().currentUser; // Corrected access to auth()
+        // Access 'currentUser' directly from the imported 'auth' instance.
+        const currentUser = auth.currentUser;
         let canGeneratePdf = false;
 
         if (currentUser) {
@@ -74,7 +91,8 @@
                 canGeneratePdf = idTokenResult.claims.admin === true;
             } catch (error) {
                 console.error("Error fetching user claims for PDF button:", error);
-                window.showStatusMessage('Error checking PDF permissions.', 'error');
+                // Use the imported showAlert function
+                showAlert(statusMessageSpan, statusAlert, 'Error checking PDF permissions.', true);
             }
         }
 
@@ -129,47 +147,44 @@
 
         statusAlert = document.getElementById('statusAlert');
         statusMessageSpan = document.getElementById('statusMessage');
-        if (availableModulesList) {
-            loadingSpinner = availableModulesList.querySelector('.spinner') || document.querySelector('.page-spinner');
-        }
-        if (!loadingSpinner) {
-            loadingSpinner = document.getElementById('globalLoadingSpinner');
-        }
+        // Ensure loadingSpinner is correctly assigned.
+        loadingSpinner = document.getElementById('globalLoadingSpinner');
+
 
         // --- 2. Setup Modules and Define Callbacks ---
         const editorCallbacks = {
             onRecordSaved: async (savedRecord) => {
-                window.loadRecordIntoEditor(savedRecord, savedRecord.collection);
-                await window.fetchAndPopulateTopLevelNavigation();
-                await window.applyModuleTypeFilter();
-                window.displayFilteredModules();
+                loadRecordIntoEditor(savedRecord, savedRecord.collection); // Direct import call
+                await fetchAndPopulateTopLevelNavigation(); // Direct import call
+                await applyModuleTypeFilter(); // Direct import call
+                displayFilteredModules(); // Direct import call
                 updatePdfButtonState(savedRecord.MODULETYPE, generatePdfBtn);
             },
             onRecordDeleted: async () => {
-                await window.fetchAndPopulateTopLevelNavigation();
-                await window.applyModuleTypeFilter();
-                window.updateClassroomButtonState(window.getCurrentActiveRecord()?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
-                updatePdfButtonState(window.getCurrentActiveRecord()?.MODULETYPE, generatePdfBtn);
-                window.displayFilteredModules();
+                await fetchAndPopulateTopLevelNavigation(); // Direct import call
+                await applyModuleTypeFilter(); // Direct import call
+                updateClassroomButtonState(getCurrentActiveRecord()?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect); // Direct import call
+                updatePdfButtonState(getCurrentActiveRecord()?.MODULETYPE, generatePdfBtn); // Direct import call
+                displayFilteredModules(); // Direct import call
             }
         };
-        window.setupEditor({
+        setupEditor({ // Direct import call
             activeRecordIdInput, activeRecordCollectionInput, activeRecordTypeSelect, newRecordTypeSelectorGroup,
             recordTitleInput, recordDescriptionTextarea, recordThemeInput, themeFields,
             imageStatusSelect, imageStatusFields, cefrInput, cefrFields,
             meaningOriginInput, meaningOriginFields, saveRecordBtn, deleteRecordBtn,
-            currentChildrenDisplay, generateClassroomBtn, statusAlert, statusMessageSpan
+            currentChildrenDisplay, generateClassroomBtn, statusAlert, statusMessageSpan // Passed to editor
         }, editorCallbacks);
 
         const listViewCallbacks = {
             onRecordSelected: (recordData, collectionName) => {
-                window.loadRecordIntoEditor(recordData, collectionName);
-                window.updateClassroomButtonState(recordData?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
+                loadRecordIntoEditor(recordData, collectionName); // Direct import call
+                updateClassroomButtonState(recordData?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
                 updatePdfButtonState(recordData?.MODULETYPE, generatePdfBtn);
-                window.displayFilteredModules();
+                displayFilteredModules(); // Direct import call
             }
         };
-        window.setupListView({
+        setupListView({ // Direct import call
             prevRecordBtn, newRecordBtn, nextRecordBtn,
             moduleTypeFilterSelect, filterModuleTypeSelect, searchModulesInput, availableModulesList,
             statusAlert, statusMessageSpan, loadingSpinner
@@ -179,7 +194,7 @@
         // --- 3. Setup Google Classroom Button Listener ---
         if (generateClassroomBtn) {
             generateClassroomBtn.addEventListener('click', () => {
-                const currentRecord = window.getCurrentActiveRecord();
+                const currentRecord = getCurrentActiveRecord(); // Direct import call
                 let selectedCourseId = '';
                 let selectedCourseTitle = '';
 
@@ -188,7 +203,8 @@
                     selectedCourseTitle = currentRecord.TITLE || currentRecord.name;
                 }
 
-                window.initiateGoogleClassroomExport(
+                // Now using the imported initiateGoogleClassroomExport function
+                initiateGoogleClassroomExport(
                     selectedCourseId,
                     selectedCourseTitle,
                     generateClassroomBtn,
@@ -205,13 +221,13 @@
                 const moduleType = activeRecordCollectionInput.value;
 
                 if (!moduleId || (!moduleType || (moduleType !== 'LESSON' && moduleType !== 'COURSE'))) {
-                    window.showStatusMessage('Please select a valid Course or Lesson to generate a PDF.', 'error');
+                    showAlert(statusMessageSpan, statusAlert, 'Please select a valid Course or Lesson to generate a PDF.', true);
                     return;
                 }
 
                 generatePdfBtn.disabled = true;
                 generatePdfBtn.textContent = 'Generating...';
-                window.showStatusMessage('Starting PDF generation, this may take a moment...', 'info');
+                showAlert(statusMessageSpan, statusAlert, 'Starting PDF generation, this may take a moment...', false);
 
                 try {
                     const result = await generatePdfCallable({ moduleId: moduleId, moduleType: moduleType });
@@ -227,12 +243,12 @@
                         a.click();
                         document.body.removeChild(a);
 
-                        window.showStatusMessage('PDF generated and download initiated successfully!', 'success', 10000);
+                        showAlert(statusMessageSpan, statusAlert, 'PDF generated and download initiated successfully!', false);
                         console.log('PDF download initiated successfully using signed URL.');
                     } else if (success && !downloadUrl) {
-                        window.showStatusMessage('PDF generated successfully, but no download URL was provided.', 'warning');
+                        showAlert(statusMessageSpan, statusAlert, 'PDF generated successfully, but no download URL was provided.', false);
                     } else {
-                        window.showStatusMessage('PDF generation failed. Please try again.', 'error');
+                        showAlert(statusMessageSpan, statusAlert, 'PDF generation failed. Please try again.', true);
                     }
                 } catch (error) {
                     console.error("Error calling generateModulePdf Cloud Function:", error);
@@ -243,7 +259,7 @@
                             errorMessage += ` - ${error.details.message}`;
                         }
                     }
-                    window.showStatusMessage(errorMessage, 'error');
+                    showAlert(statusMessageSpan, statusAlert, errorMessage, true);
                 } finally {
                     generatePdfBtn.disabled = false;
                     generatePdfBtn.textContent = 'Generate PDF';
@@ -252,20 +268,21 @@
         }
 
         // --- 5. Initial Page Load Actions ---
-        await window.fetchAndPopulateTopLevelNavigation();
-        await window.applyModuleTypeFilter();
-        await window.loadAllAvailableModules();
+        await fetchAndPopulateTopLevelNavigation(); // Direct import call
+        await applyModuleTypeFilter(); // Direct import call
+        await loadAllAvailableModules(); // Direct import call
 
-        window.firebase.auth().onAuthStateChanged(async (user) => {
+        // Use the modular 'onAuthStateChanged' function, passing the imported 'auth' instance.
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const currentRecordType = activeRecordCollectionInput.value;
                 updatePdfButtonState(currentRecordType, generatePdfBtn);
-                window.updateClassroomButtonState(currentRecordType, generateClassroomBtn, activeRecordTypeSelect);
+                updateClassroomButtonState(currentRecordType, generateClassroomBtn, activeRecordTypeSelect);
             } else {
                 updatePdfButtonState(null, generatePdfBtn);
-                window.updateClassroomButtonState(null, generateClassroomBtn, activeRecordTypeSelect);
+                updateClassroomButtonState(null, generateClassroomBtn, activeRecordTypeSelect);
             }
         });
     });
 
-})();
+// REMOVED: End IIFE for ModuleContent.js

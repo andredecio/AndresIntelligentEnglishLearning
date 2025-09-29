@@ -1,11 +1,33 @@
-// js/index.js — Version 1.01 for webpage logic (now using global scope)
+// js/index.js — Version 1.01 for webpage logic (now using Modular ES Modules)
 
-// Removed: import { auth, db } from './firebase-services.js';
-// Removed: import { displayError, clearError } from './ui-utilities.js';
+// --- Import necessary Firebase modules ---
+// Import the initialized 'auth' and 'db' instances from your central Firebase services file.
+import { auth, db } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
+
+// Import specific functions from the Firebase Authentication SDK.
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signInAnonymously,
+    sendEmailVerification,
+    signOut
+} from 'firebase/auth';
+
+// Import specific functions from the Firebase Firestore SDK.
+import {
+    collection,
+    doc,
+    setDoc,
+    serverTimestamp // Import serverTimestamp directly
+} from 'firebase/firestore';
+
+// Import UI utility functions from ui-utilities.js.
+import { displayError, clearError } from './ui-utilities.js';
+
 
 document.addEventListener('DOMContentLoaded', () => {
-    // auth and db are now globally available from firebase-services.js.
-    // displayError and clearError are now globally available from ui-utilities.js.
+    // 'auth', 'db', 'displayError', 'clearError', and Firebase SDK functions
+    // are now imported directly, so no need for global access.
 
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
@@ -30,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 🔹 Sign-Up Flow
     signUpEmailButton.addEventListener('click', async () => {
-        // Using globally available clearError
+        // Using imported clearError
         clearError(errorMessageDiv);
         const email = emailInput.value.trim();
         const password = passwordInput.value;
@@ -39,14 +61,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!email || !password) {
             console.log("⚠️ Missing email or password");
-            // Using globally available displayError
+            // Using imported displayError
             displayError(errorMessageDiv, 'Please enter both email and password.');
             return;
         }
 
         if (password.length < 6) {
             console.log("⚠️ Password too short");
-            // Using globally available displayError
+            // Using imported displayError
             displayError(errorMessageDiv, 'Password must be at least 6 characters long.');
             return;
         }
@@ -55,17 +77,18 @@ document.addEventListener('DOMContentLoaded', () => {
             sessionStorage.setItem("signingUp", "true");
 
             console.log("🔧 Creating Firebase Auth user...");
-            // Accessing global 'auth' object
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            // Use the modular 'createUserWithEmailAndPassword' function, passing the 'auth' instance
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             console.log("✅ User created:", user.uid);
 
             if (user.email) {
                 console.log("📄 Creating Firestore user document...");
-                // Accessing global 'db' object and global 'firebase' for FieldValue
-                await db.collection("users").doc(user.uid).set({
+                // Use modular Firestore functions: collection, doc, setDoc, serverTimestamp
+                const userDocRef = doc(db, "users", user.uid); // Create a document reference
+                await setDoc(userDocRef, { // Use setDoc with the reference
                     email: user.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: serverTimestamp(), // Use imported serverTimestamp
                     authProvider: 'emailpassword',
                 });
                 console.log("✅ Firestore user document created.");
@@ -73,22 +96,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 console.log("📤 Sending verification email...");
-                await user.sendEmailVerification();
+                // Use the modular 'sendEmailVerification' function
+                await sendEmailVerification(user);
                 console.log("✅ Verification email sent to:", user.email);
             } catch (emailError) {
                 console.error("❌ Failed to send verification email:", emailError);
             }
 
             sessionStorage.removeItem("signingUp");
-            // Accessing global 'auth' object
-            await auth.signOut();
+            // Use the modular 'signOut' function, passing the 'auth' instance
+            await signOut(auth);
             console.log("👋 User signed out after registration.");
 
             window.location.href = 'verify_email_notice.html';
 
         } catch (error) {
             console.error("❌ Sign-up failed:", error);
-            // Using globally available displayError
+            // Using imported displayError
             displayError(errorMessageDiv, `Sign-up failed: ${getAuthErrorMessage(error.code)}`);
             sessionStorage.removeItem("signingUp");
         }
@@ -96,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 🔹 Sign-In Flow
     signInEmailButton.addEventListener('click', async () => {
-        // Using globally available clearError
+        // Using imported clearError
         clearError(errorMessageDiv);
         const email = emailInput.value.trim();
         const password = passwordInput.value;
@@ -105,22 +129,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!email || !password) {
             console.log("⚠️ Missing email or password");
-            // Using globally available displayError
+            // Using imported displayError
             displayError(errorMessageDiv, 'Please enter both email and password.');
             return;
         }
 
         try {
-            // Accessing global 'auth' object
-            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            // Use the modular 'signInWithEmailAndPassword' function, passing the 'auth' instance
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             console.log("✅ Signed in:", user.uid);
 
             if (!user.emailVerified) {
                 console.warn("⚠️ Email not verified");
-                // Accessing global 'auth' object
-                await auth.signOut();
-                // Using globally available displayError
+                // Use the modular 'signOut' function, passing the 'auth' instance
+                await signOut(auth);
+                // Using imported displayError
                 displayError(errorMessageDiv, 'Please verify your email before signing in.');
                 return;
             }
@@ -129,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("❌ Sign-in failed:", error);
-            // Using globally available displayError
+            // Using imported displayError
             displayError(errorMessageDiv, `Sign-in failed: ${getAuthErrorMessage(error.code)}`);
         }
     });
@@ -137,13 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // 🔹 Anonymous Sign-In
     if (signInAnonymousButton) {
         signInAnonymousButton.addEventListener('click', async () => {
-            // Using globally available clearError
+            // Using imported clearError
             clearError(errorMessageDiv);
             console.log("🟢 Continue as Guest clicked");
 
             try {
-                // Accessing global 'auth' object
-                const userCredential = await auth.signInAnonymously();
+                // Use the modular 'signInAnonymously' function, passing the 'auth' instance
+                const userCredential = await signInAnonymously(auth);
                 const user = userCredential.user;
                 console.log("✅ Signed in anonymously:", user.uid);
 
@@ -151,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error("❌ Anonymous sign-in failed:", error);
-                // Using globally available displayError
+                // Using imported displayError
                 displayError(errorMessageDiv, `Guest sign-in failed: ${getAuthErrorMessage(error.code)}`);
             }
         });

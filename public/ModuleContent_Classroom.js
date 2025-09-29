@@ -1,12 +1,16 @@
-// js/ModuleContent_Classroom.js (Remodified for standard script loading - NO 'import' or 'export')
+// js/ModuleContent_Classroom.js (MODULARIZED VERSION - CORRECTED & FINAL)
 // Handles Google Classroom export functionalities for Module Content.
+// Now uses Firebase Modular SDK imports.
 
-// Removed: import { auth, functions, GOOGLE_CLIENT_ID } from './firebase-services.js';
-// Version 1.006x
+// --- Import necessary Firebase modules from firebase-services.js ---
+// We import 'auth' and 'GOOGLE_CLIENT_ID' from firebase-services.js as they are
+// our central initialized service instances and globally available constants.
+import { auth, GOOGLE_CLIENT_ID } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
 
-// Removed this line from top-level:
-// const generateCourseForClassroomCloudFunction = functions.httpsCallable('generateCourseForClassroom');
-const GOOGLE_CLIENT_ID = "190391960875-o8digh9sqso6hrju89o8nmuullvbh2b4.apps.googleusercontent.com";
+// --- Import UI utility functions from ui-utilities.js ---
+// We import the showAlert function from ui-utilities.js.
+import { showAlert } from './ui-utilities.js';
+
 
 const GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses',
@@ -26,35 +30,40 @@ const GOOGLE_SCOPES = [
  * @param {HTMLElement} statusMessageSpan - The span for alert messages.
  * @param {HTMLElement} statusAlert - The container for alert messages.
  */
-function initiateGoogleClassroomExport(
+export function initiateGoogleClassroomExport( // Export this function for use by ModuleContent.js
     selectedCourseId,
     selectedCourseTitle,
     generateClassroomBtn,
     statusMessageSpan,
     statusAlert
 ) {
-    const currentUser = window.auth.currentUser; // Accessing global 'auth' object
+    // Accessing the imported 'auth' object, no longer relying on window.auth
+    const currentUser = auth.currentUser;
 
     if (!currentUser) {
-        window.showAlert(statusMessageSpan, statusAlert, "You must be signed in to generate content to Classroom.", true);
+        // Now using the imported showAlert function
+        showAlert(statusMessageSpan, statusAlert, "You must be signed in to generate content to Classroom.", true);
         return;
     }
 
     if (!selectedCourseId) {
-        window.showAlert(statusMessageSpan, statusAlert, "Please select a valid COURSE record to generate (ID not found).", true);
+        // Now using the imported showAlert function
+        showAlert(statusMessageSpan, statusAlert, "Please select a valid COURSE record to generate (ID not found).", true);
         return;
     }
 
     try {
         // google.accounts.oauth2.initCodeClient is assumed to be globally available from Google's GSI library.
+        // It's loaded via <script src="https://accounts.google.com/gsi/client" async defer></script> in HTML
         const client = google.accounts.oauth2.initCodeClient({
-            client_id: GOOGLE_CLIENT_ID,
+            client_id: GOOGLE_CLIENT_ID, // Using the imported GOOGLE_CLIENT_ID
             scope: GOOGLE_SCOPES,
             ux_mode: 'popup',
             callback: async (response) => {
                 if (response.error) {
                     console.error('OAuth Error:', response.error);
-                    window.showAlert(statusMessageSpan, statusAlert, 'Google OAuth permission denied or error: ' + response.error, true);
+                    // Now using the imported showAlert function
+                    showAlert(statusMessageSpan, statusAlert, 'Google OAuth permission denied or error: ' + response.error, true);
                     return;
                 }
 
@@ -63,14 +72,14 @@ function initiateGoogleClassroomExport(
 
                 try {
                     if (generateClassroomBtn) generateClassroomBtn.disabled = true;
-                    window.showAlert(statusMessageSpan, statusAlert, `Attempting to generate Course: "${selectedCourseTitle || selectedCourseId}" to Google Classroom...`, false);
+                    // Now using the imported showAlert function
+                    showAlert(statusMessageSpan, statusAlert, `Attempting to generate Course: "${selectedCourseTitle || selectedCourseId}" to Google Classroom...`, false);
 
                     // --- CRITICAL FIX: Directly use fetch to the rewritten endpoint ---
                     const url = '/api/classroom-generator'; // Use the new rewrite endpoint from firebase.json
 
-                    // Get the Firebase Authentication ID token to send to the Cloud Function
-                    // This is crucial if your function is secured (e.g., uses auth.verifyIdToken)
-                    const idToken = await window.auth.currentUser.getIdToken();
+                    // Get the Firebase Authentication ID token from the imported 'auth' instance
+                    const idToken = await auth.currentUser.getIdToken();
 
                     const fetchResponse = await fetch(url, {
                         method: 'POST',
@@ -79,12 +88,12 @@ function initiateGoogleClassroomExport(
                             // Pass the Firebase ID token in the Authorization header
                             'Authorization': `Bearer ${idToken}`
                         },
-                        // Callable Functions expect the payload wrapped in a 'data' property
+                        // The Cloud Function expects this payload
                         body: JSON.stringify({
-                            data: {
+                            data: { // Wrapped in 'data' as per callable function convention, even for direct fetch
                                 courseId: selectedCourseId,
                                 authorizationCode: authorizationCode,
-                                firebaseAuthUid: window.auth.currentUser.uid
+                                firebaseAuthUid: auth.currentUser.uid // Using the imported 'auth' instance
                             }
                         })
                     });
@@ -97,15 +106,14 @@ function initiateGoogleClassroomExport(
                     }
 
                     const result = await fetchResponse.json(); // Parse the response JSON
-                      console.log('Cloud Function response:', result.result); // Or just result to see the whole thing
-
-                    window.showAlert(statusMessageSpan, statusAlert, result.result.message, false);
+                    console.log('Cloud Function response:', result.result);
+                    // Now using the imported showAlert function
+                    showAlert(statusMessageSpan, statusAlert, result.result.message, false);
 
                 } catch (cfError) {
                     console.error('Error calling Cloud Function via rewrite:', cfError);
-					console.log('DEBUG TYPE OF CF_ERROR:', typeof cfError);  // <-- Confirm what this says
-                    console.log('DEBUG VALUE OF CF_ERROR:', cfError);      // <-- Confirm what this logs
-                    window.showAlert(statusMessageSpan, statusAlert, `Failed to integrate with Google Classroom: ${cfError.message}`, true);
+                    // Now using the imported showAlert function
+                    showAlert(statusMessageSpan, statusAlert, `Failed to integrate with Google Classroom: ${cfError.message}`, true);
                 } finally {
                     if (generateClassroomBtn) generateClassroomBtn.disabled = false;
                 }
@@ -114,7 +122,8 @@ function initiateGoogleClassroomExport(
         client.requestCode();
     } catch (oauthInitError) {
         console.error('Error initiating OAuth client:', oauthInitError);
-        window.showAlert(statusMessageSpan, statusAlert, 'Could not start Google OAuth process. Check console for details.', true);
+        // Now using the imported showAlert function
+        showAlert(statusMessageSpan, statusAlert, 'Could not start Google OAuth process. Check console for details.', true);
     }
 }
 
@@ -124,13 +133,14 @@ function initiateGoogleClassroomExport(
  * @param {HTMLElement} generateClassroomBtn - The button element.
  * @param {HTMLElement} activeRecordTypeSelect - The select element for active record type.
  */
-function updateClassroomButtonState(currentModuleType, generateClassroomBtn, activeRecordTypeSelect) {
+export function updateClassroomButtonState(currentModuleType, generateClassroomBtn, activeRecordTypeSelect) { // Export this function
     if (!activeRecordTypeSelect || !generateClassroomBtn) {
         console.warn("Required DOM elements for Classroom button state not found.");
         return;
     }
 
     if (currentModuleType === 'COURSE') {
+
         generateClassroomBtn.style.display = 'inline-block';
         generateClassroomBtn.disabled = false;
     } else {
@@ -138,7 +148,3 @@ function updateClassroomButtonState(currentModuleType, generateClassroomBtn, act
         generateClassroomBtn.disabled = true;
     }
 }
-
-// Make functions accessible globally via the window object
-window.initiateGoogleClassroomExport = initiateGoogleClassroomExport;
-window.updateClassroomButtonState = updateClassroomButtonState;

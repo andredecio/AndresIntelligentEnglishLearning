@@ -1,32 +1,47 @@
-// firebase-services.js (FINAL, FINAL version for use with standard <script src="..."> tags)
+// firebase-services.js - The central hub for modular Firebase SDK initialization.
+// This file initializes your Firebase App and exports all commonly used service instances.
+// It should be loaded as a <script type="module"> in your HTML.
 
-// This script expects the global 'firebase' object to be available,
-// created by the Firebase compat SDKs loaded in your HTML (e.g., firebase-app-compat.js, init.js).
-// IMPORTANT: DO NOT use 'import' or 'export' statements anywhere in this file.
+// --- 1. Import ALL necessary modular Firebase SDK functions ---
+import { initializeApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getFirestore, collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions'; // Assuming httpsCallable will be used by other modules
+// import { getStorage } from 'firebase/storage'; // Uncomment if you use Cloud Storage for Firebase
 
-// Get references to Firebase services from the global 'firebase' object.
-// These will correctly be the compat versions, supporting old syntax like .collection().
-// Set region to asia-southeast1 for correct region alighnment with backend functions
-const auth = firebase.auth();
-const db = firebase.firestore();
-// 1. Get the Firebase App instance.
-// This is crucial because the .functions() method with a region is called OFF the app instance.
-const app = firebase.app();
+// --- 2. Your Firebase project configuration ---
+// This is the configuration for your Firebase web app.
+const firebaseConfig = {
+    apiKey: "AIzaSyAPEIXnhZ7_CFU6mId54c3IBCFgzqye-3g", // <--- IMPORTANT: Replace with your actual Web API Key from Firebase Project Settings -> General
+    authDomain: "enduring-victor-460703-a2.firebaseapp.com",
+    projectId: "enduring-victor-460703-a2",
+    storageBucket: "enduring-victor-460703-a2.appspot.com",
+    messagingSenderId: "190391960875",
+    appId: "1:190391960875:web:0585d07fcb53f52755316e", // <--- IMPORTANT: Replace with your actual Web App ID from Firebase Project Settings -> General
+    measurementId: "490452908" // Your GA Property ID
+};
 
-// 2. Get the Functions instance, specifying the region on the 'app' object.
-// This is the correct v8 way to define the functions object with a region.
-const functions = app.functions('asia-southeast1');
+// --- 3. Initialize Firebase App and get service instances ---
+export const app = initializeApp(firebaseConfig);
 
-// IMPORTANT: Replace "YOUR_GOOGLE_CLIENT_ID_FOR_OAUTH" with your actual Google OAuth Client ID
-// This is used by ModuleContent_Classroom.js for Google Classroom integration.
-const GOOGLE_CLIENT_ID = "190391960875-g53jhbjrkbp0u42bg7bb9trufjjbmk1d.apps.googleusercontent.com"; // Added: Google Client ID
+// Get and export the Firebase service instances.
+// The 'app' instance is implicitly used by these if not explicitly passed,
+// but it's good practice to pass 'app' for clarity and explicit multi-app support.
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+// Specify your Cloud Functions region when getting the functions instance.
+export const functions = getFunctions(app, 'asia-southeast1');
+// export const storage = getStorage(app); // Uncomment if you need storage
 
+// --- 4. Constant for Google OAuth Client ID ---
+// This is exposed for use with Google Classroom integration (ModuleContent_Classroom.js).
+export const GOOGLE_CLIENT_ID = "190391960875-g53jhbjrkbp0u42bg7bb9trufjjbmk1d.apps.googleusercontent.com";
 
-// --- Firebase Authentication Helper Functions ---
-
+// --- 5. Firebase Authentication Helper Functions (now modular) ---
 // Modified: observeAuthState now fetches custom claims and user profile data
-function observeAuthState(callback) {
-  return auth.onAuthStateChanged(async (user) => {
+export function observeAuthState(callback) {
+  // Use the modular onAuthStateChanged, passing the 'auth' instance
+  return onAuthStateChanged(auth, async (user) => {
     if (user) {
       let augmentedUser = { // Initialize augmentedUser here for fallbacks
         ...user,
@@ -78,9 +93,10 @@ function observeAuthState(callback) {
   });
 }
 
-async function signInUserWithEmailAndPassword(email, password) {
+export async function signInUserWithEmailAndPassword(email, password) {
   try {
-    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+    // Use the modular signInWithEmailAndPassword, passing the 'auth' instance
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     console.log("Successfully signed in user:", userCredential.user.email);
     return userCredential.user;
   } catch (error) {
@@ -88,9 +104,11 @@ async function signInUserWithEmailAndPassword(email, password) {
     throw error;
   }
 }
-async function signOutCurrentUser() {
+
+export async function signOutCurrentUser() {
   try {
-    await auth.signOut();
+    // Use the modular signOut, passing the 'auth' instance
+    await signOut(auth);
     console.log("User signed out successfully.");
   } catch (error) {
     console.error("Error signing out:", error.message);
@@ -98,12 +116,14 @@ async function signOutCurrentUser() {
   }
 }
 
-// --- Cloud Firestore Helper Functions ---
-async function getDocument(collectionName, docId) {
-  const docRef = db.collection(collectionName).doc(docId);
+// --- 6. Cloud Firestore Helper Functions (now modular) ---
+export async function getDocument(collectionName, docId) {
+  // Use modular collection and doc functions
+  const docRef = doc(db, collectionName, docId);
   try {
-    const docSnap = await docRef.get();
-    if (docSnap.exists) {
+    // Use modular getDoc function
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
       console.log(`DEBUG FS: Document '${docId}' from '${collectionName}' found.`);
       const data = docSnap.data();
       console.log(`DEBUG FS: Document data for '${docId}':`, data);
@@ -121,13 +141,14 @@ async function getDocument(collectionName, docId) {
   }
 }
 
-async function getCollectionDocs(collectionName) {
-  const collectionRef = db.collection(collectionName);
+export async function getCollectionDocs(collectionName) {
+  // Use modular collection and getDocs functions
+  const colRef = collection(db, collectionName);
   try {
-    const querySnapshot = await collectionRef.get();
+    const querySnapshot = await getDocs(colRef);
     const docs = [];
-    querySnapshot.forEach((doc) => {
-      docs.push({ id: doc.id, ...doc.data() });
+    querySnapshot.forEach((d) => { // Renamed doc to d to avoid conflict with imported doc
+      docs.push({ id: d.id, ...d.data() });
     });
     console.log(`DEBUG FS: Fetched ${docs.length} documents from collection '${collectionName}'.`);
     return docs;
@@ -137,17 +158,20 @@ async function getCollectionDocs(collectionName) {
   }
 }
 
-async function getLearningContentByCriteria(moduleType, imageStatus) {
-  const learningContentRef = db.collection("learningContent");
-  const q = learningContentRef
-    .where("MODULETYPE", "==", moduleType)
-    .where("imageStatus", "==", imageStatus);
+export async function getLearningContentByCriteria(moduleType, imageStatus) {
+  // Use modular collection, query, and where functions
+  const learningContentRef = collection(db, "learningContent");
+  const q = query(
+      learningContentRef,
+      where("MODULETYPE", "==", moduleType),
+      where("imageStatus", "==", imageStatus)
+  );
 
   try {
-    const querySnapshot = await q.get();
+    const querySnapshot = await getDocs(q);
     const content = [];
-    querySnapshot.forEach((doc) => {
-      content.push({ id: doc.id, ...doc.data() });
+    querySnapshot.forEach((d) => { // Renamed doc to d
+      content.push({ id: d.id, ...d.data() });
     });
     console.log(`DEBUG FS: Fetched ${content.length} learning content documents for MODULETYPE: ${moduleType}, imageStatus: ${imageStatus}.`);
     return content;
@@ -156,21 +180,3 @@ async function getLearningContentByCriteria(moduleType, imageStatus) {
     throw error;
   }
 }
-
-// --- Make functions and services accessible globally ---
-// Assign these functions and service objects to the window object.
-window.auth = auth;
-window.db = db;
-window.functions = functions; // Added: Expose the functions service
-
-window.observeAuthState = observeAuthState;
-window.signInUserWithEmailAndPassword = signInUserWithEmailAndPassword;
-window.signOutCurrentUser = signOutCurrentUser;
-window.getDocument = getDocument;
-window.getCollectionDocs = getCollectionDocs;
-window.getLearningContentByCriteria = getLearningContentByCriteria;
-
-window.GOOGLE_CLIENT_ID = GOOGLE_CLIENT_ID; // Added: Expose the Google Client ID
-
-// You do NOT need to include your firebaseConfig object here.
-// The /__/firebase/init.js script (loaded in your HTML) handles that for you.

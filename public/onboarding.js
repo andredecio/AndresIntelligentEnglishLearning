@@ -1,19 +1,40 @@
-// js/onboarding.js (Remodified for standard script loading - NO 'import' or 'export')
+// js/onboarding.js (MODULARIZED VERSION)
+// This module handles the onboarding form logic, including user data persistence and account upgrades.
 
-// Removed: import { auth, db } from './firebase-services.js';
-// Removed: import { showErrorPopup } from './ui-utilities.js';
+// --- Import necessary Firebase modules ---
+// Import the initialized 'auth' and 'db' instances from your central Firebase services file.
+import { auth, db } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
+
+// Import specific functions from the Firebase Authentication SDK.
+import {
+    onAuthStateChanged,
+    linkWithCredential, // For linking anonymous accounts
+    EmailAuthProvider,  // For creating email/password credentials
+    sendEmailVerification,
+    // signOut, // signOut is not directly used in this file for final sign out, it's used elsewhere
+    updateEmail // Might be useful if upgrading email of anonymous user (though linkWithCredential handles it)
+} from 'firebase/auth';
+
+// Import specific functions from the Firebase Firestore SDK.
+import {
+    collection,
+    doc,
+    getDoc, // For fetching user data
+    setDoc, // For saving user data
+    serverTimestamp // For timestamping data
+} from 'firebase/firestore';
+
+// Import UI utility functions from ui-utilities.js.
+import { showErrorPopup } from './ui-utilities.js';
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // auth and db are now globally available from firebase-services.js.
-    // showErrorPopup is now globally available from ui-utilities.js.
-
     const form = document.getElementById('onboarding-form');
     const loading = document.getElementById('loading');
     const startDemoButton = document.getElementById('startDemoButton');
 
 
-    // --- NEW: Function to toggle the 'non-clickable' class ---
+    // --- Function to toggle the 'non-clickable' class ---
     /**
      * Checks form validity and toggles a 'non-clickable' CSS class on the button.
      * This *only* affects appearance, not actual clickability or the 'disabled' attribute.
@@ -29,15 +50,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- NEW: Event Listeners for toggling the 'non-clickable' class ---
+    // --- Event Listeners for toggling the 'non-clickable' class ---
     // Listen to input/change events on the form to update the button's appearance
     form.addEventListener('input', toggleNonClickableClass);
     form.addEventListener('change', toggleNonClickableClass);
 
 
     // --- Pre-populate form if user data exists ---
-    // Accessing global 'auth' object
-    auth.onAuthStateChanged(async (user) => {
+    // Use the modular 'onAuthStateChanged' function, passing the imported 'auth' instance.
+    onAuthStateChanged(auth, async (user) => {
         if (!user) {
             toggleNonClickableClass(); // Initial appearance check if no user is logged in
             return;
@@ -48,10 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Accessing global 'db' object
-            const doc = await db.collection('users').doc(user.uid).get();
-            if (doc.exists) {
-                const data = doc.data();
+            // Use modular Firestore functions: doc and getDoc
+            const userDocRef = doc(db, 'users', user.uid);
+            const docSnap = await getDoc(userDocRef); // Renamed `doc` to `docSnap` to avoid conflict with imported `doc`
+            if (docSnap.exists()) {
+                const data = docSnap.data();
                 if (data.firstName) document.getElementById('first-name').value = data.firstName;
                 if (data.lastName) document.getElementById('last-name').value = data.lastName;
                 if (data.dob) document.getElementById('dob').value = data.dob;
@@ -69,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
-            // Using globally available showErrorPopup
+            // Using imported showErrorPopup
             showErrorPopup("Failed to load your saved data.");
         } finally {
             toggleNonClickableClass(); // After pre-populating, update button appearance
@@ -98,10 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         // Custom Validation for email/password combination and format
-        // Accessing global 'auth' object
+        // Access 'currentUser' directly from the imported 'auth' instance.
         if (auth.currentUser?.isAnonymous && (email || password)) {
             if (!email || !password) {
-                // Using globally available showErrorPopup
+                // Using imported showErrorPopup
                 showErrorPopup("To create a permanent account, both email and password are required.");
                 loading.style.display = 'none';
                 if (startDemoButton) startDemoButton.disabled = false;
@@ -109,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                // Using globally available showErrorPopup
+                // Using imported showErrorPopup
                 showErrorPopup("Please enter a valid email address.");
                 loading.style.display = 'none';
                 if (startDemoButton) startDemoButton.disabled = false;
@@ -117,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (password.length < 6) {
-                // Using globally available showErrorPopup
+                // Using imported showErrorPopup
                 showErrorPopup("Password must be at least 6 characters long.");
                 loading.style.display = 'none';
                 if (startDemoButton) startDemoButton.disabled = false;
@@ -128,29 +150,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         try {
-            // Accessing global 'auth' object
+            // Access 'currentUser' directly from the imported 'auth' instance.
             let user = auth.currentUser;
             let emailVerificationNeeded = false;
 
             if (user?.isAnonymous && email && password) {
                 try {
-                    // Accessing global 'firebase.auth.EmailAuthProvider'
-                    await user.linkWithCredential(firebase.auth.EmailAuthProvider.credential(email, password));
+                    // Use the modular 'linkWithCredential' function
+                    await linkWithCredential(user, EmailAuthProvider.credential(email, password));
                     console.log("Anonymous account upgraded and linked with email/password.");
 
-                    // Accessing global 'auth' object
+                    // Access 'currentUser' from the imported 'auth' instance and use modular 'sendEmailVerification'
                     if (!auth.currentUser.emailVerified) {
-                        await auth.currentUser.sendEmailVerification();
+                        await sendEmailVerification(auth.currentUser);
                         emailVerificationNeeded = true;
                         console.log("Email verification sent.");
                     }
 
                 } catch (linkError) {
                     if (linkError.code === 'auth/email-already-in-use') {
-                        // Using globally available showErrorPopup
+                        // Using imported showErrorPopup
                         showErrorPopup("This email is already in use. Please sign in with that email or use a different one.");
                     } else {
-                        // Using globally available showErrorPopup
+                        // Using imported showErrorPopup
                         showErrorPopup("Failed to link account: " + linkError.message);
                     }
                     loading.style.display = 'none';
@@ -169,21 +191,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 goal,
                 goalNotes: goal === 'other' ? goalNotes : '',
                 sex,
-                // Accessing global 'firebase.firestore.FieldValue'
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                // Use the imported 'serverTimestamp' function
+                timestamp: serverTimestamp(),
                 email: auth.currentUser?.email || email || null
             };
 
             // Save onboarding data to Firestore
-            // Accessing global 'db' object and global 'auth' object
-            await db.collection('users').doc(auth.currentUser.uid).set(userData, { merge: true });
+            // Use modular Firestore functions: doc and setDoc
+            const userDocRef = doc(db, 'users', auth.currentUser.uid);
+            await setDoc(userDocRef, userData, { merge: true });
             console.log("Onboarding data saved for user:", auth.currentUser.uid);
 
 
             // --- Conditional Redirection Logic ---
             if (emailVerificationNeeded) {
-                // Accessing global 'auth' object
-                await auth.signOut();
+                // The `signOut` function is imported from 'firebase/auth', passing the 'auth' instance.
+                await signOut(auth); // Note: signOut also needs to be imported if it's used here
                 console.log("User signed out for email verification process.");
                 window.location.href = 'verify_email_notice.html';
             } else {
@@ -192,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("Error processing demo flow:", error);
-            // Using globally available showErrorPopup
+            // Using imported showErrorPopup
             showErrorPopup("An error occurred: " + error.message);
         } finally {
             loading.style.display = 'none';
