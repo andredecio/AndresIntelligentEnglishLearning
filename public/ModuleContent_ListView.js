@@ -3,6 +3,8 @@
 
 // --- Import necessary Firebase modules ---
 import { db } from './firebase-services.js'; // Import the initialized 'db' instance
+// Explicitly import Firestore functions needed for modular syntax
+import { collection, doc, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
 
 // --- Import UI utility functions ---
 import { showAlert, showSpinner, hideSpinner, renderThumbnail, renderAudioPlayer } from './ui-utilities.js';
@@ -154,7 +156,9 @@ export async function loadSelectedModuleIntoEditor() { // Exported
     console.log("DEBUG LV: Selected module for editor:", selectedModule);
     if (selectedModule) {
         try {
-            const moduleSnap = await db.collection(selectedModule.collection).doc(selectedModule.id).get(); // Use imported 'db'
+            // MODULAR SDK CHANGE: Use doc() and getDoc()
+            const docRef = doc(db, selectedModule.collection, selectedModule.id);
+            const moduleSnap = await getDoc(docRef);
             if (moduleSnap.exists) {
                 console.log("DEBUG LV: Module data fetched successfully.");
                 onRecordSelectedCallback({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
@@ -384,7 +388,9 @@ export async function fetchAndRenderChildren(parentId, childIds, level, parentLi
 
         try {
             for (const col of collectionsToSearch) {
-                docSnap = await db.collection(col).doc(childId).get(); // Use imported 'db'
+                // MODULAR SDK CHANGE: Use doc() and getDoc()
+                const docRef = doc(db, col, childId);
+                docSnap = await getDoc(docRef);
                 if (docSnap.exists) {
                     const childData = docSnap.data();
                     const inferredModuleType = childData.MODULETYPE || getSingularModuleTypeFromCollection(col);
@@ -446,7 +452,9 @@ export async function loadAllAvailableModules() { // Exported
         const collectionsToFetch = ['COURSE', 'LESSON', 'learningContent', 'syllables', 'phonemes'];
 
         for (const colName of collectionsToFetch) {
-            const snapshot = await db.collection(colName).get(); // Use imported 'db'
+            // MODULAR SDK CHANGE: Use collection() and getDocs()
+            const colRef = collection(db, colName);
+            const snapshot = await getDocs(colRef);
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection(colName);
@@ -464,12 +472,14 @@ export async function loadAllAvailableModules() { // Exported
             });
         }
 
-        const learningContentSnapshot = await db.collection('learningContent').get(); // Use imported 'db'
+        // MODULAR SDK CHANGE: Use collection() and getDocs()
+        const learningContentColRef = collection(db, 'learningContent');
+        const learningContentSnapshot = await getDocs(learningContentColRef);
         learningContentSnapshot.forEach(doc => {
             const data = doc.data();
             const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
             if (topLevelLearningContentTypes.includes(inferredModuleType)) {
-                allFetchedModules.push({
+                allTopLevelModules.push({
                     id: doc.id,
                     ...data,
                     MODULETYPE: inferredModuleType,
@@ -731,7 +741,9 @@ export async function fetchAndPopulateTopLevelNavigation() { // Exported
         const topLevelCollections = ['COURSE', 'LESSON', 'syllables'];
 
         for (const col of topLevelCollections) {
-            const snapshot = await db.collection(col).get(); // Use imported 'db'
+            // MODULAR SDK CHANGE: Use collection() and getDocs()
+            const colRef = collection(db, col);
+            const snapshot = await getDocs(colRef);
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection(col);
@@ -744,7 +756,9 @@ export async function fetchAndPopulateTopLevelNavigation() { // Exported
             });
         }
 
-        const learningContentSnapshot = await db.collection('learningContent').get(); // Use imported 'db'
+        // MODULAR SDK CHANGE: Use collection() and getDocs()
+        const learningContentColRef = collection(db, 'learningContent');
+        const learningContentSnapshot = await getDocs(learningContentColRef);
         learningContentSnapshot.forEach(doc => {
             const data = doc.data();
             const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
