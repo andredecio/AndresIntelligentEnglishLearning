@@ -6,7 +6,8 @@
 import { auth } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
 
 // Import specific functions from the Firebase Authentication SDK.
-import { onAuthStateChanged, deleteUser } from 'firebase/auth';
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
+import { onAuthStateChanged, deleteUser } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js';
 
 // No direct imports for FirebaseUI as it's typically loaded as a global via CDN,
 // but it will consume our modular 'auth' instance.

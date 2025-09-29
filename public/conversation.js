@@ -7,10 +7,12 @@
 import { auth, functions } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
 
 // Import specific functions from the Firebase Authentication SDK.
-import { onAuthStateChanged } from 'firebase/auth';
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js';
 
 // Import specific functions from the Firebase Functions SDK.
-import { httpsCallable } from 'firebase/functions';
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
+import { httpsCallable } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-functions.js';
 
 
 // Get references to DOM elements

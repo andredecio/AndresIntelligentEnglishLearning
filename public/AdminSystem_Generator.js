@@ -6,7 +6,8 @@
 import { functions, db, getDocument } from './firebase-services.js'; // 'db' and 'getDocument' are needed for re-fetching user profile
 
 // Import specific functions from the Firebase Functions SDK.
-import { httpsCallable } from 'firebase/functions';
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
+import { httpsCallable } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-functions.js';
 
 // Import UI utility functions.
 import { showAlert, showErrorPopup, showSpinner, hideSpinner } from './ui-utilities.js'; // Corrected showAlert import

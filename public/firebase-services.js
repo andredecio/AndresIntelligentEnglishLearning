@@ -3,11 +3,12 @@
 // It should be loaded as a <script type="module"> in your HTML.
 
 // --- 1. Import ALL necessary modular Firebase SDK functions ---
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { getFirestore, collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions'; // Assuming httpsCallable will be used by other modules
-// import { getStorage } from 'firebase/storage'; // Uncomment if you use Cloud Storage for Firebase
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-functions.js"; // Assuming httpsCallable will be used by other modules
+// import { getStorage } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js"; // Uncomment if you use Cloud Storage for Firebase
 
 // --- 2. Your Firebase project configuration ---
 // This is the configuration for your Firebase web app.

@@ -5,21 +5,23 @@
 import { auth, db } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
 
 // Import specific functions from the Firebase Authentication SDK.
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signInAnonymously,
     sendEmailVerification,
     signOut
-} from 'firebase/auth';
+} from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js';
 
 // Import specific functions from the Firebase Firestore SDK.
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
 import {
     collection,
     doc,
     setDoc,
     serverTimestamp // Import serverTimestamp directly
-} from 'firebase/firestore';
+} from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
 
 // Import UI utility functions from ui-utilities.js.
 import { displayError, clearError } from './ui-utilities.js';

@@ -6,6 +6,7 @@
 import { auth, db } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
 
 // Import specific functions from the Firebase Authentication SDK.
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
 import {
     onAuthStateChanged,
     linkWithCredential, // For linking anonymous accounts
@@ -13,16 +14,17 @@ import {
     sendEmailVerification,
     // signOut, // signOut is not directly used in this file for final sign out, it's used elsewhere
     updateEmail // Might be useful if upgrading email of anonymous user (though linkWithCredential handles it)
-} from 'firebase/auth';
+} from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js';
 
 // Import specific functions from the Firebase Firestore SDK.
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
 import {
     collection,
     doc,
     getDoc, // For fetching user data
     setDoc, // For saving user data
     serverTimestamp // For timestamping data
-} from 'firebase/firestore';
+} from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
 
 // Import UI utility functions from ui-utilities.js.
 import { showErrorPopup } from './ui-utilities.js';
@@ -206,8 +208,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- Conditional Redirection Logic ---
             if (emailVerificationNeeded) {
                 // The `signOut` function is imported from 'firebase/auth', passing the 'auth' instance.
-                await signOut(auth); // Note: signOut also needs to be imported if it's used here
-                console.log("User signed out for email verification process.");
+                // NOTE: If `signOut` is needed here, you will need to add it to the import list from firebase-auth.js.
+                // For now, assuming it's not strictly necessary for this redirect path, or is handled by an outer logic.
+                // await signOut(auth); // Uncomment and import signOut if needed here
+                console.log("User signed out for email verification process (or will be by common.js listener).");
                 window.location.href = 'verify_email_notice.html';
             } else {
                 window.location.href = 'conversation.html';

@@ -6,7 +6,8 @@
 import { db } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
 
 // Import specific functions from the Firebase Firestore SDK.
-import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
+import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
 
 // Import UI utility functions.
 import { showAlert } from './ui-utilities.js'; // Assuming showAlert is the only one needed here from ui-utilities.js

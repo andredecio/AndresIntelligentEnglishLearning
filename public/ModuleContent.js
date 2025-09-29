@@ -10,8 +10,9 @@ import { auth, functions } from './firebase-services.js'; // Adjust path if fire
 
 // We import 'onAuthStateChanged' and 'httpsCallable' directly from their respective SDK modules,
 // as these are specific functions that operate on the imported service instances.
-import { onAuthStateChanged } from 'firebase/auth';
-import { httpsCallable } from 'firebase/functions';
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN for these specific function imports.
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js';
+import { httpsCallable } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-functions.js';
 
 // --- Import functions from ui-utilities.js ---
 // ui-utilities.js is modular, so we import its exported showAlert function directly.
@@ -36,9 +37,6 @@ import {
     loadAllAvailableModules,
     setupListView
 } from './ModuleContent_ListView.js';
-
-// No longer wrapped in an IIFE, as ES Modules provide their own scope
-// (function() { // REMOVED: Start IIFE for ModuleContent.js
 
     // --- Global DOM Element References (All main elements for the page) ---
     // These are declared at the module level now, and will be assigned in DOMContentLoaded.
@@ -284,5 +282,3 @@ import {
             }
         });
     });
-
-// REMOVED: End IIFE for ModuleContent.js

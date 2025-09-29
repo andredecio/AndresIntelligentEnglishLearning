@@ -6,7 +6,8 @@
 import { auth } from './firebase-services.js'; // Adjust path if firebase-services.js is elsewhere
 
 // Import specific functions from the Firebase Authentication SDK.
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js';
 
 
 document.addEventListener('DOMContentLoaded', () => {
