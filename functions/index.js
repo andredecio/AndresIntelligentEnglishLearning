@@ -1,11 +1,11 @@
-// functions/index.js Modified today 28/8/25
+// functions/index.js Modified today 26/9/25 Version v1.008
 // --- 1. Module Imports, Firebase Admin SDK Initialization, Gemini Model Initialization, and Schema Definition ---
 
 const functions = require("firebase-functions/v1"); // Main Firebase Functions module MUST BE V1.
 const admin = require('firebase-admin'); // Firebase Admin SDK
 //const { GoogleGenerativeAI } = require('@google/generative-ai'); // Core Google Generative AI SDK (Gemini)
 //const { Schema, ResponseModality } = require('@firebase/ai'); // IMPORT ResponseModality HERE
-const { TextToSpeechClient } = require('@google-cloud/text-to-speech'); 
+const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
 const textToSpeechClient = new TextToSpeechClient();
 
 functions.logger.info('Firebase Functions code deployed: v1.007');  //Post modularisation, Classroom export
@@ -60,11 +60,20 @@ const { createLesson } = require('./logic/createLesson');
 exports.createLesson = createLesson;
 
 
-
-//For Export of Courses into Google Classroom
+// For Export of Courses into Google Classroom
 const { generateCourseForClassroom } = require('./Classroom/generateCourseForClassroom');
 exports.generateCourseForClassroom = generateCourseForClassroom;
 
+
+// --- NEW: Custom Claims Admin Function ---
+// Now requiring it from your new helpers/setAdminClaims.js file
+const { setAdminClaims } = require('./helpers/setAdminClaims');
+exports.setAdminClaims = setAdminClaims;
+
+// --- Your generateModulePdf Function ---
+// Assuming generateModulePdf is still in './logic/generateModulePdf'
+const { generateModulePdf } = require('./logic/generateModulePdf'); // <--- VERIFY THIS PATH AND FILENAME!
+exports.generateModulePdf = generateModulePdf;
 
 
 //HELPERS
@@ -87,18 +96,13 @@ const { generateAudioAndUpload } = require('./helpers/generateAudioAndUpload');
 const { processVocabularyImageGeneration }= require('./helpers/processVocabularyImageGeneration');
 
 
-
-
 //TRIGGER FROM USER DELETE ACCOUNT
 //Set to 'deleted' in user record triggered by delete action by User
 const { markUserAsDeletedInFirestore }= require('./triggers/markUserAsDeletedInFirestore');
 exports.markUserAsDeletedInFirestore = markUserAsDeletedInFirestore;
 
 
-
-
-
-//  Freeze Exports ---
+// Freeze Exports ---
 // This prevents accidental modifications to the exports object during runtime,
 // ensuring a stable execution environment for all exported functions.
 // This line should be the very last line in your functions/index.js file.
