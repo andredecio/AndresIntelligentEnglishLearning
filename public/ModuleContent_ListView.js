@@ -1,4 +1,4 @@
-// js/ModuleContent_ListView.js (FULLY MODULARIZED AND CORRECTED)
+// js/ModuleContent_ListView.js version v1.008 Removed one too many scan of learningContent
 // Handles displaying, filtering, and navigating through module lists.
 
 // --- Import necessary Firebase modules ---
@@ -449,7 +449,7 @@ export async function loadAllAvailableModules() { // Exported
     try {
         const allFetchedModules = []; // This is the local array for *this* function.
 
-        const collectionsToFetch = ['COURSE', 'LESSON', 'learningContent', 'syllables', 'phonemes'];
+        const collectionsToFetch = ['COURSE', 'LESSON', 'syllables', 'phonemes'];
 
         for (const colName of collectionsToFetch) {
             // MODULAR SDK CHANGE: Use collection() and getDocs()
