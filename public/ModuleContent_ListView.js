@@ -358,7 +358,7 @@ export function renderModuleListItem(moduleData, level, currentModuleIds, parent
 /**
  * Fetches and renders child modules for a given parent.
  */
-export async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selectedModuleIds, parentModuleType) { // Exported
+export async function fetchAndRenderChildren(parentId, childIds, level, parentLi, selectedModuleIds, parentModuleType) {
     console.log(`--- fetchAndRenderChildren called for parent: ${parentId} (Type: ${parentModuleType}), level: ${level} ---`);
     console.log(`Child IDs to fetch:`, childIds);
 
@@ -375,30 +375,63 @@ export async function fetchAndRenderChildren(parentId, childIds, level, parentLi
         let docSnap = null;
         let collectionsToSearch = [];
 
-        if (parentModuleType === 'SYLLABLE') {
-            collectionsToSearch = ['phonemes'];
-        } else if (parentModuleType === 'COURSE') {
-            collectionsToSearch = ['LESSON'];
-        } else if (parentModuleType === 'LESSON') {
-             collectionsToSearch = ['learningContent', 'VOCABULARY_GROUP', 'VOCABULARY'];
+        // --- IMPROVED LOGIC FOR collectionsToSearch BASED ON parentModuleType ---
+        switch (parentModuleType) {
+            case 'COURSE':
+                // COURSE parents only have LESSON children.
+                collectionsToSearch = ['LESSON'];
+                break;
+            case 'LESSON':
+                // LESSON parents have children like VOCABULARY_GROUP, VOCABULARY, GRAMMAR, etc.,
+                // all of which reside in the 'learningContent' collection according to your structure.
+                collectionsToSearch = ['learningContent'];
+                break;
+            case 'VOCABULARY':
+                // As per your clarification: VOCABULARY parents only have SYLLABLE children,
+                // which are stored in the 'syllables' collection.
+                collectionsToSearch = ['syllables'];
+                break;
+            case 'SYLLABLE':
+                // As per your clarification: SYLLABLE parents only have PHONEME children,
+                // which are stored in the 'phonemes' collection.
+                collectionsToSearch = ['phonemes'];
+                break;
+            // For other 'learningContent' module types (SEMANTIC_GROUP, VOCABULARY_GROUP, GRAMMAR, etc.),
+            // their children are typically also other 'learningContent' types.
+            case 'SEMANTIC_GROUP':
+            case 'VOCABULARY_GROUP':
+            case 'GRAMMAR':
+            case 'CONVERSATION':
+            case 'READING-WRITING':
+            case 'LISTENINGSPEAKING':
+                collectionsToSearch = ['learningContent'];
+                break;
+            default:
+                // Fallback for any unexpected or unhandled parent types.
+                // You might want to log a warning here if you don't expect this to be hit often.
+                console.warn(`DEBUG: Unhandled parentModuleType '${parentModuleType}'. Using a broad search for children.`);
+                collectionsToSearch = ['learningContent', 'syllables', 'phonemes', 'COURSE', 'LESSON'];
+                break;
         }
-        else {
-            collectionsToSearch = ['learningContent', 'syllables', 'phonemes', 'COURSE', 'LESSON'];
-        }
+        // --- END IMPROVED LOGIC ---
 
         try {
             for (const col of collectionsToSearch) {
-                // MODULAR SDK CHANGE: Use doc() and getDoc()
                 const docRef = doc(db, col, childId);
                 docSnap = await getDoc(docRef);
+
+                // The defensive check for !childData is good practice,
+                // but with the improved logic, it should rarely (if ever) be triggered for existing documents.
                 if (docSnap.exists) {
                     const childData = docSnap.data();
- // --- THIS IS THE CRUCIAL DEFENSIVE CHECK ---
+
                     if (!childData) {
+                        // This indicates a deeper problem with the Firestore SDK if docSnap.exists is true
+                        // but data() is undefined. It should be very rare with the improved logic.
                         console.warn(`DEBUG (fetchAndRenderChildren): Document '${childId}' in collection '${col}' exists but docSnap.data() returned undefined. This is highly unexpected. Skipping this child.`);
-                        return null; // Skip this child if data is unexpectedly undefined
+                        return null;
                     }
-                    // --- END OF DEFENSIVE CHECK ---					
+
                     const inferredModuleType = childData.MODULETYPE || getSingularModuleTypeFromCollection(col);
                     console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} found in '${col}', inferred MODULETYPE: ${inferredModuleType}.`);
                     return {
@@ -410,11 +443,12 @@ export async function fetchAndRenderChildren(parentId, childIds, level, parentLi
                 }
             }
             console.warn(`DEBUG: Child module with ID ${childId} not found in any expected collection for parent type ${parentModuleType}.`);
-            showAlert(statusMessageSpan, statusAlert, `Child module ${childId} not found in appropriate collection for parent type ${parentModuleType}.`, true); // Use imported 'showAlert'
+            showAlert(statusMessageSpan, statusAlert, `Child module ${childId} not found in appropriate collection for parent type ${parentModuleType}.`, true);
             return null;
         } catch (error) {
             console.error(`DEBUG: Error fetching child ${childId} for parent type ${parentModuleType}:`, error);
-            showAlert(statusMessageSpan, statusAlert, `Permission denied for child module ${childId}. Check Firestore Rules.`, true); // Use imported 'showAlert'
+            const errorMessage = (error.code === 'permission-denied') ? `Permission denied for child module ${childId}. Check Firestore Rules.` : `Error loading child module ${childId}: ${error.message}.`;
+            showAlert(statusMessageSpan, statusAlert, errorMessage, true);
             return null;
         }
     });
@@ -444,7 +478,6 @@ export async function fetchAndRenderChildren(parentId, childIds, level, parentLi
         console.log(`DEBUG: Children rendered for parent ${parentId}.`);
     }
 }
-
 /**
  * Loads all relevant modules for the larger available modules list.
  */
