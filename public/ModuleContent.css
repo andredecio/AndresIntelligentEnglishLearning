@@ -36,7 +36,7 @@ body > #statusAlert {
     gap: 20px; /* Space between the two columns */
     margin-top: 20px;
     flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
-    min-height: 0; /* Important for flex containers when they contain scrollable content or grow */
+    min-height: 0; /* CRITICAL: Allows this flex container to properly manage vertical space */
 }
 
 /* --- Styling for the single record view (left column) --- */
@@ -50,7 +50,7 @@ body > #statusAlert {
     box-sizing: border-box;
     display: flex; /* Makes this column a flex container */
     flex-direction: column; /* Stacks its internal content vertically */
-    min-height: 0; /* Important: Allows this flex item to shrink and contain scrollable content */
+    min-height: 0; /* CRITICAL: Allows this flex item to shrink and contain scrollable content */
 }
 
 .single-record-view h2 {
@@ -99,7 +99,7 @@ body > #statusAlert {
 /* --- Filter controls (for moduleTypeFilter) --- */
 .filter-controls {
     margin-bottom: 20px; /* Adjust as needed */
-    flex-shrink: 0; /* Prevent this section from shrinking */
+    flex-shrink: 0; /* Ensures this fixed-height section doesn't try to grow */
 }
 
 /* --- Form styling within the single record view --- */
@@ -109,15 +109,14 @@ body > #statusAlert {
     flex-grow: 1; /* Allows the form to take remaining vertical space within .single-record-view */
     display: flex; /* Makes the form a flex container */
     flex-direction: column; /* Stacks its elements vertically */
-    min-height: 0; /* Important: Allows this flex item to shrink and contain scrollable content */
+    min-height: 0; /* CRITICAL: Allows this flex item to shrink and contain scrollable content */
 }
 
 /* Ensure form elements and labels don't stretch */
 .record-form label,
 .record-form input[type="text"],
-.record-form textarea:not(.scrollable-textarea), /* Exclude if you want internal scroll, handled below */
 .record-form select,
-.record-form .form-group,
+.record-form .form-group, /* Explicitly adding form-group here */
 .record-form .actions {
     flex-shrink: 0;
 }
@@ -151,6 +150,7 @@ body > #statusAlert {
     flex-grow: 1; /* Allows it to take remaining space if not enough other content */
     overflow-y: auto; /* Adds internal scroll for its own content */
     margin-bottom: 15px; /* Add margin back */
+    flex-shrink: 1; /* Allow it to shrink if needed (default for flex-grow:1 is flex-shrink:1) */
 }
 
 /* Form actions (Save/Delete buttons) */
@@ -188,7 +188,7 @@ body > #statusAlert {
     flex-grow: 1; /* Allows this section to take remaining vertical space in its parent (.record-form or .single-record-view) */
     display: flex; /* Make this section a flex container */
     flex-direction: column; /* Stacks its children vertically */
-    min-height: 0; /* Important: Allows this flex item to shrink and contain scrollable content */
+    min-height: 0; /* CRITICAL: Allows this flex item to shrink and contain scrollable content */
 }
 
 .current-children-list h3 {
@@ -231,7 +231,7 @@ body > #statusAlert {
     box-sizing: border-box;
     display: flex; /* Makes this column a flex container */
     flex-direction: column; /* Stacks its internal content vertically */
-    min-height: 0; /* Important: Allows this flex item to shrink and contain scrollable content */
+    min-height: 0; /* CRITICAL: Allows this flex item to shrink and contain scrollable content */
 }
 
 .larger-list-view h2 {
