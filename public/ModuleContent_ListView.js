@@ -398,7 +398,7 @@ export async function fetchAndRenderChildren(parentId, childIds, level, parentLi
                 break;
 			case 'SEMANTIC_GROUP':
                 // SEMANTIC_GROUP parents  have LearnigContnet and potentially PHONEME/SYLLABLE children,
-                collectionsToSearch = ['syllables', 'phonemes', 'learningContent'];
+                collectionsToSearch = ['phonemes', 'syllables', 'learningContent'];
                 break;
             // For other 'learningContent' module types ( VOCABULARY_GROUP, GRAMMAR, etc.),
             // their children are typically also other 'learningContent' types.
