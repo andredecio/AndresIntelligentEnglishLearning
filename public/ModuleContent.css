@@ -1,24 +1,26 @@
 /* ModuleContent.css - Specific styles for ModuleContent.html */
 
-/* --- General Utilities & Global Elements --- */
-html {
-    height: 100%; /* Ensures html element takes full viewport height */
+/* --- Fundamental Flexbox Setup: Make body full height and manage main sections --- */
+html, body {
+    height: 100%; /* Ensures HTML and BODY take full viewport height */
+    margin: 0;
+    padding: 0; /* Remove default body padding to precisely control layout */
 }
 
 body {
     font-family: Arial, sans-serif;
-    margin: 0;
-    /* Adjust padding to surround the entire content area, not just inside */
-    padding: 0 20px 20px 20px; /* Top 0, Right 20, Bottom 20, Left 20 */
     background-color: #f4f7f6;
     color: #333;
-    height: 100%; /* Make body fill viewport height */
-    display: flex; /* Make body a flex container */
-    flex-direction: column; /* Stack children vertically */
+    display: flex; /* Makes body a flex container */
+    flex-direction: column; /* Stacks children (h1, login, content-wrapper, alert) vertically */
+    padding: 20px; /* Add padding here to surround the whole page content */
+    box-sizing: border-box; /* Include padding in body's total height */
 }
 
-/* Ensure header, login info, and alert don't take up more space than needed */
-h1, #login-info, #statusAlert {
+/* Ensure fixed-height elements don't stretch */
+body > h1,
+body > #login-info,
+body > #statusAlert {
     flex-shrink: 0;
 }
 
@@ -28,37 +30,37 @@ h1, #login-info, #statusAlert {
 
 /* --- Main Layout for the two-column structure --- */
 .content-wrapper {
-    display: flex;
-    flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
+    display: flex; /* Makes this the flex container for the two main columns */
+    flex-grow: 1; /* Allows the content-wrapper to fill all available vertical space in the body */
+    align-items: stretch; /* CRITICAL: Makes direct flex children (single-record-view & larger-list-view) match height */
     gap: 20px; /* Space between the two columns */
     margin-top: 20px;
-    /* Remove padding: 0 20px; as body padding handles overall spacing */
-    flex-grow: 1; /* Allows content-wrapper to take all available vertical space */
-    align-items: stretch; /* CRUCIAL: Makes direct flex children (your two columns) match height */
-    min-height: 0; /* Important for flex containers that grow and contain scrollable elements */
+    flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
+    min-height: 0; /* Important for flex containers when they contain scrollable content or grow */
 }
 
-/* --- Styling for the single record view (left/top column) --- */
+/* --- Styling for the single record view (left column) --- */
 .single-record-view {
-    flex: 1; /* Allows it to grow and shrink horizontally */
+    flex: 1; /* Allows it to grow and shrink horizontally, takes equal share (or 1 part) */
     min-width: 300px; /* Minimum width before wrapping */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-    display: flex; /* Make this column a flex container */
-    flex-direction: column; /* Stack its children vertically */
+    box-sizing: border-box;
+    display: flex; /* Makes this column a flex container */
+    flex-direction: column; /* Stacks its internal content vertically */
+    min-height: 0; /* Important: Allows this flex item to shrink and contain scrollable content */
 }
 
 .single-record-view h2 {
-    color: #007bff; /* A nice blue for the section heading */
+    color: #007bff;
     margin-top: 0;
     margin-bottom: 20px;
     text-align: center;
     border-bottom: 1px solid #eee;
     padding-bottom: 15px;
-    flex-shrink: 0; /* Prevent this header from shrinking */
+    flex-shrink: 0; /* Prevents this fixed-height header from shrinking */
 }
 
 /* --- Record navigation buttons (Prev, New, Next) --- */
@@ -66,19 +68,19 @@ h1, #login-info, #statusAlert {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
-    flex-shrink: 0; /* Prevent this section from shrinking */
+    flex-shrink: 0; /* Prevents this section from shrinking */
 }
 
 .record-navigation button {
     flex: 1;
     margin: 0 5px;
-    background-color: #6c757d; /* Grey for navigation buttons */
-    padding: 10px 15px; /* Added padding */
-    border: none; /* Added border reset */
-    border-radius: 4px; /* Added border-radius */
-    cursor: pointer; /* Added cursor */
-    font-size: 1em; /* Added font-size */
-    transition: background-color 0.2s ease; /* Added transition */
+    background-color: #6c757d;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
 }
 
 .record-navigation button:hover:not(:disabled) {
@@ -94,27 +96,31 @@ h1, #login-info, #statusAlert {
 .record-navigation button:first-child { margin-left: 0; }
 .record-navigation button:last-child { margin-right: 0; }
 
+/* --- Filter controls (for moduleTypeFilter) --- */
+.filter-controls {
+    margin-bottom: 20px; /* Adjust as needed */
+    flex-shrink: 0; /* Prevent this section from shrinking */
+}
+
 /* --- Form styling within the single record view --- */
 .record-form {
     padding: 0;
     margin: 0;
-    flex-grow: 1; /* Allow the form to take remaining vertical space within .single-record-view */
-    display: flex; /* Make the form a flex container */
-    flex-direction: column; /* Stack its elements vertically */
-    min-height: 0; /* Essential for flex item that grows and has scrollable content */
+    flex-grow: 1; /* Allows the form to take remaining vertical space within .single-record-view */
+    display: flex; /* Makes the form a flex container */
+    flex-direction: column; /* Stacks its elements vertically */
+    min-height: 0; /* Important: Allows this flex item to shrink and contain scrollable content */
 }
 
-/* Ensure form elements within .record-form don't take up too much vertical space */
+/* Ensure form elements and labels don't stretch */
 .record-form label,
 .record-form input[type="text"],
-.record-form textarea,
+.record-form textarea:not(.scrollable-textarea), /* Exclude if you want internal scroll, handled below */
 .record-form select,
-.record-form .actions,
 .record-form .form-group,
-.filter-controls { /* Added filter-controls here as it's a direct child of single-record-view */
+.record-form .actions {
     flex-shrink: 0;
 }
-
 
 .record-form label {
     display: block;
@@ -122,12 +128,12 @@ h1, #login-info, #statusAlert {
     margin-top: 15px;
     font-weight: bold;
     color: #555;
-    line-height: 1.5; /* Ensure reasonable line height */
+    line-height: 1.5;
 }
 
 .record-form input[type="text"],
 .record-form textarea,
-.record-form select { /* Added select for consistency */
+.record-form select {
     width: calc(100% - 24px); /* Account for padding and border */
     padding: 12px;
     margin-bottom: 15px;
@@ -135,12 +141,16 @@ h1, #login-info, #statusAlert {
     border-radius: 6px;
     box-sizing: border-box;
     font-size: 1em;
-    line-height: 1.5; /* Ensure reasonable line height */
+    line-height: 1.5;
 }
 
-.record-form textarea {
+/* Specific styling for the description textarea if it's meant to scroll */
+.record-form textarea.scrollable-textarea {
     resize: vertical; /* Allow vertical resizing */
     min-height: 80px;
+    flex-grow: 1; /* Allows it to take remaining space if not enough other content */
+    overflow-y: auto; /* Adds internal scroll for its own content */
+    margin-bottom: 15px; /* Add margin back */
 }
 
 /* Form actions (Save/Delete buttons) */
@@ -153,39 +163,39 @@ h1, #login-info, #statusAlert {
 
 .record-form .actions button {
     flex: 1;
-    margin: 0; /* Override common.css margin */
-    padding: 10px 15px; /* Ensure padding */
-    border: none; /* Ensure no border */
-    border-radius: 4px; /* Ensure border-radius */
-    cursor: pointer; /* Ensure cursor */
-    font-size: 1em; /* Ensure font-size */
-    transition: background-color 0.2s ease; /* Ensure transition */
+    margin: 0;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
 }
 
 .record-form .actions .delete-btn {
-    background-color: #dc3545; /* Red for delete button */
+    background-color: #dc3545;
 }
 
 .record-form .actions .delete-btn:hover {
     background-color: #c82333;
 }
 
-/* --- Current children list styling --- */
+/* --- Current children list styling (left panel) --- */
 .current-children-list {
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid #eee;
-    flex-grow: 1; /* Allows this section to grow */
+    flex-grow: 1; /* Allows this section to take remaining vertical space in its parent (.record-form or .single-record-view) */
     display: flex; /* Make this section a flex container */
-    flex-direction: column; /* Stack its children vertically */
-    min-height: 0; /* Essential for flex item that grows and has scrollable content */
+    flex-direction: column; /* Stacks its children vertically */
+    min-height: 0; /* Important: Allows this flex item to shrink and contain scrollable content */
 }
 
 .current-children-list h3 {
     font-size: 1.3em;
     color: #007bff;
     margin-top: 0;
-    flex-shrink: 0; /* Prevent header from shrinking */
+    flex-shrink: 0; /* Prevents this fixed-height header from shrinking */
 }
 
 #currentChildrenDisplay {
@@ -193,16 +203,16 @@ h1, #login-info, #statusAlert {
     list-style: none;
     padding: 2px;
     margin: 2px;
-    flex-grow: 1; /* Allow the UL to take all remaining vertical space within its parent */
-    overflow-y: auto; /* Add vertical scrollbar if content overflows */
-    min-height: 0; /* Essential for scrollable flex items */
+    flex-grow: 1; /* CRITICAL: Allows this UL to take all remaining vertical space within its parent */
+    overflow-y: auto; /* CRITICAL: Adds vertical scrollbar if content overflows */
+    min-height: 0; /* CRITICAL: Essential for scrollable flex items */
 }
 
 #currentChildrenDisplay li {
     padding: 8px 0;
     border-bottom: 1px dashed #eee;
     color: #666;
-    line-height: 1.0; /* Adjusted for better spacing */
+    line-height: 1.0;
 }
 
 #currentChildrenDisplay li:last-child {
@@ -210,27 +220,28 @@ h1, #login-info, #statusAlert {
 }
 
 
-/* --- Styling for the larger module list view (right/bottom column) --- */
+/* --- Styling for the larger module list view (right column) --- */
 .larger-list-view {
-    flex: 2; /* Allows it to take up more space horizontally */
+    flex: 2; /* Allows it to take up more space horizontally (2 parts vs left's 1 part) */
     min-width: 400px; /* Minimum width before wrapping */
     background-color: #ffffff;
     padding: 25px;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
-    display: flex; /* Make this column a flex container */
-    flex-direction: column; /* Stack its children vertically */
+    display: flex; /* Makes this column a flex container */
+    flex-direction: column; /* Stacks its internal content vertically */
+    min-height: 0; /* Important: Allows this flex item to shrink and contain scrollable content */
 }
 
 .larger-list-view h2 {
-    color: #28a745; /* Green for the section heading */
+    color: #28a745;
     margin-top: 0;
     margin-bottom: 20px;
     text-align: center;
     border-bottom: 1px solid #eee;
     padding-bottom: 15px;
-    flex-shrink: 0; /* Prevent this header from shrinking */
+    flex-shrink: 0; /* Prevents this fixed-height header from shrinking */
 }
 
 /* --- Filter and search bar --- */
@@ -239,8 +250,8 @@ h1, #login-info, #statusAlert {
     gap: 10px;
     margin-bottom: 20px;
     align-items: center;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    flex-shrink: 0; /* Prevent this section from shrinking */
+    flex-wrap: wrap;
+    flex-shrink: 0; /* Prevents this section from shrinking */
 }
 
 .module-filter-search select,
@@ -250,7 +261,7 @@ h1, #login-info, #statusAlert {
     border-radius: 6px;
     font-size: 1em;
     flex: 1;
-    min-width: 150px; /* Ensure inputs don't become too small */
+    min-width: 150px;
 }
 
 /* --- Module List Styling --- */
@@ -258,13 +269,12 @@ h1, #login-info, #statusAlert {
     list-style: none;
     padding: 0;
     margin: 0;
-    /* max-height: 600px; - REMOVED: flex-grow will handle height */
-    overflow-y: auto; /* Make the list scrollable if it gets too long */
+    flex-grow: 1; /* CRITICAL: Allows this UL to take all remaining vertical space within its parent */
+    overflow-y: auto; /* CRITICAL: Adds vertical scrollbar if content overflows */
     border: 1px solid #eee;
     border-radius: 6px;
     background-color: #fcfcfc;
-    flex-grow: 1; /* CRUCIAL: Allow this UL to take all remaining vertical space */
-    min-height: 0; /* Essential for flex items with overflow-y: auto */
+    min-height: 0; /* CRITICAL: Essential for scrollable flex items */
 }
 
 /* Individual module list item (li) */
@@ -272,7 +282,7 @@ h1, #login-info, #statusAlert {
     padding: 8px 10px;
     border-bottom: 1px solid #eee;
     display: flex;
-    align-items: flex-start; /* Align checkbox to top of content */
+    align-items: flex-start;
     transition: background-color 0.2s ease;
     font-size: 0.85em;
     line-height: 1.3;
@@ -287,9 +297,9 @@ h1, #login-info, #statusAlert {
 }
 
 .module-item.selected {
-    background-color: #e0f7fa; /* Light blue background for selected items */
+    background-color: #e0f7fa;
     border-left: 5px solid #007bff;
-    padding-left: 5px; /* Adjust padding due to border-left */
+    padding-left: 5px;
 }
 
 .module-item input[type="checkbox"] {
@@ -473,14 +483,17 @@ h1, #login-info, #statusAlert {
 @media (max-width: 768px) {
     .content-wrapper {
         flex-direction: column;
-        padding: 0; /* Remove padding here, handled by individual blocks */
+        padding: 0; /* Remove padding here, as individual blocks will have it */
         gap: 15px; /* Adjust gap for smaller screens */
+    }
+    body {
+        padding: 10px; /* Reduce overall body padding on small screens */
     }
     .single-record-view,
     .larger-list-view {
         min-width: unset;
         width: 100%;
-        padding: 15px;
+        padding: 15px; /* Adjust padding for blocks on small screens */
     }
     .record-form input[type="text"],
     .record-form textarea,
@@ -513,4 +526,3 @@ h1, #login-info, #statusAlert {
         justify-content: flex-end;
     }
 }
-
