@@ -396,9 +396,12 @@ export async function fetchAndRenderChildren(parentId, childIds, level, parentLi
                 // which are stored in the 'phonemes' collection.
                 collectionsToSearch = ['phonemes'];
                 break;
-            // For other 'learningContent' module types (SEMANTIC_GROUP, VOCABULARY_GROUP, GRAMMAR, etc.),
+			case 'SEMANTIC_GROUP':
+                // SEMANTIC_GROUP parents  have LearnigContnet and potentially PHONEME/SYLLABLE children,
+                collectionsToSearch = ['learningContent', 'syllables', 'phonemes'];
+                break;
+            // For other 'learningContent' module types ( VOCABULARY_GROUP, GRAMMAR, etc.),
             // their children are typically also other 'learningContent' types.
-            case 'SEMANTIC_GROUP':
             case 'VOCABULARY_GROUP':
             case 'GRAMMAR':
             case 'CONVERSATION':
