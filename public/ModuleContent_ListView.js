@@ -393,6 +393,12 @@ export async function fetchAndRenderChildren(parentId, childIds, level, parentLi
                 docSnap = await getDoc(docRef);
                 if (docSnap.exists) {
                     const childData = docSnap.data();
+ // --- THIS IS THE CRUCIAL DEFENSIVE CHECK ---
+                    if (!childData) {
+                        console.warn(`DEBUG (fetchAndRenderChildren): Document '${childId}' in collection '${col}' exists but docSnap.data() returned undefined. This is highly unexpected. Skipping this child.`);
+                        return null; // Skip this child if data is unexpectedly undefined
+                    }
+                    // --- END OF DEFENSIVE CHECK ---					
                     const inferredModuleType = childData.MODULETYPE || getSingularModuleTypeFromCollection(col);
                     console.log(`DEBUG (fetchAndRenderChildren): Child ${childId} found in '${col}', inferred MODULETYPE: ${inferredModuleType}.`);
                     return {
