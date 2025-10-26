@@ -1,23 +1,25 @@
 /* ModuleContent.css - Specific styles for ModuleContent.html */
 
-/* --- Fundamental Flexbox Setup: Make body full height and manage main sections --- */
-html, body {
-    height: 100%; /* Ensures HTML and BODY take full viewport height */
-    margin: 0;
-    padding: 0; /* Remove default body padding to precisely control layout */
+/* --- General Utilities & Global Elements (can be merged with other global CSS) --- */
+html {
+    height: 100%; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
 }
 
 body {
     font-family: Arial, sans-serif;
+    /* margin: 0; (moved below) */
+    /* padding: 20px; (modified below) */
     background-color: #f4f7f6;
     color: #333;
-    display: flex; /* Makes body a flex container */
-    flex-direction: column; /* Stacks children (h1, login, content-wrapper, alert) vertically */
-    padding: 20px; /* Add padding here to surround the whole page content */
-    box-sizing: border-box; /* Include padding in body's total height */
+    height: 100%; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
+    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
+    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
+    margin: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - ensures no default margin */
+    padding: 20px; /* MODIFIED FOR FLEXBOX HEIGHT MATCHING - moved here */
+    box-sizing: border-box; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
 }
 
-/* Ensure fixed-height elements don't stretch */
+/* ADDED FOR FLEXBOX HEIGHT MATCHING - Ensure fixed-height elements at the top don't cause content-wrapper to shrink */
 body > h1,
 body > #login-info,
 body > #statusAlert {
@@ -30,37 +32,38 @@ body > #statusAlert {
 
 /* --- Main Layout for the two-column structure --- */
 .content-wrapper {
-    display: flex; /* Makes this the flex container for the two main columns */
-    flex-grow: 1; /* Allows the content-wrapper to fill all available vertical space in the body */
-    align-items: stretch; /* CRITICAL: Makes direct flex children (single-record-view & larger-list-view) match height */
+    display: flex;
+    flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
     gap: 20px; /* Space between the two columns */
     margin-top: 20px;
-    flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
-    min-height: 0; /* CRITICAL: Allows this flex container to properly manage vertical space */
+    /* padding: 0 20px; (removed for flexbox, handled by body padding) */
+    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows content-wrapper to fill all available vertical space */
+    align-items: stretch; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Makes direct flex children match height */
+    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex container to properly manage vertical space */
 }
 
-/* --- Styling for the single record view (left column) --- */
+/* --- Styling for the single record view (left/top column) --- */
 .single-record-view {
-    flex: 1; /* Allows it to grow and shrink horizontally, takes equal share (or 1 part) */
+    flex: 1; /* Allows it to grow and shrink */
     min-width: 300px; /* Minimum width before wrapping */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-    display: flex; /* Makes this column a flex container */
-    flex-direction: column; /* Stacks its internal content vertically */
-    min-height: 0; /* CRITICAL: Allows this flex item to shrink and contain scrollable content */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Makes this column a flex container */
+    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Stacks its internal content vertically */
+    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex item to shrink and contain scrollable content */
 }
 
 .single-record-view h2 {
-    color: #007bff;
+    color: #007bff; /* A nice blue for the section heading */
     margin-top: 0;
     margin-bottom: 20px;
     text-align: center;
     border-bottom: 1px solid #eee;
     padding-bottom: 15px;
-    flex-shrink: 0; /* Prevents this fixed-height header from shrinking */
+    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this header from shrinking */
 }
 
 /* --- Record navigation buttons (Prev, New, Next) --- */
@@ -68,19 +71,19 @@ body > #statusAlert {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
-    flex-shrink: 0; /* Prevents this section from shrinking */
+    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this section from shrinking */
 }
 
 .record-navigation button {
     flex: 1;
     margin: 0 5px;
-    background-color: #6c757d;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
+    background-color: #6c757d; /* Grey for navigation buttons */
+    padding: 10px 15px; /* Added padding */
+    border: none; /* Added border reset */
+    border-radius: 4px; /* Added border-radius */
+    cursor: pointer; /* Added cursor */
+    font-size: 1em; /* Added font-size */
+    transition: background-color 0.2s ease; /* Added transition */
 }
 
 .record-navigation button:hover:not(:disabled) {
@@ -96,23 +99,23 @@ body > #statusAlert {
 .record-navigation button:first-child { margin-left: 0; }
 .record-navigation button:last-child { margin-right: 0; }
 
-/* --- Filter controls (for moduleTypeFilter) --- */
+/* ADDED FOR FLEXBOX HEIGHT MATCHING - Filter controls (for moduleTypeFilter) */
 .filter-controls {
-    margin-bottom: 20px; /* Adjust as needed */
-    flex-shrink: 0; /* Ensures this fixed-height section doesn't try to grow */
+    flex-shrink: 0;
+    margin-bottom: 20px; /* Keeps existing margin */
 }
 
 /* --- Form styling within the single record view --- */
 .record-form {
-    padding: 0;
+    padding: 0; /* Adjusted from 1px 0 */
     margin: 0;
-    flex-grow: 1; /* Allows the form to take remaining vertical space within .single-record-view */
-    display: flex; /* Makes the form a flex container */
-    flex-direction: column; /* Stacks its elements vertically */
-    min-height: 0; /* CRITICAL: Allows this flex item to shrink and contain scrollable content */
+    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows the form to take remaining vertical space */
+    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Makes the form a flex container */
+    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Stacks its elements vertically */
+    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex item to shrink and contain scrollable content */
 }
 
-/* Ensure form elements and labels don't stretch */
+/* ADDED FOR FLEXBOX HEIGHT MATCHING - Ensure individual fixed-height form elements don't cause issues */
 .record-form label,
 .record-form input[type="text"],
 .record-form select,
@@ -127,12 +130,12 @@ body > #statusAlert {
     margin-top: 15px;
     font-weight: bold;
     color: #555;
-    line-height: 1.5;
+    line-height: 1.5; /* Ensure reasonable line height */
 }
 
 .record-form input[type="text"],
 .record-form textarea,
-.record-form select {
+.record-form select { /* Added select for consistency */
     width: calc(100% - 24px); /* Account for padding and border */
     padding: 12px;
     margin-bottom: 15px;
@@ -140,17 +143,25 @@ body > #statusAlert {
     border-radius: 6px;
     box-sizing: border-box;
     font-size: 1em;
-    line-height: 1.5;
+    line-height: 1.5; /* Ensure reasonable line height */
 }
 
 /* Specific styling for the description textarea if it's meant to scroll */
-.record-form textarea.scrollable-textarea {
+.record-form textarea.scrollable-textarea { /* MODIFIED FOR FLEXBOX HEIGHT MATCHING */
     resize: vertical; /* Allow vertical resizing */
     min-height: 80px;
-    flex-grow: 1; /* Allows it to take remaining space if not enough other content */
-    overflow-y: auto; /* Adds internal scroll for its own content */
-    margin-bottom: 15px; /* Add margin back */
-    flex-shrink: 1; /* Allow it to shrink if needed (default for flex-grow:1 is flex-shrink:1) */
+    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows it to take remaining space if not enough other content */
+    overflow-y: auto; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Adds internal scroll for its own content */
+    flex-shrink: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows it to shrink if needed (default for flex-grow:1 is flex-shrink:1) */
+    margin-bottom: 15px; /* MODIFIED FOR FLEXBOX HEIGHT MATCHING - ensure margin is present */
+    /* Other existing styles for the textarea */
+    width: calc(100% - 24px);
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    line-height: 1.5;
 }
 
 /* Form actions (Save/Delete buttons) */
@@ -163,56 +174,56 @@ body > #statusAlert {
 
 .record-form .actions button {
     flex: 1;
-    margin: 0;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
+    margin: 0; /* Override common.css margin */
+    padding: 10px 15px; /* Ensure padding */
+    border: none; /* Ensure no border */
+    border-radius: 4px; /* Ensure border-radius */
+    cursor: pointer; /* Ensure cursor */
+    font-size: 1em; /* Ensure font-size */
+    transition: background-color 0.2s ease; /* Ensure transition */
 }
 
 .record-form .actions .delete-btn {
-    background-color: #dc3545;
+    background-color: #dc3545; /* Red for delete button */
 }
 
 .record-form .actions .delete-btn:hover {
     background-color: #c82333;
 }
 
-/* --- Current children list styling (left panel) --- */
+/* --- Current children list styling --- */
 .current-children-list {
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid #eee;
-    flex-grow: 1; /* Allows this section to take remaining vertical space in its parent (.record-form or .single-record-view) */
-    display: flex; /* Make this section a flex container */
-    flex-direction: column; /* Stacks its children vertically */
-    min-height: 0; /* CRITICAL: Allows this flex item to shrink and contain scrollable content */
+    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows this section to take remaining vertical space */
+    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Make this section a flex container */
+    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Stacks its children vertically */
+    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex item to shrink and contain scrollable content */
 }
 
 .current-children-list h3 {
     font-size: 1.3em;
     color: #007bff;
     margin-top: 0;
-    flex-shrink: 0; /* Prevents this fixed-height header from shrinking */
+    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this header from shrinking */
 }
 
 #currentChildrenDisplay {
-    font-size: 0.5em;
+	  font-size: 0.5em;
     list-style: none;
     padding: 2px;
     margin: 2px;
-    flex-grow: 1; /* CRITICAL: Allows this UL to take all remaining vertical space within its parent */
-    overflow-y: auto; /* CRITICAL: Adds vertical scrollbar if content overflows */
-    min-height: 0; /* CRITICAL: Essential for scrollable flex items */
+    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allow the UL to take all remaining vertical space */
+    overflow-y: auto; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Add vertical scrollbar if content overflows */
+    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Essential for scrollable flex items */
 }
 
 #currentChildrenDisplay li {
     padding: 8px 0;
     border-bottom: 1px dashed #eee;
     color: #666;
-    line-height: 1.0;
+    line-height: 1.0; /* Adjusted for better spacing */
 }
 
 #currentChildrenDisplay li:last-child {
@@ -220,28 +231,28 @@ body > #statusAlert {
 }
 
 
-/* --- Styling for the larger module list view (right column) --- */
+/* --- Styling for the larger module list view (right/bottom column) --- */
 .larger-list-view {
-    flex: 2; /* Allows it to take up more space horizontally (2 parts vs left's 1 part) */
+    flex: 2; /* Allows it to take up more space */
     min-width: 400px; /* Minimum width before wrapping */
     background-color: #ffffff;
-    padding: 25px;
+    padding: 25px; /* Adjusted from 1px 0 */
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
-    display: flex; /* Makes this column a flex container */
-    flex-direction: column; /* Stacks its internal content vertically */
-    min-height: 0; /* CRITICAL: Allows this flex item to shrink and contain scrollable content */
+    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Makes this column a flex container */
+    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Stacks its internal content vertically */
+    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex item to shrink and contain scrollable content */
 }
 
 .larger-list-view h2 {
-    color: #28a745;
+    color: #28a745; /* Green for the section heading */
     margin-top: 0;
     margin-bottom: 20px;
     text-align: center;
     border-bottom: 1px solid #eee;
     padding-bottom: 15px;
-    flex-shrink: 0; /* Prevents this fixed-height header from shrinking */
+    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this header from shrinking */
 }
 
 /* --- Filter and search bar --- */
@@ -250,8 +261,8 @@ body > #statusAlert {
     gap: 10px;
     margin-bottom: 20px;
     align-items: center;
-    flex-wrap: wrap;
-    flex-shrink: 0; /* Prevents this section from shrinking */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this section from shrinking */
 }
 
 .module-filter-search select,
@@ -261,7 +272,7 @@ body > #statusAlert {
     border-radius: 6px;
     font-size: 1em;
     flex: 1;
-    min-width: 150px;
+    min-width: 150px; /* Ensure inputs don't become too small */
 }
 
 /* --- Module List Styling --- */
@@ -269,23 +280,24 @@ body > #statusAlert {
     list-style: none;
     padding: 0;
     margin: 0;
-    flex-grow: 1; /* CRITICAL: Allows this UL to take all remaining vertical space within its parent */
-    overflow-y: auto; /* CRITICAL: Adds vertical scrollbar if content overflows */
+    /* max-height: 600px; (removed, flex-grow will handle height) */
+    overflow-y: auto;
     border: 1px solid #eee;
     border-radius: 6px;
     background-color: #fcfcfc;
-    min-height: 0; /* CRITICAL: Essential for scrollable flex items */
+    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allow this UL to take all remaining vertical space */
+    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Prevents it from dictating its parent's height based on its content */
 }
 
 /* Individual module list item (li) */
 .module-item {
-    padding: 8px 10px;
+    padding: 8px 10px; /* Adjusted padding from 12px 15px */
     border-bottom: 1px solid #eee;
     display: flex;
-    align-items: flex-start;
+    align-items: flex-start; /* Align checkbox to top of content */
     transition: background-color 0.2s ease;
-    font-size: 0.85em;
-    line-height: 1.3;
+    font-size: 0.85em; /* Slightly smaller overall font for list items */
+    line-height: 1.3; /* Optimized line height for list item details */
 }
 
 .module-item:last-child {
@@ -297,86 +309,88 @@ body > #statusAlert {
 }
 
 .module-item.selected {
-    background-color: #e0f7fa;
+    background-color: #e0f7fa; /* Light blue background for selected items */
     border-left: 5px solid #007bff;
-    padding-left: 5px;
+    padding-left: 5px; /* Adjust padding due to border-left */
 }
 
 .module-item input[type="checkbox"] {
     margin-right: 10px;
-    transform: scale(1.1);
-    flex-shrink: 0;
-    margin-top: 4px;
+    transform: scale(1.1); /* Slightly larger checkbox, adjusted from 1.2 */
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+    margin-top: 4px; /* Align checkbox with top of content */
 }
 
 /* Content wrapper within the module item */
 .module-item-content {
     flex-grow: 1;
-    display: block;
+    display: block; /* Changed to block for stacked details */
+    /* Removed align-items: center; gap: 10px; from original */
 }
 
 /* New wrapper for Title and Type to keep them on one line (flex) */
 .module-item-title-wrapper {
     display: flex;
-    align-items: baseline;
-    margin-bottom: 2px;
+    align-items: baseline; /* Align text baselines */
+    margin-bottom: 2px; /* Small space after title/type line */
 }
 
 .module-item-content .title {
     font-weight: bold;
     color: #333;
-    font-size: 1em;
+    font-size: 1em; /* Relative to module-item's font-size */
     line-height: 1.2;
 }
 
 .module-item-content .type {
-    font-size: 0.8em;
+    font-size: 0.8em; /* Relative to title's font-size */
     color: #666;
     background-color: #e9ecef;
-    padding: 1px 4px;
+    padding: 1px 4px; /* Reduced padding */
     border-radius: 3px;
-    margin-left: 8px;
-    line-height: 1;
+    margin-left: 8px; /* Space from title */
+    line-height: 1; /* Tighter line height for badge */
 }
 
 /* New classes for Theme, Description, CEFR details */
 .module-item-detail {
-    font-size: 0.9em;
+    font-size: 0.9em; /* Slightly larger than list item base, smaller than title */
     color: #555;
-    margin-top: 4px;
-    line-height: 1.4;
+    margin-top: 4px; /* Small vertical spacing between detail lines */
+    line-height: 1.4; /* Comfortable line height for details */
 }
 
 .module-item-description {
-   max-height: 100px;
-  	min-height: 0;
-	overflow-y: auto;
-	overflow-x: hidden;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-	flex: 1 1 auto;
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 10px;
-    border: 1px solid #ccc;
+   max-height: 100px; /* Existing. Could be removed if flex-grow handles it fully */
+  	min-height: 0;    /* Existing. */
+	overflow-y: auto; /* Existing. */
+	overflow-x: hidden; /* Existing. */
+    white-space: pre-wrap; /* Ensures that text wraps and preserves line breaks from your data */
+    word-wrap: break-word; /* Prevents long words from overflowing the container */
+	flex: 1 1 auto;   /* Existing. */
+    /* Additional properties you *might* need, depending on your layout: */
+    display: block; /* Ensure it's a block-level element that respects height/width */
+    width: 100%; /* Make sure it takes up available width to trigger wrapping */
+    box-sizing: border-box; /* To ensure padding and border are included in the element's total width/height */
+    padding: 10px; /* Give it a little internal space so text isn't stuck to edges */
+    border: 1px solid #ccc; /* Helps you visualize the container's boundaries for debugging */
 }
 .module-item-description::-webkit-scrollbar {
-  width: 8px;
+  width: 8px;                 /* scrollbar thickness */
 }
 .module-item-description::-webkit-scrollbar-track {
-  background: #f0f8ff;
+  background: #f0f8ff;         /* light background (AliceBlue) */
 }
 
 .module-item-description::-webkit-scrollbar-thumb {
-  background-color: #87cefa;
-  border-radius: 6px;
-  border: 2px solid #f0f8ff;
+  background-color: #87cefa;   /* light sky blue */
+  border-radius: 6px;          /* rounded corners */
+  border: 2px solid #f0f8ff;   /* adds some spacing around */
 }
 .module-item-cefr {
     font-weight: bold;
     color: #329b83e8;
-    font-size: 0.85em;
+    font-size: 0.85em; /* Slightly smaller for CEFR */
 }
 
 /* Original expand toggle and media styles */
@@ -385,18 +399,18 @@ body > #statusAlert {
     font-size: 1.2em;
     color: #007bff;
     margin-left: 10px;
-    user-select: none;
+    user-select: none; /* Prevent text selection on toggle */
     transition: transform 0.2s ease;
-    flex-shrink: 0;
-    margin-top: 4px;
+    flex-shrink: 0; /* Prevent shrinking */
+    margin-top: 4px; /* Align with top of content */
 }
 
 .module-item .expand-toggle.expanded {
-    transform: rotate(90deg);
+    transform: rotate(90deg); /* Rotate arrow when expanded */
 }
 
 /* Indentation for nested modules */
-.module-item.level-1 { padding-left: 30px; }
+.module-item.level-1 { padding-left: 30px; } /* Base indentation */
 .module-item.level-2 { padding-left: 50px; }
 .module-item.level-3 { padding-left: 70px; }
 .module-item.level-4 { padding-left: 90px; }
@@ -408,9 +422,9 @@ body > #statusAlert {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-left: auto;
-    flex-shrink: 0;
-    margin-top: 4px;
+    margin-left: auto; /* Push media to the right */
+    flex-shrink: 0; /* Prevent shrinking */
+    margin-top: 4px; /* Align with top of content */
 }
 
 .module-media img.thumbnail {
@@ -422,7 +436,7 @@ body > #statusAlert {
 }
 
 .module-media .audio-player-btn {
-    background-color: #17a2b8;
+    background-color: #17a2b8; /* Info blue for audio */
     color: white;
     padding: 6px 10px;
     border-radius: 4px;
@@ -447,27 +461,29 @@ body > #statusAlert {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    line-height: 1.5;
+    line-height: 1.5; /* Ensure proper line height */
 }
 
 /* --- Specific styles for inline spinners --- */
 .spinner.spinner-inline {
-    width: 18px;
+    width: 18px; /* Slightly smaller than default */
     height: 18px;
-    border-width: 3px;
-    margin-left: 10px;
-    display: inline-block;
-    vertical-align: middle;
+    border-width: 3px; /* Thinner border */
+    margin-left: 10px; /* Space it out from the toggle/title */
+    display: inline-block; /* Ensure it stays in line with content */
+    vertical-align: middle; /* Align nicely with text */
 }
 
 /* --- Basic styling for the new module type selector --- */
+/* This assumes your CEFR elements are wrapped in a div with class 'cefr-fields' as discussed */
 .cefr-fields {
-    margin-bottom: 15px;
+    /* Add any specific styles for the container if needed */
+    margin-bottom: 15px; /* Adjust spacing as per form fields */
 }
 
 .new-record-type-selector-group label {
   display: block;
-  margin-top: 15px;
+  margin-top: 15px; /* Add some space above */
   margin-bottom: 5px;
   font-weight: bold;
 }
@@ -483,46 +499,49 @@ body > #statusAlert {
 @media (max-width: 768px) {
     .content-wrapper {
         flex-direction: column;
-        padding: 0; /* Remove padding here, as individual blocks will have it */
+        padding: 0; /* Remove padding here, handled by individual blocks */
         gap: 15px; /* Adjust gap for smaller screens */
+        min-height: unset; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allow it to collapse on small screens */
     }
     body {
         padding: 10px; /* Reduce overall body padding on small screens */
     }
     .single-record-view,
     .larger-list-view {
-        min-width: unset;
+        min-width: unset; /* Remove min-width to allow full width */
         width: 100%;
-        padding: 15px; /* Adjust padding for blocks on small screens */
+        padding: 15px; /* Reduce padding on small screens */
+        min-height: unset; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allow panels to auto-height on small screens */
     }
-    .record-form input[type="text"],
-    .record-form textarea,
-    .record-form select {
-        width: 100%;
+    .record-form, .current-children-list, #currentChildrenDisplay, #availableModulesList { /* MODIFIED FOR FLEXBOX HEIGHT MATCHING */
+        min-height: unset; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allow these to auto-height on small screens */
+    }
+    .record-form textarea.scrollable-textarea { /* MODIFIED FOR FLEXBOX HEIGHT MATCHING */
+        flex-grow: unset; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allow it to behave normally on small screens */
     }
     .module-filter-search {
         flex-direction: column;
-        align-items: stretch;
+        align-items: stretch; /* Stretch items to fill width */
     }
     .module-filter-search select,
     .module-filter-search input[type="text"] {
         width: 100%;
     }
     .module-item {
-        flex-wrap: wrap;
+        flex-wrap: wrap; /* Allow content to wrap within list item */
     }
     .module-item input[type="checkbox"] {
-        margin-top: 0;
-        margin-bottom: 5px;
+        margin-top: 0; /* Reset margin top */
+        margin-bottom: 5px; /* Add space below checkbox */
     }
     .module-item-content {
-        width: calc(100% - 30px);
+        width: calc(100% - 30px); /* Adjust width to account for checkbox */
     }
     .module-item .expand-toggle,
     .module-media {
-        margin-top: 0;
-        margin-left: 0;
-        width: 100%;
-        justify-content: flex-end;
+        margin-top: 0; /* Reset margin top */
+        margin-left: 0; /* Reset margin left */
+        width: 100%; /* Take full width below content */
+        justify-content: flex-end; /* Push media/toggle to the right if they wrap */
     }
 }
