@@ -619,20 +619,36 @@ export function displayFilteredModules() { // Exported
         const aChecked = currentModuleIds.includes(a.id);
         const bChecked = currentModuleIds.includes(b.id);
 
+        // 1. Primary Sort: Selected Status (records with checkboxes checked appear first)
         if (aChecked && !bChecked) return -1;
         if (!aChecked && bChecked) return 1;
 
-        const typeComparison = (a.MODULETYPE || '').localeCompare(b.MODULETYPE || '');
-        if (typeComparison !== 0) return typeComparison;
+        // Get titles for comparison
+        const titleA = a.TITLE || a.name || '';
+        const titleB = b.TITLE || b.name || '';
 
+        // 2. Secondary Sort: Title (alphabetical by TITLE/name)
+        const titleComparison = titleA.localeCompare(titleB);
+        if (titleComparison !== 0) {
+            return titleComparison;
+        }
+
+        // 3. Tertiary Sort: Module Type (alphabetical by MODULETYPE)
+        const typeComparison = (a.MODULETYPE || '').localeCompare(b.MODULETYPE || '');
+        if (typeComparison !== 0) {
+            return typeComparison;
+        }
+
+        // 4. Quaternary Sort: Theme (alphabetical by THEME)
         const themeA = a.THEME || '';
         const themeB = b.THEME || '';
         const themeComparison = themeA.localeCompare(themeB);
-        if (themeComparison !== 0) return themeComparison;
+        if (themeComparison !== 0) {
+            return themeComparison;
+        }
 
-        const titleA = a.TITLE || a.name || '';
-        const titleB = b.TITLE || b.name || '';
-        return titleA.localeCompare(titleB);
+        // If all criteria are identical, their relative order doesn't matter (return 0)
+        return 0;
     });
 
     if (filtered.length === 0) {
