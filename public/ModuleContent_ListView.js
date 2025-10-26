@@ -33,7 +33,7 @@ let loadingSpinner = null;
 
 
 // --- Module-Specific Constants (now private to this module scope) ---
-const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY_GROUP', 'VOCABULARY', 'SYLLABLE'];
+const PARENT_MODULE_TYPES = ['COURSE', 'LESSON', 'SEMANTIC_GROUP', 'VOCABULARY', 'SYLLABLE'];
 
 const NON_SELECTABLE_LEAF_MODULE_TYPES = []; // Still empty as per your requirement
 
@@ -618,37 +618,21 @@ export function displayFilteredModules() { // Exported
     filtered.sort((a, b) => {
         const aChecked = currentModuleIds.includes(a.id);
         const bChecked = currentModuleIds.includes(b.id);
-
-        // 1. Primary Sort: Selected Status (records with checkboxes checked appear first)
+// 1. Primary Sort: Selected Status (records with checkboxes checked appear first)
         if (aChecked && !bChecked) return -1;
         if (!aChecked && bChecked) return 1;
 
-        // Get titles for comparison
-        const titleA = a.TITLE || a.name || '';
-        const titleB = b.TITLE || b.name || '';
-
-        // 2. Secondary Sort: Title (alphabetical by TITLE/name)
-        const titleComparison = titleA.localeCompare(titleB);
-        if (titleComparison !== 0) {
-            return titleComparison;
-        }
-
-        // 3. Tertiary Sort: Module Type (alphabetical by MODULETYPE)
         const typeComparison = (a.MODULETYPE || '').localeCompare(b.MODULETYPE || '');
-        if (typeComparison !== 0) {
-            return typeComparison;
-        }
+        if (typeComparison !== 0) return typeComparison;
 
-        // 4. Quaternary Sort: Theme (alphabetical by THEME)
         const themeA = a.THEME || '';
         const themeB = b.THEME || '';
         const themeComparison = themeA.localeCompare(themeB);
-        if (themeComparison !== 0) {
-            return themeComparison;
-        }
+        if (themeComparison !== 0) return themeComparison;
 
-        // If all criteria are identical, their relative order doesn't matter (return 0)
-        return 0;
+        const titleA = a.TITLE || a.name || '';
+        const titleB = b.TITLE || b.name || '';
+        return titleA.localeCompare(titleB);
     });
 
     if (filtered.length === 0) {
@@ -819,7 +803,11 @@ export async function fetchAndPopulateTopLevelNavigation() { // Exported
         learningContentSnapshot.forEach(doc => {
             const data = doc.data();
             const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
-            if (topLevelLearningContentTypes.includes(inferredModuleType)) {
+            // NEW: Ignore VOCABULARY_GROUP documents completely
+            if (inferredModuleType === 'VOCABULARY_GROUP') {
+                return; // Skip this document
+            }
+			if (topLevelLearningContentTypes.includes(inferredModuleType)) {
                 allTopLevelModules.push({ // Correctly pushing to allTopLevelModules here
                     id: doc.id,
                     ...data,
