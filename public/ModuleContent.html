@@ -15,10 +15,6 @@
     <h1>Module Content Management</h1>
 
     <!-- Login/Auth Status (from common.js) -->
-    <div id="login-info" style="display: none; text-align: center; margin-bottom: 20px;">
-        <p>Logged in as: <span id="currentUserEmail"></span></p>
-        <button id="signOutButtonMain" class="signOutButton">Sign Out</button>
-    </div>
 
     <div class="content-wrapper">
         <!-- Single Record View (for active COURSE/LESSON/SEMANTIC_GROUP) -->
@@ -131,6 +127,10 @@
         <span id="statusMessage"></span>
         <button class="error-button" onclick="document.getElementById('statusAlert').classList.add('hidden');">Dismiss</button>
     </div>
+	    <div id="login-info" style="display: none; text-align: center; margin-top: 20px; margin-bottom: 20px;">
+        <p>Logged in as: <span id="currentUserEmail"></span></p>
+        <button id="signOutButtonMain" class="signOutButton">Sign Out</button>
+    </div>
 
     <!-- Your NEW custom modular JavaScript files -->
     <script type="module" src="firebase-services.js"></script>
@@ -144,5 +144,6 @@
 
     <!-- The main orchestrator script for this page -->
     <script type="module" src="ModuleContent.js"></script>
+
 </body>
 </html>
