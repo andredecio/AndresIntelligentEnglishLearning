@@ -1,29 +1,17 @@
 /* ModuleContent.css - Specific styles for ModuleContent.html */
 
 /* --- General Utilities & Global Elements (can be merged with other global CSS) --- */
-html {
-    height: 100%; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
-}
-
+/*
+   REVERTED: Removed `html { height: 100%; }`
+   REVERTED: Removed `body { display: flex; flex-direction: column; flex-shrink: 0; padding: 0; box-sizing: border-box; }`
+   REVERTED: Removed `body > h1, body > #login-info, body > #statusAlert { flex-shrink: 0; }`
+*/
 body {
     font-family: Arial, sans-serif;
-    /* margin: 0; (moved below) */
-    /* padding: 20px; (modified below) */
+    margin: 0;
+    padding: 20px; /* Original padding */
     background-color: #f4f7f6;
     color: #333;
-    height: 100%; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
-    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
-    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
-    margin: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - ensures no default margin */
-    padding: 20px; /* MODIFIED FOR FLEXBOX HEIGHT MATCHING - moved here */
-    box-sizing: border-box; /* ADDED FOR FLEXBOX HEIGHT MATCHING */
-}
-
-/* ADDED FOR FLEXBOX HEIGHT MATCHING - Ensure fixed-height elements at the top don't cause content-wrapper to shrink */
-body > h1,
-body > #login-info,
-body > #statusAlert {
-    flex-shrink: 0;
 }
 
 .hidden {
@@ -36,10 +24,11 @@ body > #statusAlert {
     flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
     gap: 20px; /* Space between the two columns */
     margin-top: 20px;
-    /* padding: 0 20px; (removed for flexbox, handled by body padding) */
-    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows content-wrapper to fill all available vertical space */
-    align-items: stretch; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Makes direct flex children match height */
-    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex container to properly manage vertical space */
+    padding: 0 20px; /* Adjust padding to match body, or remove if body padding is sufficient */
+    /*
+       REVERTED: Removed `flex-grow: 1; align-items: stretch; min-height: 0;`
+       The content-wrapper now behaves as it originally did, letting content define height.
+    */
 }
 
 /* --- Styling for the single record view (left/top column) --- */
@@ -51,9 +40,10 @@ body > #statusAlert {
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     box-sizing: border-box; /* Include padding and border in the element's total width and height */
-    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Makes this column a flex container */
-    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Stacks its internal content vertically */
-    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex item to shrink and contain scrollable content */
+    /*
+       REVERTED: Removed `display: flex; flex-direction: column; min-height: 0;`
+       The left panel's height will be purely content-driven as originally.
+    */
 }
 
 .single-record-view h2 {
@@ -63,7 +53,7 @@ body > #statusAlert {
     text-align: center;
     border-bottom: 1px solid #eee;
     padding-bottom: 15px;
-    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this header from shrinking */
+    /* REVERTED: Removed `flex-shrink: 0;` */
 }
 
 /* --- Record navigation buttons (Prev, New, Next) --- */
@@ -71,7 +61,7 @@ body > #statusAlert {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
-    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this section from shrinking */
+    /* REVERTED: Removed `flex-shrink: 0;` */
 }
 
 .record-navigation button {
@@ -99,30 +89,24 @@ body > #statusAlert {
 .record-navigation button:first-child { margin-left: 0; }
 .record-navigation button:last-child { margin-right: 0; }
 
-/* ADDED FOR FLEXBOX HEIGHT MATCHING - Filter controls (for moduleTypeFilter) */
-.filter-controls {
-    flex-shrink: 0;
-    margin-bottom: 20px; /* Keeps existing margin */
-}
+/*
+   REVERTED: Removed `.filter-controls { flex-shrink: 0; }`
+*/
 
 /* --- Form styling within the single record view --- */
 .record-form {
+    /* Removed problematic line-height: 7.0 here */
     padding: 0; /* Adjusted from 1px 0 */
     margin: 0;
-    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows the form to take remaining vertical space */
-    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Makes the form a flex container */
-    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Stacks its elements vertically */
-    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex item to shrink and contain scrollable content */
+    /*
+       REVERTED: Removed `display: flex; flex-direction: column; flex-grow: 1; min-height: 0;`
+       Form elements now flow naturally.
+    */
 }
 
-/* ADDED FOR FLEXBOX HEIGHT MATCHING - Ensure individual fixed-height form elements don't cause issues */
-.record-form label,
-.record-form input[type="text"],
-.record-form select,
-.record-form .form-group, /* Explicitly adding form-group here */
-.record-form .actions {
-    flex-shrink: 0;
-}
+/*
+   REVERTED: Removed `flex-shrink: 0;` from various form elements
+*/
 
 .record-form label {
     display: block;
@@ -146,22 +130,14 @@ body > #statusAlert {
     line-height: 1.5; /* Ensure reasonable line height */
 }
 
-/* Specific styling for the description textarea if it's meant to scroll */
-.record-form textarea.scrollable-textarea { /* MODIFIED FOR FLEXBOX HEIGHT MATCHING */
+/* MODIFIED: Ensure textarea with scrollbar has defined dimensions */
+.record-form textarea.scrollable-textarea {
     resize: vertical; /* Allow vertical resizing */
     min-height: 80px;
-    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows it to take remaining space if not enough other content */
-    overflow-y: auto; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Adds internal scroll for its own content */
-    flex-shrink: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows it to shrink if needed (default for flex-grow:1 is flex-shrink:1) */
-    margin-bottom: 15px; /* MODIFIED FOR FLEXBOX HEIGHT MATCHING - ensure margin is present */
-    /* Other existing styles for the textarea */
-    width: calc(100% - 24px);
-    padding: 12px;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 1em;
-    line-height: 1.5;
+    /* ADDED: Add a max-height so it scrolls internally */
+    max-height: 300px; /* Adjust this value as needed, or remove if min-height is enough */
+    overflow-y: auto; /* Ensure it scrolls */
+    /* REVERTED: Removed flex-grow/shrink from here */
 }
 
 /* Form actions (Save/Delete buttons) */
@@ -196,17 +172,16 @@ body > #statusAlert {
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid #eee;
-    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allows this section to take remaining vertical space */
-    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Make this section a flex container */
-    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Stacks its children vertically */
-    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex item to shrink and contain scrollable content */
+    /*
+       REVERTED: Removed `display: flex; flex-direction: column; flex-grow: 1; min-height: 0;`
+    */
 }
 
 .current-children-list h3 {
     font-size: 1.3em;
     color: #007bff;
     margin-top: 0;
-    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this header from shrinking */
+    /* REVERTED: Removed `flex-shrink: 0;` */
 }
 
 #currentChildrenDisplay {
@@ -214,9 +189,12 @@ body > #statusAlert {
     list-style: none;
     padding: 2px;
     margin: 2px;
-    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allow the UL to take all remaining vertical space */
-    overflow-y: auto; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Add vertical scrollbar if content overflows */
-    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Essential for scrollable flex items */
+    /* ADDED: Ensure this list scrolls if it gets too long, given its parent isn't flexing its height */
+    max-height: 200px; /* Adjust this max-height as desired */
+    overflow-y: auto;
+    /*
+       REVERTED: Removed `flex-grow: 1; min-height: 0;`
+    */
 }
 
 #currentChildrenDisplay li {
@@ -240,9 +218,14 @@ body > #statusAlert {
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
-    display: flex; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Makes this column a flex container */
-    flex-direction: column; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Stacks its internal content vertically */
-    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allows this flex item to shrink and contain scrollable content */
+    /* ADDED: Explicit height for the entire right panel */
+    height: 150vh; /* This makes it 1.5 times the viewport height */
+
+    /* ADDED: Make this a flex container to manage its *own* children's height,
+       so that `#availableModulesList` can scroll within this fixed height */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* CRITICAL for the flex children inside to behave */
 }
 
 .larger-list-view h2 {
@@ -252,7 +235,7 @@ body > #statusAlert {
     text-align: center;
     border-bottom: 1px solid #eee;
     padding-bottom: 15px;
-    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this header from shrinking */
+    flex-shrink: 0; /* ADDED: Ensure this header doesn't shrink inside its flex parent */
 }
 
 /* --- Filter and search bar --- */
@@ -262,7 +245,7 @@ body > #statusAlert {
     margin-bottom: 20px;
     align-items: center;
     flex-wrap: wrap; /* Allow wrapping on small screens */
-    flex-shrink: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Prevents this section from shrinking */
+    flex-shrink: 0; /* ADDED: Ensure this section doesn't shrink inside its flex parent */
 }
 
 .module-filter-search select,
@@ -280,13 +263,13 @@ body > #statusAlert {
     list-style: none;
     padding: 0;
     margin: 0;
-    /* max-height: 600px; (removed, flex-grow will handle height) */
-    overflow-y: auto;
+    /* REVERTED: Removed `max-height: 600px;` - it's now dynamically handled by flex-grow */
+    overflow-y: auto; /* Original: Make the list scrollable if it gets too long */
     border: 1px solid #eee;
     border-radius: 6px;
     background-color: #fcfcfc;
-    flex-grow: 1; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Allow this UL to take all remaining vertical space */
-    min-height: 0; /* ADDED FOR FLEXBOX HEIGHT MATCHING - CRITICAL: Prevents it from dictating its parent's height based on its content */
+    flex-grow: 1; /* ADDED: Allow the UL to take all remaining vertical space inside its parent */
+    min-height: 0; /* ADDED: CRITICAL: Essential for scrollable flex items */
 }
 
 /* Individual module list item (li) */
@@ -361,13 +344,13 @@ body > #statusAlert {
 }
 
 .module-item-description {
-   max-height: 100px; /* Existing. Could be removed if flex-grow handles it fully */
-  	min-height: 0;    /* Existing. */
-	overflow-y: auto; /* Existing. */
-	overflow-x: hidden; /* Existing. */
+   max-height: 100px; /* Adjust this height as needed to show a few lines before scrolling */
+  	min-height: 0;    /* avoids flexbox from preventing scroll */
+	overflow-y: auto; /* This enables the vertical scrollbar when content overflows */
+	overflow-x: hidden;
     white-space: pre-wrap; /* Ensures that text wraps and preserves line breaks from your data */
     word-wrap: break-word; /* Prevents long words from overflowing the container */
-	flex: 1 1 auto;   /* Existing. */
+	flex: 1 1 auto;   /* allows it to expand inside the flexbox */
     /* Additional properties you *might* need, depending on your layout: */
     display: block; /* Ensure it's a block-level element that respects height/width */
     width: 100%; /* Make sure it takes up available width to trigger wrapping */
@@ -499,25 +482,19 @@ body > #statusAlert {
 @media (max-width: 768px) {
     .content-wrapper {
         flex-direction: column;
-        padding: 0; /* Remove padding here, handled by individual blocks */
-        gap: 15px; /* Adjust gap for smaller screens */
-        min-height: unset; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allow it to collapse on small screens */
-    }
-    body {
-        padding: 10px; /* Reduce overall body padding on small screens */
+        padding: 0 10px; /* Reduce padding on small screens */
     }
     .single-record-view,
     .larger-list-view {
         min-width: unset; /* Remove min-width to allow full width */
         width: 100%;
         padding: 15px; /* Reduce padding on small screens */
-        min-height: unset; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allow panels to auto-height on small screens */
+        height: unset; /* ADDED: Allow right panel to flow naturally on small screens */
     }
-    .record-form, .current-children-list, #currentChildrenDisplay, #availableModulesList { /* MODIFIED FOR FLEXBOX HEIGHT MATCHING */
-        min-height: unset; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allow these to auto-height on small screens */
-    }
-    .record-form textarea.scrollable-textarea { /* MODIFIED FOR FLEXBOX HEIGHT MATCHING */
-        flex-grow: unset; /* ADDED FOR FLEXBOX HEIGHT MATCHING - Allow it to behave normally on small screens */
+    .record-form input[type="text"],
+    .record-form textarea,
+    .record-form select {
+        width: 100%;
     }
     .module-filter-search {
         flex-direction: column;
