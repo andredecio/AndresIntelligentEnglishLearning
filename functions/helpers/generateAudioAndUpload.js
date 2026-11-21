@@ -1,6 +1,6 @@
-const functions = require('firebase-functions/v1');
-const admin = require('firebase-admin');
-const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
+import * as functions from 'firebase-functions/v1';
+import admin from 'firebase-admin';
+import { TextToSpeechClient } from '@google-cloud/text-to-speech';
 
 // Ensure this runs only once, even if required in multiple files
 // It's good practice to initialize clients outside the function for performance
@@ -20,18 +20,21 @@ const textToSpeechClient = new TextToSpeechClient();
  * @param {string} storagePathPrefix - The folder in Cloud Storage (e.g., 'word_audio/', 'syllable_audio/', 'long_text_audio/').
  * @returns {Promise<string|null>} The publicly accessible URL of the uploaded audio, or null if an error occurred.
  */
-async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storagePathPrefix) {
+// Adding 'export' so other files can import this helper
+export async function generateAudioAndUpload(text, ipaForSsml, ttsRespelling, fileNamePrefix, storagePathPrefix) {
     try {
         let input;
-        let logMessage;
+        let logMessage; // Fully preserved!
 
         // Determine if we should use IPA SSML or plain text input
         if (ipaForSsml && ipaForSsml.trim() !== '') {
             // If ipaForSsml is provided and not just empty space, use SSML
+            // Use the clean respelling as the inner fallback text if provided [1.1.5]
+            const fallbackText = ttsRespelling || text;
             input = {
-                ssml: `<speak><phoneme alphabet="ipa" ph="${ipaForSsml}">${text}</phoneme></speak>`,
+                ssml: `<speak><phoneme alphabet="ipa" ph="${ipaForSsml}">${fallbackText}</phoneme></speak>`,
             };
-            logMessage = `Synthesizing audio for word: "${text}" with IPA: "${ipaForSsml}"`;
+            logMessage = `Synthesizing audio for word: "${text}" with IPA: "${ipaForSsml}" (Fallback: "${fallbackText}")`;
         } else {
             // Otherwise, treat 'text' as plain text within ssml wrapper
             input = {
@@ -42,9 +45,9 @@ async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storageP
         }
 
         const voice = {
-            languageCode: 'en-GB', // Consistent language code
-            name: 'en-GB-Neural2-A', // Consistent voice configuration
-            ssmlGender: 'FEMALE', // Or 'NEUTRAL', 'MALE'
+            languageCode: 'en-GB',
+            name: 'en-GB-Neural2-A',
+            ssmlGender: 'FEMALE',
         };
 
         const audioConfig = {
@@ -53,6 +56,7 @@ async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storageP
             speakingRate: 1,
         };
 
+        // Fully preserved logger call!
         functions.logger.info(logMessage);
         
         const [response] = await textToSpeechClient.synthesizeSpeech({
@@ -67,7 +71,6 @@ async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storageP
         }
 
         const bucket = admin.storage().bucket();
-        // Sanitize fileNamePrefix to be safe for filenames
         const sanitizedFileNamePrefix = fileNamePrefix.replace(/[^a-zA-Z0-9_-]/g, '_'); 
         const filename = `${storagePathPrefix}${sanitizedFileNamePrefix}_${Date.now()}.mp3`;
         const file = bucket.file(filename);
@@ -75,7 +78,7 @@ async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storageP
         functions.logger.info(`Uploading audio to Cloud Storage: ${filename}`);
         await file.save(response.audioContent, {
             contentType: 'audio/mpeg',
-            public: true, // Make the file publicly accessible
+            public: true,
         });
 
         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
@@ -88,6 +91,3 @@ async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storageP
     }
 }
 
-module.exports = {
-  generateAudioAndUpload,
-};

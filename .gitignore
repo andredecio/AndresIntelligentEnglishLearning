@@ -71,3 +71,19 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Credentials and temporary data
+functions/key.json
+part.inlineData
+Cost Reports/
+
+# Extractor sheets data and credentials
+GOOGLE SHEETS EXTRACTOR/*.json
+
+# Exclude local backup scripts and temporary files
+*PREV*
+*PREVPREV*
+*PREVPREVPREV*
+functions/logic/NEWFILE.txt
+cd
+{

@@ -1,38 +1,35 @@
 // firebase-services.js - The central hub for modular Firebase SDK initialization.
-// This file initializes your Firebase App and exports all commonly used service instances.
-// It should be loaded as a <script type="module"> in your HTML.
 
 // --- 1. Import ALL necessary modular Firebase SDK functions ---
-// IMPORTANT: Using Firebase SDK v12.3.0 from CDN.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-functions.js"; // Assuming httpsCallable will be used by other modules
-// import { getStorage } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js"; // Uncomment if you use Cloud Storage for Firebase
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-functions.js";
+
+// --- NEW: Centralized Region Configuration ---
+export const REGION = 'asia-east2'; // Change this once to update your entire frontend!
 
 // --- 2. Your Firebase project configuration ---
-// This is the configuration for your Firebase web app.
 const firebaseConfig = {
-    apiKey: "AIzaSyAPEIXnhZ7_CFU6mId54c3IBCFgzqye-3g", // <--- IMPORTANT: Replace with your actual Web API Key from Firebase Project Settings -> General
+    apiKey: "AIzaSyAPEIXnhZ7_CFU6mId54c3IBCFgzqye-3g",
     authDomain: "enduring-victor-460703-a2.firebaseapp.com",
     projectId: "enduring-victor-460703-a2",
     storageBucket: "enduring-victor-460703-a2.appspot.com",
     messagingSenderId: "190391960875",
-    appId: "1:190391960875:web:0585d07fcb53f52755316e", // <--- IMPORTANT: Replace with your actual Web App ID from Firebase Project Settings -> General
-    measurementId: "490452908" // Your GA Property ID
+    appId: "1:190391960875:web:0585d07fcb53f52755316e",
+    measurementId: "490452908"
 };
 
 // --- 3. Initialize Firebase App and get service instances ---
 export const app = initializeApp(firebaseConfig);
 
-// Get and export the Firebase service instances.
-// The 'app' instance is implicitly used by these if not explicitly passed,
-// but it's good practice to pass 'app' for clarity and explicit multi-app support.
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-// Specify your Cloud Functions region when getting the functions instance.
-export const functions = getFunctions(app, 'asia-southeast1');
-// export const storage = getStorage(app); // Uncomment if you need storage
+
+// Specify your Cloud Functions region utilizing the centralized constant!
+export const functions = getFunctions(app, REGION);
+
+// ... (Your existing Sections 4, 5, and 6 with Auth and Firestore helpers go here unchanged!)
 
 // --- 4. Constant for Google OAuth Client ID ---
 // This is exposed for use with Google Classroom integration (ModuleContent_Classroom.js).

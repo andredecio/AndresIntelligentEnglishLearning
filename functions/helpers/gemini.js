@@ -1,76 +1,58 @@
 // helpers/gemini.js
+import { GoogleGenAI } from '@google/genai';
+import { logger } from 'firebase-functions/v1';
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const functions = require('firebase-functions/v1');
-const { vocabularySchema } = require('./vocabularySchema');
+// Using Google's stable, high-efficiency Gemini Image model
+const getImageGenModel = () => wrapModel("gemini-3.1-flash-image"); 
+const getTextGenModel = () => wrapModel("gemini-2.5-flash");
+const getReadingWritingTextGenModel = () => wrapModel("gemini-2.5-flash");
 
-let _genAIClient = null;
-let _imageGenModel = null;
-let _textGenModel = null; // This will still be used for vocabulary generation
-let _readingWritingTextGenModel = null; // New cached variable for Reading-Writing specific model
+const ai = new GoogleGenAI({
+  vertexai: true,
+  project: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT,
+  location: 'global'
+});
 
-function getGenAIClient() {
-  if (!_genAIClient) {
-    const GEMINI_API_KEY = functions.config().gemini?.api_key;
-    if (!GEMINI_API_KEY) {
-      throw new Error("Gemini API Key is not configured. Run: firebase functions:config:set gemini.api_key=\"YOUR_KEY\"");
+const wrapModel = (modelName) => ({
+  generateContent: async (req) => {
+    const prompt = typeof req === 'string' ? req : (req.contents || req.prompt || req);
+    try {
+      // For Gemini Image models, intercept and route through generateContent with responseModalities
+      if (modelName.includes('image')) {
+        const res = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+          config: {
+            responseModalities: ["IMAGE"] // 👈 Forces the model to generate an image
+          }
+        });
+
+        // Extract the base64 image data from the multimodal response candidate
+        const bytes = res.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || "";
+
+        return {
+          text: () => "",
+          get text() { return ""; },
+          response: { candidates: [{ content: { parts: [{ inlineData: { mimeType: "image/jpeg", data: bytes } }] } }] }
+        };
+      }
+
+      // Default text generation
+      const res = await ai.models.generateContent({ model: modelName, contents: prompt });
+      return {
+        text: () => res.text || "",
+        get text() { return res.text || ""; },
+        response: res
+      };
+    } catch (e) {
+      logger.error(`Error with ${modelName}:`, e);
+      throw e;
     }
-    _genAIClient = new GoogleGenerativeAI(GEMINI_API_KEY);
   }
-  return _genAIClient;
-}
+});
 
-function getImageGenModel() {
-  if (!_imageGenModel) {
-    _imageGenModel = getGenAIClient().getGenerativeModel({
-      model: "gemini-pro-vision",
-      generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"]
-      }
-    });
-  }
-  return _imageGenModel;
-}
-
-// This function remains for vocabulary content, accepting a specific schema
-function getTextGenModel(vocabularySchema) {
-  if (!_textGenModel) {
-    _textGenModel = getGenAIClient().getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: vocabularySchema,
-        maxOutputTokens: 20000,
-      }
-    });
-  }
-  return _textGenModel;
-}
-
-// NEW: Dedicated function for Reading-Writing text generation
-function getReadingWritingTextGenModel() {
-  if (!_readingWritingTextGenModel) {
-    const GEMINI_API_KEY = functions.config().gemini?.api_key;
-    if (!GEMINI_API_KEY) {
-      throw new Error("Gemini API Key is not configured. Run: firebase functions:config:set gemini.api_key=\"YOUR_KEY\"");
-    }
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-
-    _readingWritingTextGenModel = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-        // No responseSchema here, as your prompt defines the schema for Reading-Writing
-        maxOutputTokens: 20000,
-      }
-    });
-  }
-  return _readingWritingTextGenModel;
-}
-
-
-module.exports = {
+export {
   getImageGenModel,
-  getTextGenModel, // Still exported for other uses (e.g., vocabulary)
-  getReadingWritingTextGenModel // NEW: Export the Reading-Writing specific model function
+  getTextGenModel,
+  getReadingWritingTextGenModel
 };

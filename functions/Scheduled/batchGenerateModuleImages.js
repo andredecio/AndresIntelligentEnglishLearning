@@ -1,20 +1,27 @@
 // to catch any remaining pending items for image generation. Should be used to change image for any
 // chosen document in learningContent with an image prompt
 
-const functions = require("firebase-functions/v1");
-const admin = require('firebase-admin'); 
-const { processModuleImageGeneration } = require('../helpers/processModuleImageGeneration');
+import * as functions from 'firebase-functions/v1';
+import { regionalFunctions } from "../config.js"; // <--- ADD THIS LINE!
+import { initializeApp, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { processModuleImageGeneration } from '../helpers/processModuleImageGeneration.js';
 
-const batchGenerateModuleImages = functions.region('asia-southeast1').runWith({ timeoutSeconds: 540 })
+// --- Initialize Firebase Admin Safely ---
+if (getApps().length === 0) {
+    initializeApp();
+}
+
+export const batchGenerateModuleImages = regionalFunctions.runWith({ timeoutSeconds: 540 }) // <--- CHANGE THIS!
     .pubsub.schedule('0 0 1 1 *') // This sets the schedule!
     .onRun(async (context) => {
-	const firestore = admin.firestore();
 
-    functions.logger.info('Starting batch image generation for pending module items via forced submit .'); // UPDATED LOG MESSAGE
+	const firestore = getFirestore();
+
+    functions.logger.info('Starting batch image generation for pending module items via forced submit.'); 
 
     try {
         // Query for module items that are pending image generation
-        // --- CHANGE: Limit increased to 100 . ---
         const pendingModuleSnapshot = await firestore.collection('learningContent')
             .where('imageStatus', '==', 'pending')
 			.where('MODULETYPE', 'in', ['VOCABULARY', 'GRAMMAR', 'CONVERSATION', 'SEMANTIC_GROUP', 'LISTENINGSPEAKING', 'READING-WRITING'])
@@ -42,9 +49,7 @@ const batchGenerateModuleImages = functions.region('asia-southeast1').runWith({ 
 
     } catch (error) {
         functions.logger.error("Error in batch image generation process:", error);
-        // --- CHANGE: For callable functions, throw an HttpsError on failure. ---
         throw error;
     }
-}) // This closes the exports.batchGenerateModuleImages function definition
+}); 
 
-module.exports = { batchGenerateModuleImages };

@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serow: The Ghost Goat — Interactive ESL Classroom App</title>
+  <!-- Tailwind CSS for responsive layout & utility styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fraunces for display headings & Plus Jakarta Sans for clean classroom legibility -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <!-- Font Awesome for crisp classroom icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --pine-deep: #14261c;
+      --pine-mid: #1f3b2c;
+      --pine-light: #2d5a42;
+      --slate-cliff: #334139;
+      --cream-bg: #f7f5ee;
+      --cream-card: #ffffff;
+      --cream-warm: #ede9dc;
+      --amber-accent: #d97706;
+      --amber-bright: #f59e0b;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--cream-bg);
+      color: #18221c;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, .font-serif-display {
+      font-family: 'Fraunces', serif;
+    }
+
+    /* Smooth stage transitions */
+    .stage-panel {
+      display: none;
+      animation: fadeSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .stage-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 3D Flip Card Styling */
+    .flip-card {
+      perspective: 1000px;
+      cursor: pointer;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 1rem;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Drag and Drop Animations */
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+    .shake-error {
+      animation: shakeError 0.4s ease-in-out;
+      border-color: #dc2626 !important;
+      background-color: #fef2f2 !important;
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+    .pop-success {
+      animation: popSuccess 0.35s ease-out;
+    }
+
+    .draggable-tile {
+      user-select: none;
+      touch-action: manipulation;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+    .draggable-tile:hover {
+      transform: translateY(-2px);
+    }
+    .draggable-tile.selected-tile {
+      ring: 4px solid #f59e0b;
+      transform: scale(1.05);
+      box-shadow: 0 10px 20px -5px rgba(217, 119, 6, 0.4);
+    }
+
+    /* Wheel spin animation */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); }
+    }
+    .timer-urgent {
+      animation: pulseGlow 1s infinite;
+    }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #ede9dc;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94a39b;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP HEADER & STAGE NAVIGATION BAR -->
+  <header class="bg-[#14261c] text-[#f7f5ee] shadow-lg sticky top-0 z-40 border-b border-[#2d5a42]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <!-- Brand / Lesson Title -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 text-xl">
+              <i class="fa-solid fa-mountain-sun"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-400">ESL Speaking • A2–B1</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-[#2d5a42] text-emerald-100 font-medium">Present Simple</span>
+              </div>
+              <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">
+                Serow: The Ghost Goat <span class="text-amber-300">👻</span>
+              </h1>
+            </div>
+          </div>
+          <!-- Mobile Timer Quick Toggle -->
+          <button onclick="toggleFloatingTimer()" class="lg:hidden px-3 py-2 rounded-xl bg-[#2d5a42] text-amber-300 text-sm font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-stopwatch"></i>
+            <span id="mobileTimerBadge">01:00</span>
+          </button>
+        </div>
+
+        <!-- 6-Stage Tab Navigation -->
+        <nav aria-label="Lesson Stages" class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+          <button onclick="switchStage(1)" id="tab-1" class="stage-tab active shrink-0 px-3.5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 bg-amber-500 text-[#14261c] shadow">
+            <span>1. Video & Hook</span>
+          </button>
+          <button onclick="switchStage(2)" id="tab-2" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 bg-[#1f3b2c] text-emerald-100 hover:bg-[#2d5a42]">
+            <span>2. Vocabulary</span>
+          </button>
+          <button onclick="switchStage(3)" id="tab-3" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 bg-[#1f3b2c] text-emerald-100 hover:bg-[#2d5a42]">
+            <span>3. Grammar Lab</span>
+          </button>
+          <button onclick="switchStage(4)" id="tab-4" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 bg-[#1f3b2c] text-emerald-100 hover:bg-[#2d5a42]">
+            <span>4. Speaking</span>
+          </button>
+          <button onclick="switchStage(5)" id="tab-5" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 bg-[#1f3b2c] text-emerald-100 hover:bg-[#2d5a42]">
+            <span>5. Quiz</span>
+          </button>
+          <button onclick="switchStage(6)" id="tab-6" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 bg-[#1f3b2c] text-emerald-100 hover:bg-[#2d5a42]">
+            <span>6. Games Hub</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- FLOATING CLASSROOM COUNTDOWN TIMER -->
+  <aside id="floatingTimerCard" class="fixed bottom-4 right-4 z-50 bg-[#14261c] text-white rounded-2xl shadow-2xl border-2 border-[#2d5a42] p-3.5 w-64 transition-all">
+    <div class="flex items-center justify-between mb-1.5">
+      <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+        <i class="fa-solid fa-stopwatch"></i> Class Timer
+      </span>
+      <button onclick="toggleTimerMinimize()" id="timerMinBtn" class="text-xs text-emerald-200 hover:text-white px-1.5 py-0.5 rounded" title="Minimize/Expand">
+        <i class="fa-solid fa-minus"></i>
+      </button>
+    </div>
+    <div id="timerBody">
+      <div class="flex items-center justify-between bg-[#1f3b2c] rounded-xl px-3 py-2 mb-2.5">
+        <span id="timerDisplay" class="font-mono text-3xl font-extrabold tracking-wider text-white">01:00</span>
+        <div class="flex gap-1.5">
+          <button onclick="toggleTimerRun()" id="timerPlayPauseBtn" class="w-9 h-9 rounded-lg bg-amber-500 hover:bg-amber-400 text-[#14261c] font-bold flex items-center justify-center transition" title="Start / Pause">
+            <i class="fa-solid fa-play"></i>
+          </button>
+          <button onclick="resetTimer()" class="w-9 h-9 rounded-lg bg-[#2d5a42] hover:bg-emerald-700 text-white font-bold flex items-center justify-center transition" title="Reset">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-1.5 text-xs font-bold">
+        <button onclick="setTimerPreset(30)" class="py-1.5 rounded-lg bg-[#1f3b2c] hover:bg-[#2d5a42] text-emerald-100 border border-[#2d5a42] transition">30s</button>
+        <button onclick="setTimerPreset(60)" class="py-1.5 rounded-lg bg-[#1f3b2c] hover:bg-[#2d5a42] text-emerald-100 border border-[#2d5a42] transition">60s</button>
+        <button onclick="setTimerPreset(120)" class="py-1.5 rounded-lg bg-[#1f3b2c] hover:bg-[#2d5a42] text-emerald-100 border border-[#2d5a42] transition">2m</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN INTERACTIVE WORKSPACE -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-28">
+
+    <!-- =================================================================== -->
+    <!-- STAGE 1: VIDEO CLIPS & VISUAL WARM-UP                               -->
+    <!-- =================================================================== -->
+    <section id="stage-1" class="stage-panel active space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#dcd6c4] pb-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-amber-700">Stage 1 of 6 • Visual Hook & Listening</span>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#14261c] mt-1">Meet the "Ghost Goat" of the Mountains</h2>
+        </div>
+        <p class="text-sm text-[#4a574f] max-w-md">
+          Play the 10-second video clips below, then flip the warm-up cards to spark class predictions before teaching new vocabulary.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left Column: Embedded YouTube Clip Player + 4 Clip Launchers -->
+        <div class="lg:col-span-7 bg-white rounded-2xl shadow-md border border-[#e3decb] p-4 sm:p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-[#14261c] flex items-center gap-2">
+              <i class="fa-brands fa-youtube text-red-600 text-xl"></i> 10-Second Video Clip Launcher
+            </h3>
+            <span id="activeClipBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
+              Clip 1 • 0:28 – 0:38
+            </span>
+          </div>
+
+          <!-- Responsive 16:9 YouTube Embed Frame -->
+          <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#14261c] shadow-inner border border-[#334139]">
+            <iframe
+              id="ytPlayerFrame"
+              class="w-full h-full"
+              src="https://www.youtube.com/embed/teHwadQsmK0?start=28&end=38&rel=0"
+              title="Serow: the Ghost Goat Video Clip"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen>
+            </iframe>
+          </div>
+
+          <!-- Active Quote & Direct External Fallback Link -->
+          <div class="bg-[#f7f5ee] rounded-xl p-3.5 border border-[#e3decb] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-[#2d5a42]">Transcript Line:</p>
+              <p id="activeClipQuote" class="text-sm sm:text-base font-medium text-[#14261c] italic mt-0.5">
+                "A serow looks like a cross between a goat, a boar, and a donkey."
+              </p>
+            </div>
+            <a
+              id="externalClipLink"
+              href="https://www.youtube.com/embed/teHwadQsmK0?start=28&end=38&autoplay=1"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="shrink-0 inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-[#14261c] hover:bg-[#2d5a42] text-amber-300 text-xs font-bold transition shadow-sm">
+              <i class="fa-solid fa-up-right-from-square"></i> Open 10s Clip in New Tab
+            </a>
+          </div>
+
+          <!-- 4 Timestamp Clip Selector Buttons -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            <button onclick="selectVideoClip(0)" id="clipBtn-0" class="clip-btn text-left p-3 rounded-xl border-2 border-amber-500 bg-amber-50/70 transition flex items-start gap-3">
+              <span class="w-7 h-7 rounded-lg bg-amber-500 text-[#14261c] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+              <div>
+                <div class="text-sm font-bold text-[#14261c]">Meet the "Ghost Goat"</div>
+                <div class="text-xs text-[#4a574f] font-medium">0:28 – 0:38 (10 sec)</div>
+              </div>
+            </button>
+
+            <button onclick="selectVideoClip(1)" id="clipBtn-1" class="clip-btn text-left p-3 rounded-xl border-2 border-[#e3decb] bg-white hover:border-[#2d5a42] transition flex items-start gap-3">
+              <span class="w-7 h-7 rounded-lg bg-[#1f3b2c] text-white font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+              <div>
+                <div class="text-sm font-bold text-[#14261c]">Mountain & Cliff Habitat</div>
+                <div class="text-xs text-[#4a574f] font-medium">2:08 – 2:18 (10 sec)</div>
+              </div>
+            </button>
+
+            <button onclick="selectVideoClip(2)" id="clipBtn-2" class="clip-btn text-left p-3 rounded-xl border-2 border-[#e3decb] bg-white hover:border-[#2d5a42] transition flex items-start gap-3">
+              <span class="w-7 h-7 rounded-lg bg-[#1f3b2c] text-white font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+              <div>
+                <div class="text-sm font-bold text-[#14261c]">Scent Marking & Territory</div>
+                <div class="text-xs text-[#4a574f] font-medium">5:32 – 5:42 (10 sec)</div>
+              </div>
+            </button>
+
+            <button onclick="selectVideoClip(3)" id="clipBtn-3" class="clip-btn text-left p-3 rounded-xl border-2 border-[#e3decb] bg-white hover:border-[#2d5a42] transition flex items-start gap-3">
+              <span class="w-7 h-7 rounded-lg bg-[#1f3b2c] text-white font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">4</span>
+              <div>
+                <div class="text-sm font-bold text-[#14261c]">Conservation & Recovery</div>
+                <div class="text-xs text-[#4a574f] font-medium">7:20 – 7:30 (10 sec)</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Visual Reference & Interactive Warm-Up Flip Cards -->
+        <div class="lg:col-span-5 space-y-4">
+          <!-- Serow Reference Photo Card with SVG Fallback -->
+          <div class="bg-white rounded-2xl shadow-md border border-[#e3decb] overflow-hidden">
+            <div class="relative h-52 bg-[#1f3b2c]">
+              <img
+                src="https://www.japan-experience.com/sites/default/files/images/content_images/serow2018.jpg"
+                alt="Wild Japanese serow standing in mountain brush"
+                onerror="this.onerror=null; this.src='https://placehold.co/800x450/1f3b2c/f7f5ee?text=Japanese+Serow+in+Mountain+Forest';"
+                class="w-full h-full object-cover">
+              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#14261c]/90 via-[#14261c]/50 to-transparent p-3.5">
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Visual Prompt</span>
+                <p class="text-white text-sm font-semibold">Japanese Serow (Capricornis crispus)</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 Interactive Warm-Up Flip Cards -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-bold text-[#14261c]">Warm-Up Discussion Cards</h3>
+              <span class="text-xs text-[#4a574f] font-medium"><i class="fa-solid fa-hand-pointer text-amber-600"></i> Click a card to flip</span>
+            </div>
+
+            <!-- Card 1 -->
+            <div onclick="this.classList.toggle('flipped')" class="flip-card h-28">
+              <div class="flip-card-inner">
+                <div class="flip-card-front bg-[#1f3b2c] text-white p-4 shadow flex items-center justify-between border border-[#2d5a42]">
+                  <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Question 1 • Appearance</span>
+                    <p class="text-lg font-bold mt-1">"What does this animal look like?"</p>
+                  </div>
+                  <i class="fa-solid fa-rotate text-amber-400 text-xl"></i>
+                </div>
+                <div class="flip-card-back bg-amber-50 text-[#14261c] p-4 shadow border-2 border-amber-500 flex flex-col justify-center">
+                  <span class="text-xs font-bold uppercase text-amber-700">Speaking Helper & Clues:</span>
+                  <p class="text-sm font-medium mt-1">"It looks like a mix of a <b>goat, a boar, and a donkey</b>. It has thick fur, short dark horns, and a stocky body."</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div onclick="this.classList.toggle('flipped')" class="flip-card h-28">
+              <div class="flip-card-inner">
+                <div class="flip-card-front bg-[#1f3b2c] text-white p-4 shadow flex items-center justify-between border border-[#2d5a42]">
+                  <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Question 2 • Habitat</span>
+                    <p class="text-lg font-bold mt-1">"Where does it live?"</p>
+                  </div>
+                  <i class="fa-solid fa-rotate text-amber-400 text-xl"></i>
+                </div>
+                <div class="flip-card-back bg-amber-50 text-[#14261c] p-4 shadow border-2 border-amber-500 flex flex-col justify-center">
+                  <span class="text-xs font-bold uppercase text-amber-700">Speaking Helper & Clues:</span>
+                  <p class="text-sm font-medium mt-1">"It lives high in <b>steep mountain forests</b> and rocky cliffs across Asia, where few predators can reach."</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div onclick="this.classList.toggle('flipped')" class="flip-card h-28">
+              <div class="flip-card-inner">
+                <div class="flip-card-front bg-[#1f3b2c] text-white p-4 shadow flex items-center justify-between border border-[#2d5a42]">
+                  <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Question 3 • Nickname</span>
+                    <p class="text-lg font-bold mt-1">"Why is it called a 'ghost'?"</p>
+                  </div>
+                  <i class="fa-solid fa-rotate text-amber-400 text-xl"></i>
+                </div>
+                <div class="flip-card-back bg-amber-50 text-[#14261c] p-4 shadow border-2 border-amber-500 flex flex-col justify-center">
+                  <span class="text-xs font-bold uppercase text-amber-700">Speaking Helper & Clues:</span>
+                  <p class="text-sm font-medium mt-1">"Because it is <b>shy, quiet, and elusive</b>—it hides in dense trees and mists, so humans rarely see it!"</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- STAGE 2: INTERACTIVE VOCABULARY & DRAG-AND-DROP MATCHING            -->
+    <!-- =================================================================== -->
+    <section id="stage-2" class="stage-panel space-y-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#dcd6c4] pb-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-amber-700">Stage 2 of 6 • Lexis & Meaning</span>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#14261c] mt-1">Key Wildlife & Habitat Vocabulary</h2>
+        </div>
+        <p class="text-sm text-[#4a574f]">
+          Step A: Flip each flashcard to hear/read its meaning. Step B: Match all 6 words below!
+        </p>
+      </div>
+
+      <!-- Part A: 6 Interactive Vocabulary Flip Cards -->
+      <div>
+        <h3 class="text-lg font-bold text-[#14261c] mb-3 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-[#2d5a42] text-white text-xs font-bold flex items-center justify-center">A</span>
+          Interactive Flashcards (Click any card to flip)
+        </h3>
+        <div id="vocabFlipGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Part B: Drag-and-Drop (and Click-to-Place) Matching Challenge -->
+      <div class="bg-white rounded-2xl shadow-md border border-[#e3decb] p-5 sm:p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-bold text-[#14261c] flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-amber-500 text-[#14261c] text-xs font-bold flex items-center justify-center">B</span>
+              Vocabulary Matching Challenge
+            </h3>
+            <p class="text-xs sm:text-sm text-[#4a574f] mt-1">
+              <b>Drag</b> a word pill into its matching definition box—or <b>tap a word</b> and then <b>tap a box</b> on touchscreens!
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="vocabMatchScore" class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm font-bold">
+              Matched: 0 / 6
+            </span>
+            <button onclick="initVocabGame()" class="px-3.5 py-2 rounded-xl bg-[#14261c] hover:bg-[#2d5a42] text-white text-xs font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-shuffle"></i> Reset / Shuffle
+            </button>
+          </div>
+        </div>
+
+        <!-- Draggable Word Bank -->
+        <div id="vocabWordBank" class="flex flex-wrap gap-2.5 p-4 rounded-xl bg-[#f7f5ee] border-2 border-dashed border-[#c7c0ab] min-h-[68px] items-center justify-center">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Definition Drop Zones -->
+        <div id="vocabDropZones" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- STAGE 3: PRESENT SIMPLE GRAMMAR LAB                                 -->
+    <!-- =================================================================== -->
+    <section id="stage-3" class="stage-panel space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#dcd6c4] pb-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-amber-700">Stage 3 of 6 • Grammar Focus</span>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#14261c] mt-1">Present Simple: Facts & Daily Habits</h2>
+        </div>
+        <p class="text-sm text-[#4a574f] max-w-md">
+          Nature documentaries use the <b>Present Simple</b> for permanent facts, physical traits, and repeated animal habits.
+        </p>
+      </div>
+
+      <!-- Interactive Grammar Rule Toggle Box -->
+      <div class="bg-[#14261c] text-white rounded-2xl p-5 sm:p-6 shadow-lg border border-[#2d5a42]">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Interactive Grammar Rule</span>
+            <h3 class="text-xl font-bold mt-0.5">Compare Singular vs. Plural Subjects</h3>
+          </div>
+          <!-- Mode Toggle Buttons -->
+          <div class="inline-flex rounded-xl bg-[#1f3b2c] p-1 border border-[#2d5a42]">
+            <button onclick="setGrammarView('both')" id="gramBtn-both" class="gram-toggle-btn px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-[#14261c] transition">Compare Both</button>
+            <button onclick="setGrammarView('singular')" id="gramBtn-singular" class="gram-toggle-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-emerald-100 hover:text-white transition">Singular (He/She/It)</button>
+            <button onclick="setGrammarView('plural')" id="gramBtn-plural" class="gram-toggle-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-emerald-100 hover:text-white transition">Plural (They/We/You)</button>
+          </div>
+        </div>
+
+        <div id="grammarRuleCards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Singular Card -->
+          <div id="gramCard-singular" class="bg-[#1f3b2c] rounded-xl p-5 border-2 border-amber-400/50 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold">SINGULAR SUBJECT (1 Animal)</span>
+              <span class="text-sm font-mono font-bold text-amber-400">verb + -s / -es</span>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-3">A serow / It / She / He...</h4>
+            <ul class="space-y-2 text-sm sm:text-base text-emerald-50">
+              <li>• A serow <span class="px-1.5 py-0.5 rounded bg-amber-500 text-[#14261c] font-bold">lives</span> high in mountain forests.</li>
+              <li>• It <span class="px-1.5 py-0.5 rounded bg-amber-500 text-[#14261c] font-bold">looks</span> like a cross between a goat and a boar.</li>
+              <li>• A quick rub <span class="px-1.5 py-0.5 rounded bg-amber-500 text-[#14261c] font-bold">spreads</span> the serow's scent.</li>
+            </ul>
+          </div>
+
+          <!-- Plural Card -->
+          <div id="gramCard-plural" class="bg-[#1f3b2c] rounded-xl p-5 border-2 border-emerald-400/40 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold">PLURAL SUBJECT (2+ Animals)</span>
+              <span class="text-sm font-mono font-bold text-emerald-300">base verb (no -s)</span>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-3">Serows / They / Humans...</h4>
+            <ul class="space-y-2 text-sm sm:text-base text-emerald-50">
+              <li>• Serows <span class="px-1.5 py-0.5 rounded bg-emerald-400 text-[#14261c] font-bold">stand</span> about 3 feet tall at the shoulder.</li>
+              <li>• At night, they <span class="px-1.5 py-0.5 rounded bg-emerald-400 text-[#14261c] font-bold">sleep</span> in hidden mountain caves.</li>
+              <li>• Humans <span class="px-1.5 py-0.5 rounded bg-emerald-400 text-[#14261c] font-bold">pose</span> the greatest threat to habitats.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Drag-and-Drop Verb Sorter / Sentence Builder -->
+      <div class="bg-white rounded-2xl shadow-md border border-[#e3decb] p-5 sm:p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-bold text-[#14261c] flex items-center gap-2">
+              <i class="fa-solid fa-puzzle-piece text-amber-600"></i> Present Simple Verb Builder
+            </h3>
+            <p class="text-xs sm:text-sm text-[#4a574f] mt-0.5">
+              Drag (or tap) the grammatically correct verb tile into each sentence blank!
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="grammarBuilderScore" class="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm font-bold">
+              Completed: 0 / 6
+            </span>
+            <button onclick="initGrammarBuilder()" class="px-3.5 py-2 rounded-xl bg-[#14261c] hover:bg-[#2d5a42] text-white text-xs font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Verb Tile Bank -->
+        <div id="verbTileBank" class="flex flex-wrap gap-2 p-4 rounded-xl bg-[#f7f5ee] border-2 border-dashed border-[#c7c0ab] justify-center">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Live Tooltip / Explanation Feedback Banner -->
+        <div id="grammarFeedbackBanner" class="hidden rounded-xl p-3.5 text-sm font-medium border"></div>
+
+        <!-- 6 Sentence Frames -->
+        <div id="grammarSentencesList" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- STAGE 4: GUIDED SPEAKING PROMPTS & ROLEPLAY SPINNER                 -->
+    <!-- =================================================================== -->
+    <section id="stage-4" class="stage-panel space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#dcd6c4] pb-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-amber-700">Stage 4 of 6 • Controlled to Free Production</span>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#14261c] mt-1">Guided Speaking Drills & Roleplay</h2>
+        </div>
+        <p class="text-sm text-[#4a574f]">
+          Use these prompts in pairs or breakout groups to practice fluent Present Simple sentences.
+        </p>
+      </div>
+
+      <!-- Activity 1: Pair Drill Cards (Singular <-> Plural Transformation) -->
+      <div class="bg-white rounded-2xl shadow-md border border-[#e3decb] p-5 sm:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-bold uppercase text-[#2d5a42]">Task 1 • 5 Minutes</span>
+            <h3 class="text-lg font-bold text-[#14261c]">Fact-to-Sentence Pair Drill</h3>
+          </div>
+          <span class="text-xs text-[#4a574f] font-medium">Partner A says <b>"A serow..."</b> • Partner B says <b>"Serows..."</b> (Click cards to check)</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" id="pairDrillGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Activity 2 & 3: Roleplay Randomizer + 60-Second Conservation Pitch -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Activity 2: Ghost vs Famous Predator Roleplay Randomizer -->
+        <div class="lg:col-span-7 bg-white rounded-2xl shadow-md border border-[#e3decb] p-5 sm:p-6 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase text-amber-700">Task 2 • 8 Minutes</span>
+              <button onclick="spinRoleplayScenario()" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#14261c] text-xs font-extrabold transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-dice"></i> New Roleplay Scenario
+              </button>
+            </div>
+            <h3 class="text-xl font-bold text-[#14261c]">Roleplay: "Ghost Serow vs. Famous Predator"</h3>
+            <p class="text-sm text-[#4a574f]">
+              Student A plays a shy <b>Serow</b>. Student B plays a famous <b>Tiger or Leopard</b>. Compare your daily lives using Present Simple!
+            </p>
+          </div>
+
+          <div id="roleplayBox" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-[#f7f5ee] p-4 rounded-xl border border-[#e3decb]">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Activity 3: 60-Second Conservation Pitch Challenge -->
+        <div class="lg:col-span-5 bg-[#14261c] text-white rounded-2xl shadow-lg border border-[#2d5a42] p-5 sm:p-6 flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <span class="inline-block px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
+              Task 3 • 60-Second Challenge
+            </span>
+            <h3 class="text-xl font-bold text-white leading-snug">
+              The Conservation Pitch
+            </h3>
+            <div class="bg-[#1f3b2c] rounded-xl p-4 border border-[#2d5a42]">
+              <p class="text-base sm:text-lg font-semibold text-amber-200 italic">
+                "Why should people protect an animal they rarely see?"
+              </p>
+            </div>
+            <ul class="text-xs sm:text-sm text-emerald-100 space-y-1.5">
+              <li><i class="fa-solid fa-check text-amber-400 mr-1.5"></i> Use at least <b>2 vocabulary words</b> (<i>elusive, habitat, conservation</i>).</li>
+              <li><i class="fa-solid fa-check text-amber-400 mr-1.5"></i> Use <b>Present Simple</b> facts (<i>"Every species plays a role..."</i>).</li>
+            </ul>
+          </div>
+
+          <button onclick="launchPitchTimer()" class="w-full py-3.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#14261c] font-extrabold text-sm sm:text-base transition shadow-lg flex items-center justify-center gap-2">
+            <i class="fa-solid fa-stopwatch"></i> Start 60-Second Pitch Timer
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- STAGE 5: INTERACTIVE PRESENT SIMPLE & VIDEO QUIZ                    -->
+    <!-- =================================================================== -->
+    <section id="stage-5" class="stage-panel space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#dcd6c4] pb-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-amber-700">Stage 5 of 6 • Comprehension & Accuracy Check</span>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#14261c] mt-1">Present Simple & Video Quiz</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="quizScoreBadge" class="px-3.5 py-1.5 rounded-xl bg-[#14261c] text-amber-300 text-sm font-bold">
+            Score: 0 / 6
+          </span>
+          <button onclick="resetQuiz()" class="px-3.5 py-2 rounded-xl bg-white border border-[#dcd6c4] hover:bg-[#ede9dc] text-[#14261c] text-xs font-bold transition">
+            <i class="fa-solid fa-rotate-left mr-1"></i> Reset Quiz
+          </button>
+        </div>
+      </div>
+
+      <!-- Animated Progress Bar -->
+      <div class="w-full bg-[#e3decb] rounded-full h-3 overflow-hidden">
+        <div id="quizProgressBar" class="bg-amber-500 h-full transition-all duration-500 rounded-full" style="width: 0%"></div>
+      </div>
+
+      <!-- Quiz Questions Container -->
+      <div id="quizContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Celebratory Completion Banner (Hidden until all 6 answered) -->
+      <div id="quizSummaryBanner" class="hidden bg-[#14261c] text-white rounded-2xl p-6 sm:p-8 text-center shadow-xl border-2 border-amber-400 space-y-4">
+        <div class="w-16 h-16 rounded-full bg-amber-500/20 text-amber-400 text-3xl flex items-center justify-center mx-auto">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <h3 id="quizFinalHeadline" class="text-2xl sm:text-3xl font-bold text-white">Quiz Complete!</h3>
+        <p id="quizFinalMessage" class="text-emerald-100 max-w-lg mx-auto text-sm sm:text-base"></p>
+        <button onclick="resetQuiz()" class="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#14261c] font-extrabold text-sm transition shadow">
+          <i class="fa-solid fa-play mr-1.5"></i> Play Quiz Again
+        </button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- STAGE 6: CLASSROOM SPEAKING GAMES HUB                               -->
+    <!-- =================================================================== -->
+    <section id="stage-6" class="stage-panel space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#dcd6c4] pb-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-amber-700">Stage 6 of 6 • Fluency & Review Games</span>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#14261c] mt-1">Classroom Speaking Games Hub</h2>
+        </div>
+        <!-- Sub-game Selector Pills -->
+        <div class="flex flex-wrap gap-2">
+          <button onclick="switchGameTab('truths')" id="gameTab-truths" class="game-subtab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[#14261c] text-amber-300 shadow transition">
+            <i class="fa-solid fa-ghost mr-1.5"></i> Two Truths & a Lie
+          </button>
+          <button onclick="switchGameTab('taboo')" id="gameTab-taboo" class="game-subtab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white border border-[#dcd6c4] text-[#14261c] hover:bg-[#ede9dc] transition">
+            <i class="fa-solid fa-ban mr-1.5"></i> Mountain Taboo
+          </button>
+          <button onclick="switchGameTab('wheel')" id="gameTab-wheel" class="game-subtab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white border border-[#dcd6c4] text-[#14261c] hover:bg-[#ede9dc] transition">
+            <i class="fa-solid fa-dharmachakra mr-1.5"></i> Chain Story Wheel
+          </button>
+        </div>
+      </div>
+
+      <!-- GAME A: TWO TRUTHS & A GHOST LIE -->
+      <div id="gamePanel-truths" class="game-panel bg-white rounded-2xl shadow-md border border-[#e3decb] p-5 sm:p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-bold uppercase text-amber-700">Game A • Fact Checking & Speaking</span>
+            <h3 class="text-xl font-bold text-[#14261c]">Two Truths and a "Ghost Lie" 👻</h3>
+            <p class="text-sm text-[#4a574f]">Read the three Present Simple statements aloud. Click the statement you think is the <b>false lie</b>!</p>
+          </div>
+          <button onclick="nextTruthsSet()" class="px-4 py-2.5 rounded-xl bg-[#14261c] hover:bg-[#2d5a42] text-amber-300 text-xs sm:text-sm font-bold transition shrink-0">
+            <i class="fa-solid fa-forward mr-1.5"></i> Next Round
+          </button>
+        </div>
+
+        <div id="truthsStatementsList" class="space-y-3">
+          <!-- Populated by JS -->
+        </div>
+
+        <div id="truthsExplanation" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-300 text-sm text-[#14261c] font-medium"></div>
+
+        <!-- Student Custom Builder Prompt -->
+        <div class="bg-[#f7f5ee] rounded-xl p-4 border border-[#e3decb]">
+          <h4 class="text-sm font-bold text-[#14261c] mb-1"><i class="fa-solid fa-pen-to-square text-[#2d5a42] mr-1.5"></i> Student Turn Template:</h4>
+          <p class="text-xs sm:text-sm text-[#4a574f]">
+            Write or say 3 Present Simple sentences about <b>any wild animal</b> (2 true facts + 1 lie):<br>
+            <i>"1. A [animal] lives in... &nbsp;|&nbsp; 2. It eats... &nbsp;|&nbsp; 3. It always sleeps..."</i>
+          </p>
+        </div>
+      </div>
+
+      <!-- GAME B: TABOO: MOUNTAIN EDITION -->
+      <div id="gamePanel-taboo" class="game-panel hidden bg-white rounded-2xl shadow-md border border-[#e3decb] p-5 sm:p-6 space-y-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold uppercase text-amber-700">Game B • Vocabulary Circumlocution</span>
+            <h3 class="text-xl font-bold text-[#14261c]">Taboo: Mountain Edition</h3>
+            <p class="text-sm text-[#4a574f]">Describe the <b>Target Word</b> using Present Simple clues <i>without</i> saying the 3 forbidden words!</p>
+          </div>
+
+          <!-- Team Scoreboard & 45s Round Timer -->
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2 bg-[#f7f5ee] px-3 py-2 rounded-xl border border-[#e3decb]">
+              <span class="text-xs font-bold text-[#2d5a42]">TEAM A:</span>
+              <span id="teamAScore" class="text-lg font-extrabold text-[#14261c]">0</span>
+              <button onclick="updateTeamScore('A', 1)" class="w-6 h-6 rounded bg-[#2d5a42] text-white text-xs font-bold">+</button>
+            </div>
+            <div class="flex items-center gap-2 bg-[#f7f5ee] px-3 py-2 rounded-xl border border-[#e3decb]">
+              <span class="text-xs font-bold text-amber-700">TEAM B:</span>
+              <span id="teamBScore" class="text-lg font-extrabold text-[#14261c]">0</span>
+              <button onclick="updateTeamScore('B', 1)" class="w-6 h-6 rounded bg-amber-500 text-[#14261c] text-xs font-bold">+</button>
+            </div>
+            <button onclick="startTabooRound()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#14261c] text-xs font-extrabold transition shadow">
+              <i class="fa-solid fa-stopwatch mr-1"></i> Start 45s Round
+            </button>
+          </div>
+        </div>
+
+        <!-- Taboo Card Display -->
+        <div class="max-w-md mx-auto">
+          <div id="tabooCard" class="rounded-2xl overflow-hidden shadow-xl border-2 border-[#14261c] bg-white transition-all">
+            <div class="bg-[#14261c] text-white p-5 text-center">
+              <span class="text-xs font-bold uppercase tracking-widest text-amber-400">Describe This Word</span>
+              <h4 id="tabooTargetWord" class="text-3xl font-extrabold tracking-wide mt-1">HABITAT</h4>
+            </div>
+            <div class="p-5 bg-[#f7f5ee] space-y-2.5 text-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-red-700"><i class="fa-solid fa-ban mr-1"></i> Forbidden Words:</span>
+              <ul id="tabooForbiddenList" class="space-y-1.5 text-lg font-bold text-[#334139]">
+                <li>Home</li>
+                <li>Live</li>
+                <li>Forest</li>
+              </ul>
+            </div>
+            <div class="p-4 bg-white border-t border-[#e3decb] grid grid-cols-2 gap-3">
+              <button onclick="handleTabooAction('skip')" class="py-3 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-extrabold text-sm transition">
+                <i class="fa-solid fa-xmark mr-1"></i> Skip / Taboo!
+              </button>
+              <button onclick="handleTabooAction('point')" class="py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm transition">
+                <i class="fa-solid fa-check mr-1"></i> Got It! (+1)
+              </button>
+            </div>
+          </div>
+          <p class="text-center text-xs text-[#4a574f] mt-3">
+            Tip: Click <b>+</b> next to Team A or Team B above to award points, or let the active team rack up points!
+          </p>
+        </div>
+      </div>
+
+      <!-- GAME C: CHAIN STORY PROMPT WHEEL -->
+      <div id="gamePanel-wheel" class="game-panel hidden bg-white rounded-2xl shadow-md border border-[#e3decb] p-5 sm:p-6 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-bold uppercase text-amber-700">Game C • Collaborative Storytelling</span>
+            <h3 class="text-xl font-bold text-[#14261c]">"What Does the Serow Do?" Chain Story Wheel</h3>
+            <p class="text-sm text-[#4a574f]">Spin the prompt wheel! Each student adds one <b>Present Simple</b> action to continue the serow's day.</p>
+          </div>
+          <button onclick="clearChainStory()" class="px-3.5 py-2 rounded-xl bg-[#f7f5ee] hover:bg-[#ede9dc] border border-[#dcd6c4] text-xs font-bold text-[#14261c] transition shrink-0">
+            <i class="fa-solid fa-eraser mr-1"></i> Clear Story Board
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Interactive Spinner Box -->
+          <div class="lg:col-span-5 bg-[#14261c] text-white rounded-2xl p-6 text-center space-y-4 border border-[#2d5a42] shadow-lg">
+            <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-400 text-3xl flex items-center justify-center mx-auto" id="wheelSpinnerIcon">
+              <i class="fa-solid fa-compass"></i>
+            </div>
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Current Story Starter</span>
+              <p id="wheelPromptDisplay" class="text-xl sm:text-2xl font-bold text-white mt-2 min-h-[64px] flex items-center justify-center">
+                "Every morning, the serow..."
+              </p>
+            </div>
+            <button onclick="spinStoryWheel()" id="spinWheelBtn" class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#14261c] font-extrabold text-base transition shadow-md">
+              <i class="fa-solid fa-rotate mr-1.5"></i> Spin Next Prompt
+            </button>
+          </div>
+
+          <!-- Live Classroom Chain Story Log -->
+          <div class="lg:col-span-7 bg-[#f7f5ee] rounded-2xl p-5 border border-[#e3decb] space-y-3">
+            <h4 class="text-sm font-bold text-[#14261c] flex items-center justify-between">
+              <span><i class="fa-solid fa-list-ol text-[#2d5a42] mr-1.5"></i> Class Chain Story Builder</span>
+              <span id="chainStepCount" class="text-xs font-semibold text-[#4a574f]">1 / 8 turns</span>
+            </h4>
+            <div class="flex gap-2">
+              <input
+                type="text"
+                id="chainInput"
+                placeholder="Type a student's Present Simple sentence (e.g., ...walks quietly through the fog.)"
+                class="flex-grow px-3.5 py-2.5 rounded-xl bg-white border border-[#c7c0ab] text-sm focus:outline-none focus:border-[#2d5a42]"
+                onkeydown="if(event.key==='Enter') addChainSentence()">
+              <button onclick="addChainSentence()" class="px-4 py-2.5 rounded-xl bg-[#2d5a42] hover:bg-[#1f3b2c] text-white text-sm font-bold transition shrink-0">
+                Add Turn
+              </button>
+            </div>
+            <ol id="chainStoryList" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-sm">
+              <li class="p-2.5 rounded-xl bg-white border border-[#e3decb] text-[#14261c]">
+                <span class="font-bold text-amber-700 mr-1.5">1.</span> Every morning, the serow wakes up inside a hidden mountain cave.
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    /* =====================================================================
+       1. NAVIGATION & FLOATING COUNTDOWN TIMER
+       ===================================================================== */
+    function switchStage(stageNum) {
+      // Update panels
+      document.querySelectorAll('.stage-panel').forEach(panel => panel.classList.remove('active'));
+      const activePanel = document.getElementById(`stage-${stageNum}`);
+      if (activePanel) activePanel.classList.add('active');
+
+      // Update tabs
+      document.querySelectorAll('.stage-tab').forEach(tab => {
+        tab.classList.remove('bg-amber-500', 'text-[#14261c]', 'shadow', 'font-bold');
+        tab.classList.add('bg-[#1f3b2c]', 'text-emerald-100', 'font-semibold');
+      });
+      const activeTab = document.getElementById(`tab-${stageNum}`);
+      if (activeTab) {
+        activeTab.classList.remove('bg-[#1f3b2c]', 'text-emerald-100', 'font-semibold');
+        activeTab.classList.add('bg-amber-500', 'text-[#14261c]', 'shadow', 'font-bold');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Countdown Timer State
+    let timerSeconds = 60;
+    let timerPreset = 60;
+    let timerInterval = null;
+    let timerRunning = false;
+    let timerMinimized = false;
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimerUI() {
+      const formatted = formatTime(timerSeconds);
+      document.getElementById('timerDisplay').textContent = formatted;
+      document.getElementById('mobileTimerBadge').textContent = formatted;
+
+      const card = document.getElementById('floatingTimerCard');
+      const display = document.getElementById('timerDisplay');
+      if (timerSeconds <= 10 && timerSeconds > 0 && timerRunning) {
+        display.classList.add('text-amber-400');
+        card.classList.add('timer-urgent');
+      } else if (timerSeconds === 0) {
+        display.classList.add('text-red-400');
+        card.classList.remove('timer-urgent');
+      } else {
+        display.classList.remove('text-amber-400', 'text-red-400');
+        card.classList.remove('timer-urgent');
+      }
+    }
+
+    function toggleTimerRun() {
+      const btn = document.getElementById('timerPlayPauseBtn');
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+      } else {
+        if (timerSeconds === 0) timerSeconds = timerPreset;
+        timerRunning = true;
+        btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        timerInterval = setInterval(() => {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+            updateTimerUI();
+          } else {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+          }
+        }, 1000);
+      }
+      updateTimerUI();
+    }
+
+    function setTimerPreset(sec) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      timerPreset = sec;
+      timerSeconds = sec;
+      document.getElementById('timerPlayPauseBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
+      updateTimerUI();
+    }
+
+    function resetTimer() {
+      setTimerPreset(timerPreset);
+    }
+
+    function toggleTimerMinimize() {
+      timerMinimized = !timerMinimized;
+      const body = document.getElementById('timerBody');
+      const btn = document.getElementById('timerMinBtn');
+      if (timerMinimized) {
+        body.classList.add('hidden');
+        btn.innerHTML = '<i class="fa-solid fa-plus"></i>';
+      } else {
+        body.classList.remove('hidden');
+        btn.innerHTML = '<i class="fa-solid fa-minus"></i>';
+      }
+    }
+
+    function toggleFloatingTimer() {
+      const card = document.getElementById('floatingTimerCard');
+      card.classList.toggle('hidden');
+    }
+
+    /* =====================================================================
+       2. STAGE 1: VIDEO CLIPS LAUNCHER
+       ===================================================================== */
+    const videoClips = [
+      {
+        badge: "Clip 1 • 0:28 – 0:38",
+        start: 28,
+        end: 38,
+        quote: '"A serow looks like a cross between a goat, a boar, and a donkey."'
+      },
+      {
+        badge: "Clip 2 • 2:08 – 2:18",
+        start: 128,
+        end: 138,
+        quote: '"A rocky cliff is no match for an agile serow."'
+      },
+      {
+        badge: "Clip 3 • 5:32 – 5:42",
+        start: 332,
+        end: 342,
+        quote: '"A quick rub against a tree spreads the serow\'s scent."'
+      },
+      {
+        badge: "Clip 4 • 7:20 – 7:30",
+        start: 440,
+        end: 450,
+        quote: '"The Japanese serow bounced back when regulations protected them."'
+      }
+    ];
+
+    function selectVideoClip(index) {
+      const clip = videoClips[index];
+      const embedUrl = `https://www.youtube.com/embed/teHwadQsmK0?start=${clip.start}&end=${clip.end}&autoplay=1&rel=0`;
+      const externalUrl = `https://www.youtube.com/embed/teHwadQsmK0?start=${clip.start}&end=${clip.end}&autoplay=1`;
+
+      document.getElementById('ytPlayerFrame').src = embedUrl;
+      document.getElementById('activeClipBadge').textContent = clip.badge;
+      document.getElementById('activeClipQuote').textContent = clip.quote;
+      document.getElementById('externalClipLink').href = externalUrl;
+
+      // Highlight active clip button
+      document.querySelectorAll('.clip-btn').forEach((btn, idx) => {
+        const numBadge = btn.querySelector('span');
+        if (idx === index) {
+          btn.classList.remove('border-[#e3decb]', 'bg-white');
+          btn.classList.add('border-amber-500', 'bg-amber-50/70');
+          numBadge.classList.remove('bg-[#1f3b2c]', 'text-white');
+          numBadge.classList.add('bg-amber-500', 'text-[#14261c]');
+        } else {
+          btn.classList.remove('border-amber-500', 'bg-amber-50/70');
+          btn.classList.add('border-[#e3decb]', 'bg-white');
+          numBadge.classList.remove('bg-amber-500', 'text-[#14261c]');
+          numBadge.classList.add('bg-[#1f3b2c]', 'text-white');
+        }
+      });
+    }
+
+    /* =====================================================================
+       3. STAGE 2: VOCABULARY FLASHCARDS & DRAG-AND-DROP MATCHING
+       ===================================================================== */
+    const vocabData = [
+      {
+        word: "Elusive",
+        pos: "Adjective",
+        pronunciation: "/ɪˈluː.sɪv/",
+        definition: "Hard to find, catch, or see in the wild.",
+        example: "The elusive serow hides in mountain forests alongside tigers and leopards."
+      },
+      {
+        word: "Forage",
+        pos: "Verb",
+        pronunciation: "/ˈfɒr.ɪdʒ/",
+        definition: "To search widely for wild food like leaves and grass.",
+        example: "Serows forage through the trees during quiet twilight hours."
+      },
+      {
+        word: "Agile",
+        pos: "Adjective",
+        pronunciation: "/ˈædʒ.aɪl/",
+        definition: "Able to move quickly and easily on steep surfaces.",
+        example: "A steep rocky cliff is no match for an agile serow."
+      },
+      {
+        word: "Territory",
+        pos: "Noun",
+        pronunciation: "/ˈter.ɪ.tər.i/",
+        definition: "An area that an animal marks and defends as its own.",
+        example: "A serow marks its territory by rubbing its face against trees."
+      },
+      {
+        word: "Habitat",
+        pos: "Noun",
+        pronunciation: "/ˈhæb.ɪ.tæt/",
+        definition: "The natural home or environment where an animal lives.",
+        example: "High mountain slopes form the serow's favorite habitat."
+      },
+      {
+        word: "Conservation",
+        pos: "Noun",
+        pronunciation: "/ˌkɒn.səˈveɪ.ʃən/",
+        definition: "The active protection of wild animals, plants, and nature.",
+        example: "Strong conservation laws helped the Japanese serow population recover."
+      }
+    ];
+
+    function renderVocabFlipCards() {
+      const grid = document.getElementById('vocabFlipGrid');
+      grid.innerHTML = vocabData.map(item => `
+        <div onclick="this.classList.toggle('flipped')" class="flip-card h-44">
+          <div class="flip-card-inner">
+            <div class="flip-card-front bg-white border-2 border-[#e3decb] hover:border-[#2d5a42] p-5 shadow-sm flex flex-col justify-between transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#ede9dc] text-[#2d5a42]">${item.pos}</span>
+                <span class="text-xs font-mono text-[#4a574f]">${item.pronunciation}</span>
+              </div>
+              <div class="text-center my-auto">
+                <h4 class="text-2xl font-bold text-[#14261c]">${item.word}</h4>
+              </div>
+              <div class="text-right text-xs text-amber-700 font-semibold">
+                <i class="fa-solid fa-rotate mr-1"></i> Flip for meaning
+              </div>
+            </div>
+            <div class="flip-card-back bg-[#1f3b2c] text-white p-5 shadow-md border-2 border-amber-400 flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-bold uppercase text-amber-400">${item.word} • Definition</span>
+                <p class="text-sm font-semibold mt-1 text-white">${item.definition}</p>
+              </div>
+              <div class="pt-2 border-t border-[#2d5a42]">
+                <p class="text-xs text-emerald-200 italic">"${item.example}"</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Drag & Drop + Touch Click-to-Place State for Vocabulary
+    let selectedVocabWord = null;
+    let vocabMatchedCount = 0;
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function initVocabGame() {
+      selectedVocabWord = null;
+      vocabMatchedCount = 0;
+      document.getElementById('vocabMatchScore').textContent = `Matched: 0 / ${vocabData.length}`;
+
+      const shuffledWords = shuffleArray(vocabData);
+      const shuffledDefs = shuffleArray(vocabData);
+
+      const bank = document.getElementById('vocabWordBank');
+      bank.innerHTML = shuffledWords.map(item => `
+        <button
+          id="vtile-${item.word}"
+          draggable="true"
+          ondragstart="handleVocabDragStart(event, '${item.word}')"
+          onclick="handleVocabTileClick('${item.word}')"
+          class="draggable-tile px-4 py-2.5 rounded-xl bg-[#14261c] text-amber-300 font-bold text-sm sm:text-base shadow cursor-grab active:cursor-grabbing border-2 border-transparent">
+          ${item.word}
+        </button>
+      `).join('');
+
+      const zones = document.getElementById('vocabDropZones');
+      zones.innerHTML = shuffledDefs.map(item => `
+        <div
+          id="vzone-${item.word}"
+          ondragover="event.preventDefault(); this.classList.add('border-amber-500', 'bg-amber-50/50')"
+          ondragleave="this.classList.remove('border-amber-500', 'bg-amber-50/50')"
+          ondrop="handleVocabDrop(event, '${item.word}')"
+          onclick="handleVocabZoneClick('${item.word}')"
+          class="p-4 rounded-xl bg-[#f7f5ee] border-2 border-[#dcd6c4] transition flex items-center justify-between gap-3 cursor-pointer">
+          <p class="text-sm font-medium text-[#14261c]">${item.definition}</p>
+          <div id="vslot-${item.word}" class="shrink-0 min-w-[116px] h-10 rounded-lg border-2 border-dashed border-[#b8b099] bg-white flex items-center justify-center text-xs font-bold text-[#7a857e] px-2">
+            Drop word here
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleVocabDragStart(e, word) {
+      e.dataTransfer.setData('text/plain', word);
+      selectVocabTileUI(word);
+    }
+
+    function selectVocabTileUI(word) {
+      document.querySelectorAll('#vocabWordBank .draggable-tile').forEach(el => el.classList.remove('selected-tile', 'border-amber-400'));
+      selectedVocabWord = word;
+      const tile = document.getElementById(`vtile-${word}`);
+      if (tile) tile.classList.add('selected-tile', 'border-amber-400');
+    }
+
+    function handleVocabTileClick(word) {
+      if (selectedVocabWord === word) {
+        selectedVocabWord = null;
+        document.getElementById(`vtile-${word}`).classList.remove('selected-tile', 'border-amber-400');
+      } else {
+        selectVocabTileUI(word);
+      }
+    }
+
+    function handleVocabDrop(e, targetWord) {
+      e.preventDefault();
+      const zone = document.getElementById(`vzone-${targetWord}`);
+      zone.classList.remove('border-amber-500', 'bg-amber-50/50');
+      const draggedWord = e.dataTransfer.getData('text/plain') || selectedVocabWord;
+      if (draggedWord) evaluateVocabMatch(draggedWord, targetWord);
+    }
+
+    function handleVocabZoneClick(targetWord) {
+      if (selectedVocabWord) {
+        evaluateVocabMatch(selectedVocabWord, targetWord);
+      }
+    }
+
+    function evaluateVocabMatch(chosenWord, targetWord) {
+      const zone = document.getElementById(`vzone-${targetWord}`);
+      const slot = document.getElementById(`vslot-${targetWord}`);
+      const tile = document.getElementById(`vtile-${chosenWord}`);
+
+      if (!tile || zone.dataset.matched === 'true') return;
+
+      if (chosenWord === targetWord) {
+        zone.dataset.matched = 'true';
+        zone.classList.remove('bg-[#f7f5ee]', 'border-[#dcd6c4]');
+        zone.classList.add('bg-emerald-50', 'border-emerald-500', 'pop-success');
+        slot.className = "shrink-0 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-extrabold flex items-center gap-1.5";
+        slot.innerHTML = `<i class="fa-solid fa-check"></i> ${chosenWord}`;
+        tile.remove();
+        selectedVocabWord = null;
+        vocabMatchedCount++;
+        document.getElementById('vocabMatchScore').textContent = `Matched: ${vocabMatchedCount} / ${vocabData.length}`;
+      } else {
+        zone.classList.add('shake-error');
+        setTimeout(() => zone.classList.remove('shake-error'), 450);
+      }
+    }
+
+    /* =====================================================================
+       4. STAGE 3: PRESENT SIMPLE GRAMMAR LAB
+       ===================================================================== */
+    function setGrammarView(mode) {
+      document.querySelectorAll('.gram-toggle-btn').forEach(btn => {
+        btn.classList.remove('bg-amber-500', 'text-[#14261c]');
+        btn.classList.add('text-emerald-100');
+      });
+      const activeBtn = document.getElementById(`gramBtn-${mode}`);
+      activeBtn.classList.remove('text-emerald-100');
+      activeBtn.classList.add('bg-amber-500', 'text-[#14261c]');
+
+      const singCard = document.getElementById('gramCard-singular');
+      const plurCard = document.getElementById('gramCard-plural');
+
+      if (mode === 'both') {
+        singCard.classList.remove('hidden', 'md:col-span-2');
+        plurCard.classList.remove('hidden', 'md:col-span-2');
+      } else if (mode === 'singular') {
+        singCard.classList.remove('hidden');
+        singCard.classList.add('md:col-span-2');
+        plurCard.classList.add('hidden');
+      } else {
+        plurCard.classList.remove('hidden');
+        plurCard.classList.add('md:col-span-2');
+        singCard.classList.add('hidden');
+      }
+    }
+
+    const grammarSentences = [
+      {
+        id: 1,
+        before: "A serow",
+        after: "high in steep mountain forests.",
+        correct: "lives",
+        wrong: "live",
+        tip: "Correct! 'A serow' is a singular subject (it), so we add -s → lives."
+      },
+      {
+        id: 2,
+        before: "Serows",
+        after: "through the trees at twilight to find leaves.",
+        correct: "move",
+        wrong: "moves",
+        tip: "Correct! 'Serows' is plural (they), so we use the base verb → move."
+      },
+      {
+        id: 3,
+        before: "A quick rub against a tree",
+        after: "the serow's scent.",
+        correct: "spreads",
+        wrong: "spread",
+        tip: "Correct! 'A quick rub' is singular (it), so we add -s → spreads."
+      },
+      {
+        id: 4,
+        before: "At night, they",
+        after: "inside hidden rocky caves.",
+        correct: "sleep",
+        wrong: "sleeps",
+        tip: "Correct! 'They' is plural, so we use the base verb → sleep."
+      },
+      {
+        id: 5,
+        before: "Illegal hunting",
+        after: "a serious threat to wild serows.",
+        correct: "poses",
+        wrong: "pose",
+        tip: "Correct! 'Illegal hunting' is an uncountable/singular noun (it) → poses."
+      },
+      {
+        id: 6,
+        before: "Agile serows",
+        after: "steep cliffs to escape predators.",
+        correct: "use",
+        wrong: "uses",
+        tip: "Correct! 'Agile serows' is plural (they), so we use the base verb → use."
+      }
+    ];
+
+    let selectedVerbTileId = null;
+    let grammarCompletedCount = 0;
+
+    function initGrammarBuilder() {
+      selectedVerbTileId = null;
+      grammarCompletedCount = 0;
+      document.getElementById('grammarBuilderScore').textContent = `Completed: 0 / ${grammarSentences.length}`;
+      const banner = document.getElementById('grammarFeedbackBanner');
+      banner.classList.add('hidden');
+
+      // Build pool of 12 verb tiles (6 correct + 6 distractors)
+      const allTiles = [];
+      grammarSentences.forEach(s => {
+        allTiles.push({ uid: `c-${s.id}`, word: s.correct });
+        allTiles.push({ uid: `w-${s.id}`, word: s.wrong });
+      });
+
+      const shuffledTiles = shuffleArray(allTiles);
+      const bank = document.getElementById('verbTileBank');
+      bank.innerHTML = shuffledTiles.map(t => `
+        <button
+          id="gtile-${t.uid}"
+          draggable="true"
+          ondragstart="handleGramDragStart(event, '${t.uid}', '${t.word}')"
+          onclick="handleGramTileClick('${t.uid}', '${t.word}')"
+          class="draggable-tile px-3.5 py-2 rounded-xl bg-[#2d5a42] hover:bg-[#1f3b2c] text-white font-bold text-sm shadow cursor-grab border-2 border-transparent">
+          ${t.word}
+        </button>
+      `).join('');
+
+      const list = document.getElementById('grammarSentencesList');
+      list.innerHTML = grammarSentences.map(s => `
+        <div
+          id="gsent-${s.id}"
+          ondragover="event.preventDefault(); this.classList.add('border-amber-500')"
+          ondragleave="this.classList.remove('border-amber-500')"
+          ondrop="handleGramDrop(event, ${s.id})"
+          onclick="handleGramZoneClick(${s.id})"
+          class="p-4 rounded-xl bg-[#f7f5ee] border-2 border-[#dcd6c4] transition cursor-pointer flex flex-wrap items-center gap-2 text-sm sm:text-base">
+          <span class="font-bold text-[#2d5a42]">${s.id}.</span>
+          <span>${s.before}</span>
+          <span id="gblank-${s.id}" class="inline-flex items-center justify-center min-w-[92px] h-8 px-2.5 rounded-lg bg-white border-2 border-dashed border-amber-500 text-xs font-bold text-amber-700">
+            [ verb ]
+          </span>
+          <span>${s.after}</span>
+        </div>
+      `).join('');
+    }
+
+    let selectedVerbWord = null;
+
+    function handleGramDragStart(e, uid, word) {
+      e.dataTransfer.setData('text/plain', JSON.stringify({ uid, word }));
+      selectGramTileUI(uid, word);
+    }
+
+    function selectGramTileUI(uid, word) {
+      document.querySelectorAll('#verbTileBank .draggable-tile').forEach(el => el.classList.remove('selected-tile', 'border-amber-400'));
+      selectedVerbTileId = uid;
+      selectedVerbWord = word;
+      const tile = document.getElementById(`gtile-${uid}`);
+      if (tile) tile.classList.add('selected-tile', 'border-amber-400');
+    }
+
+    function handleGramTileClick(uid, word) {
+      if (selectedVerbTileId === uid) {
+        selectedVerbTileId = null;
+        selectedVerbWord = null;
+        document.getElementById(`gtile-${uid}`).classList.remove('selected-tile', 'border-amber-400');
+      } else {
+        selectGramTileUI(uid, word);
+      }
+    }
+
+    function handleGramDrop(e, sentId) {
+      e.preventDefault();
+      document.getElementById(`gsent-${sentId}`).classList.remove('border-amber-500');
+      try {
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        evaluateGrammarChoice(data.uid, data.word, sentId);
+      } catch {
+        if (selectedVerbTileId && selectedVerbWord) {
+          evaluateGrammarChoice(selectedVerbTileId, selectedVerbWord, sentId);
+        }
+      }
+    }
+
+    function handleGramZoneClick(sentId) {
+      if (selectedVerbTileId && selectedVerbWord) {
+        evaluateGrammarChoice(selectedVerbTileId, selectedVerbWord, sentId);
+      }
+    }
+
+    function evaluateGrammarChoice(uid, word, sentId) {
+      const sentenceObj = grammarSentences.find(s => s.id === sentId);
+      const card = document.getElementById(`gsent-${sentId}`);
+      const blank = document.getElementById(`gblank-${sentId}`);
+      const tile = document.getElementById(`gtile-${uid}`);
+      const banner = document.getElementById('grammarFeedbackBanner');
+
+      if (!sentenceObj || card.dataset.solved === 'true') return;
+
+      if (word === sentenceObj.correct) {
+        card.dataset.solved = 'true';
+        card.classList.remove('bg-[#f7f5ee]', 'border-[#dcd6c4]');
+        card.classList.add('bg-emerald-50', 'border-emerald-500', 'pop-success');
+        blank.className = "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-600 text-white font-extrabold text-sm";
+        blank.innerHTML = `<i class="fa-solid fa-check text-xs"></i> ${word}`;
+        if (tile) tile.remove();
+        selectedVerbTileId = null;
+        selectedVerbWord = null;
+        grammarCompletedCount++;
+        document.getElementById('grammarBuilderScore').textContent = `Completed: ${grammarCompletedCount} / ${grammarSentences.length}`;
+
+        banner.className = "rounded-xl p-3.5 text-sm font-semibold border bg-emerald-50 border-emerald-300 text-emerald-900";
+        banner.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> ${sentenceObj.tip}`;
+        banner.classList.remove('hidden');
+      } else {
+        card.classList.add('shake-error');
+        setTimeout(() => card.classList.remove('shake-error'), 450);
+
+        banner.className = "rounded-xl p-3.5 text-sm font-semibold border bg-red-50 border-red-300 text-red-900";
+        banner.innerHTML = `<i class="fa-solid fa-circle-exclamation text-red-600 mr-1.5"></i> Not quite! Check if the subject ("${sentenceObj.before}") is <b>singular</b> (+ -s) or <b>plural</b> (no -s).`;
+        banner.classList.remove('hidden');
+      }
+    }
+
+    /* =====================================================================
+       5. STAGE 4: GUIDED SPEAKING DRILLS & ROLEPLAY SPINNER
+       ===================================================================== */
+    const pairDrills = [
+      {
+        prompt: "sleep / in caves at night",
+        singular: "A serow sleeps in caves at night.",
+        plural: "Serows sleep in caves at night."
+      },
+      {
+        prompt: "climb / steep rocky cliffs",
+        singular: "A serow climbs steep rocky cliffs.",
+        plural: "Serows climb steep rocky cliffs."
+      },
+      {
+        prompt: "eat / leaves, grass, and herbs",
+        singular: "A serow eats leaves, grass, and herbs.",
+        plural: "Serows eat leaves, grass, and herbs."
+      },
+      {
+        prompt: "mark / territory on tree trunks",
+        singular: "A serow marks its territory on tree trunks.",
+        plural: "Serows mark their territory on tree trunks."
+      }
+    ];
+
+    function renderPairDrills() {
+      const grid = document.getElementById('pairDrillGrid');
+      grid.innerHTML = pairDrills.map((d, idx) => `
+        <div onclick="document.getElementById('drillAns-${idx}').classList.toggle('hidden')" class="p-4 rounded-xl bg-[#f7f5ee] hover:bg-[#ede9dc] border border-[#dcd6c4] cursor-pointer transition flex flex-col justify-between space-y-3">
+          <div>
+            <span class="text-xs font-bold uppercase text-amber-700">Prompt ${idx + 1}</span>
+            <p class="text-base font-extrabold text-[#14261c] mt-1">${d.prompt}</p>
+          </div>
+          <div id="drillAns-${idx}" class="hidden pt-2.5 border-t border-[#dcd6c4] space-y-1.5 text-xs">
+            <p class="text-[#2d5a42] font-bold">1: ${d.singular}</p>
+            <p class="text-amber-800 font-bold">2+: ${d.plural}</p>
+          </div>
+          <span class="text-xs text-[#4a574f] font-semibold"><i class="fa-solid fa-eye mr-1"></i> Tap to reveal answers</span>
+        </div>
+      `).join('');
+    }
+
+    const roleplayScenarios = [
+      {
+        topic: "Daily Routine & Visibility",
+        serowCue: '"I wake up at twilight and stay hidden in foggy trees. People almost never photograph me!"',
+        predatorCue: '"I walk proudly across the forest, and tourists always travel far to see me!"'
+      },
+      {
+        topic: "Habitat & Movement",
+        serowCue: '"I climb steep, rocky cliffs where big cats cannot follow me."',
+        predatorCue: '"I hunt on the forest floor and rule a huge territory."'
+      },
+      {
+        topic: "Conservation & Fame",
+        serowCue: '"People forget about me because I am quiet, even though I need forest protection too."',
+        predatorCue: '"Everyone knows my name and donates money to protect my species."'
+      }
+    ];
+    let currentRoleplayIdx = 0;
+
+    function renderRoleplayScenario() {
+      const sc = roleplayScenarios[currentRoleplayIdx];
+      document.getElementById('roleplayBox').innerHTML = `
+        <div class="p-3.5 rounded-xl bg-white border border-[#dcd6c4] space-y-1.5">
+          <span class="text-xs font-extrabold uppercase text-[#2d5a42] flex items-center gap-1.5">
+            <i class="fa-solid fa-ghost"></i> Student A: The Shy Serow
+          </span>
+          <p class="text-xs font-semibold text-[#4a574f]">Topic: ${sc.topic}</p>
+          <p class="text-sm text-[#14261c] italic">${sc.serowCue}</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white border border-[#dcd6c4] space-y-1.5">
+          <span class="text-xs font-extrabold uppercase text-amber-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-paw"></i> Student B: Famous Tiger / Leopard
+          </span>
+          <p class="text-xs font-semibold text-[#4a574f]">Topic: ${sc.topic}</p>
+          <p class="text-sm text-[#14261c] italic">${sc.predatorCue}</p>
+        </div>
+      `;
+    }
+
+    function spinRoleplayScenario() {
+      currentRoleplayIdx = (currentRoleplayIdx + 1) % roleplayScenarios.length;
+      renderRoleplayScenario();
+    }
+
+    function launchPitchTimer() {
+      if (timerMinimized) toggleTimerMinimize();
+      document.getElementById('floatingTimerCard').classList.remove('hidden');
+      setTimerPreset(60);
+      toggleTimerRun();
+    }
+
+    /* =====================================================================
+       6. STAGE 5: INTERACTIVE PRESENT SIMPLE & VIDEO QUIZ
+       ===================================================================== */
+    const quizQuestions = [
+      {
+        id: 1,
+        type: "Present Simple Grammar",
+        question: "A serow _______ high in mountain forests.",
+        options: ["live", "lives", "living"],
+        correctIndex: 1,
+        explanation: "'A serow' is a singular subject (it), so Present Simple adds -s → lives."
+      },
+      {
+        id: 2,
+        type: "Present Simple Grammar",
+        question: "Serows _______ through trees during twilight hours to find food.",
+        options: ["moves", "moving", "move"],
+        correctIndex: 2,
+        explanation: "'Serows' is a plural subject (they), so we use the base verb → move."
+      },
+      {
+        id: 3,
+        type: "Present Simple Grammar",
+        question: "A serow _______ its scent by rubbing against a tree.",
+        options: ["spreads", "spread", "spreading"],
+        correctIndex: 0,
+        explanation: "Singular subject 'A serow' + -s → spreads."
+      },
+      {
+        id: 4,
+        type: "Present Simple Grammar",
+        question: "Humans _______ the greatest threat to serows through habitat loss.",
+        options: ["poses", "pose", "posing"],
+        correctIndex: 1,
+        explanation: "'Humans' is a plural subject (they) → base verb pose."
+      },
+      {
+        id: 5,
+        type: "Video Comprehension",
+        question: "True or False: The video says a serow is a type of deer.",
+        options: ["True", "False"],
+        correctIndex: 1,
+        explanation: "False! The narrator clearly explains that a serow is a 'goat antelope', not a deer."
+      },
+      {
+        id: 6,
+        type: "Video Comprehension",
+        question: "True or False: Serows use steep cliffs to escape predators that cannot reach them.",
+        options: ["True", "False"],
+        correctIndex: 0,
+        explanation: "True! Their agility on steep rocky cliffs keeps them safe from predators."
+      }
+    ];
+
+    let quizAnswers = {};
+
+    function renderQuiz() {
+      const container = document.getElementById('quizContainer');
+      container.innerHTML = quizQuestions.map(q => `
+        <div id="qcard-${q.id}" class="bg-white rounded-2xl shadow-sm border-2 border-[#e3decb] p-5 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#f7f5ee] text-[#2d5a42]">
+                Q${q.id} • ${q.type}
+              </span>
+            </div>
+            <h3 class="text-base sm:text-lg font-bold text-[#14261c]">${q.question}</h3>
+          </div>
+
+          <div class="space-y-2">
+            ${q.options.map((opt, idx) => `
+              <button
+                onclick="answerQuiz(${q.id}, ${idx})"
+                id="qopt-${q.id}-${idx}"
+                class="w-full text-left px-4 py-2.5 rounded-xl border-2 border-[#e3decb] bg-[#f7f5ee] hover:border-[#2d5a42] text-sm font-bold text-[#14261c] transition flex items-center justify-between">
+                <span>${String.fromCharCode(97 + idx)}) ${opt}</span>
+                <span id="qicon-${q.id}-${idx}"></span>
+              </button>
+            `).join('')}
+          </div>
+
+          <div id="qexp-${q.id}" class="hidden p-3 rounded-xl text-xs sm:text-sm font-medium"></div>
+        </div>
+      `).join('');
+    }
+
+    function answerQuiz(qId, chosenIdx) {
+      if (quizAnswers[qId] !== undefined) return; // Lock once answered
+      const q = quizQuestions.find(item => item.id === qId);
+      const isCorrect = chosenIdx === q.correctIndex;
+      quizAnswers[qId] = isCorrect;
+
+      // Style buttons
+      q.options.forEach((_, idx) => {
+        const btn = document.getElementById(`qopt-${qId}-${idx}`);
+        const icon = document.getElementById(`qicon-${qId}-${idx}`);
+        btn.disabled = true;
+        btn.classList.remove('hover:border-[#2d5a42]');
+
+        if (idx === q.correctIndex) {
+          btn.classList.remove('bg-[#f7f5ee]', 'border-[#e3decb]');
+          btn.classList.add('bg-emerald-100', 'border-emerald-600', 'text-emerald-950');
+          icon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-700"></i>';
+        } else if (idx === chosenIdx && !isCorrect) {
+          btn.classList.remove('bg-[#f7f5ee]', 'border-[#e3decb]');
+          btn.classList.add('bg-red-100', 'border-red-500', 'text-red-950');
+          icon.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-600"></i>';
+        }
+      });
+
+      const exp = document.getElementById(`qexp-${qId}`);
+      exp.classList.remove('hidden');
+      if (isCorrect) {
+        exp.classList.add('bg-emerald-50', 'text-emerald-900', 'border', 'border-emerald-200');
+        exp.innerHTML = `<b>Correct!</b> ${q.explanation}`;
+      } else {
+        exp.classList.add('bg-amber-50', 'text-amber-950', 'border', 'border-amber-200');
+        exp.innerHTML = `<b>Review:</b> ${q.explanation}`;
+      }
+
+      // Update score & progress
+      const answeredCount = Object.keys(quizAnswers).length;
+      const correctCount = Object.values(quizAnswers).filter(Boolean).length;
+      document.getElementById('quizScoreBadge').textContent = `Score: ${correctCount} / ${quizQuestions.length}`;
+      document.getElementById('quizProgressBar').style.width = `${(answeredCount / quizQuestions.length) * 100}%`;
+
+      if (answeredCount === quizQuestions.length) {
+        const banner = document.getElementById('quizSummaryBanner');
+        banner.classList.remove('hidden');
+        document.getElementById('quizFinalHeadline').textContent = `You Scored ${correctCount} out of ${quizQuestions.length}!`;
+        document.getElementById('quizFinalMessage').textContent =
+          correctCount >= 5
+            ? "Fantastic mastery of Present Simple facts and serow ecology! You're ready for the Classroom Games Hub."
+            : "Great effort! Review the Present Simple singular (-s) vs. plural rules and try again anytime.";
+      }
+    }
+
+    function resetQuiz() {
+      quizAnswers = {};
+      document.getElementById('quizScoreBadge').textContent = `Score: 0 / ${quizQuestions.length}`;
+      document.getElementById('quizProgressBar').style.width = '0%';
+      document.getElementById('quizSummaryBanner').classList.add('hidden');
+      renderQuiz();
+    }
+
+    /* =====================================================================
+       7. STAGE 6: CLASSROOM SPEAKING GAMES HUB
+       ===================================================================== */
+    function switchGameTab(gameKey) {
+      document.querySelectorAll('.game-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`gamePanel-${gameKey}`).classList.remove('hidden');
+
+      document.querySelectorAll('.game-subtab').forEach(t => {
+        t.classList.remove('bg-[#14261c]', 'text-amber-300', 'shadow');
+        t.classList.add('bg-white', 'border', 'border-[#dcd6c4]', 'text-[#14261c]');
+      });
+      const active = document.getElementById(`gameTab-${gameKey}`);
+      active.classList.remove('bg-white', 'border', 'border-[#dcd6c4]', 'text-[#14261c]');
+      active.classList.add('bg-[#14261c]', 'text-amber-300', 'shadow');
+    }
+
+    // Game A: Two Truths & a Ghost Lie
+    const truthsRounds = [
+      {
+        statements: [
+          { text: "1. A serow lives in steep mountain forests and rocky cliffs.", isLie: false },
+          { text: "2. A serow hunts tigers and leopards at night.", isLie: true },
+          { text: "3. A serow marks its territory by rubbing against trees.", isLie: false }
+        ],
+        explanation: "Statement 2 is the Ghost Lie! Serows are herbivores that eat leaves, grass, and herbs—they avoid predators rather than hunting them."
+      },
+      {
+        statements: [
+          { text: "1. Serows stand about 3 feet (91 cm) tall at the shoulder.", isLie: false },
+          { text: "2. Serows sleep in hidden caves during the night.", isLie: false },
+          { text: "3. Serows lose their horns every winter like deer.", isLie: true }
+        ],
+        explanation: "Statement 3 is the Ghost Lie! Serows are goat-antelopes, not deer—they keep their short, sharp horns year-round."
+      },
+      {
+        statements: [
+          { text: "1. Japanese serows live in large herds of 200 animals.", isLie: true },
+          { text: "2. Conservation laws helped the Japanese serow population bounce back.", isLie: false },
+          { text: "3. A serow looks like a cross between a goat, a boar, and a donkey.", isLie: false }
+        ],
+        explanation: "Statement 1 is the Ghost Lie! Serows are solitary or live in very small family pairs, which is why they are so hard to spot."
+      }
+    ];
+    let currentTruthRound = 0;
+
+    function renderTruthsRound() {
+      const round = truthsRounds[currentTruthRound];
+      const exp = document.getElementById('truthsExplanation');
+      exp.classList.add('hidden');
+
+      const list = document.getElementById('truthsStatementsList');
+      list.innerHTML = round.statements.map((st, idx) => `
+        <button
+          onclick="guessGhostLie(${idx})"
+          id="truthBtn-${idx}"
+          class="w-full text-left p-4 rounded-xl bg-[#f7f5ee] hover:bg-[#ede9dc] border-2 border-[#dcd6c4] text-base font-bold text-[#14261c] transition flex items-center justify-between">
+          <span>${st.text}</span>
+          <span id="truthBadge-${idx}" class="text-xs font-extrabold uppercase"></span>
+        </button>
+      `).join('');
+    }
+
+    function guessGhostLie(idx) {
+      const round = truthsRounds[currentTruthRound];
+      round.statements.forEach((st, i) => {
+        const btn = document.getElementById(`truthBtn-${i}`);
+        const badge = document.getElementById(`truthBadge-${i}`);
+        btn.disabled = true;
+        if (st.isLie) {
+          btn.classList.remove('bg-[#f7f5ee]', 'border-[#dcd6c4]');
+          btn.classList.add('bg-amber-100', 'border-amber-500');
+          badge.innerHTML = '👻 GHOST LIE!';
+          badge.classList.add('text-amber-800');
+        } else {
+          btn.classList.remove('bg-[#f7f5ee]', 'border-[#dcd6c4]');
+          btn.classList.add('bg-emerald-50', 'border-emerald-400');
+          badge.innerHTML = '✅ TRUE FACT';
+          badge.classList.add('text-emerald-700');
+        }
+      });
+
+      const exp = document.getElementById('truthsExplanation');
+      exp.textContent = round.explanation;
+      exp.classList.remove('hidden');
+    }
+
+    function nextTruthsSet() {
+      currentTruthRound = (currentTruthRound + 1) % truthsRounds.length;
+      renderTruthsRound();
+    }
+
+    // Game B: Taboo: Mountain Edition
+    const tabooCards = [
+      { target: "HABITAT", forbidden: ["Home", "Live", "Forest"] },
+      { target: "CLIFF", forbidden: ["Rock", "Mountain", "High"] },
+      { target: "HORNS", forbidden: ["Head", "Sharp", "Goat"] },
+      { target: "SCENT", forbidden: ["Smell", "Tree", "Mark"] },
+      { target: "PREDATOR", forbidden: ["Tiger", "Hunt", "Eat"] },
+      { target: "LAMB", forbidden: ["Baby", "Young", "Mother"] }
+    ];
+    let currentTabooIdx = 0;
+    let scores = { A: 0, B: 0 };
+
+    function renderTabooCard() {
+      const card = tabooCards[currentTabooIdx];
+      document.getElementById('tabooTargetWord').textContent = card.target;
+      document.getElementById('tabooForbiddenList').innerHTML = card.forbidden
+        .map(w => `<li>${w}</li>`)
+        .join('');
+    }
+
+    function handleTabooAction(action) {
+      const cardEl = document.getElementById('tabooCard');
+      if (action === 'point') {
+        cardEl.classList.add('pop-success');
+        setTimeout(() => cardEl.classList.remove('pop-success'), 350);
+      } else {
+        cardEl.classList.add('shake-error');
+        setTimeout(() => cardEl.classList.remove('shake-error'), 400);
+      }
+      currentTabooIdx = (currentTabooIdx + 1) % tabooCards.length;
+      renderTabooCard();
+    }
+
+    function updateTeamScore(team, delta) {
+      scores[team] = Math.max(0, scores[team] + delta);
+      document.getElementById(`team${team}Score`).textContent = scores[team];
+    }
+
+    function startTabooRound() {
+      if (timerMinimized) toggleTimerMinimize();
+      document.getElementById('floatingTimerCard').classList.remove('hidden');
+      setTimerPreset(45);
+      toggleTimerRun();
+    }
+
+    // Game C: Chain Story Prompt Wheel
+    const storyPrompts = [
+      '"Every morning, the serow..."',
+      '"At twilight, it..."',
+      '"When a predator approaches, the serow..."',
+      '"In winter, serows..."',
+      '"Near a tall pine tree, it..."',
+      '"When it feels hungry, the serow..."',
+      '"On a steep rocky cliff, it..."',
+      '"Late at night, the serow..."'
+    ];
+    let promptIdx = 0;
+    let chainTurns = 1;
+
+    function spinStoryWheel() {
+      const icon = document.getElementById('wheelSpinnerIcon');
+      const display = document.getElementById('wheelPromptDisplay');
+      icon.classList.add('fa-spin');
+
+      setTimeout(() => {
+        icon.classList.remove('fa-spin');
+        promptIdx = (promptIdx + 1) % storyPrompts.length;
+        display.textContent = storyPrompts[promptIdx];
+      }, 450);
+    }
+
+    function addChainSentence() {
+      const input = document.getElementById('chainInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      chainTurns++;
+      const list = document.getElementById('chainStoryList');
+      const li = document.createElement('li');
+      li.className = "p-2.5 rounded-xl bg-white border border-[#e3decb] text-[#14261c] pop-success";
+      li.innerHTML = `<span class="font-bold text-amber-700 mr-1.5">${chainTurns}.</span> ${text}`;
+      list.appendChild(li);
+      list.scrollTop = list.scrollHeight;
+
+      document.getElementById('chainStepCount').textContent = `${chainTurns} / 8 turns`;
+      input.value = '';
+      spinStoryWheel();
+    }
+
+    function clearChainStory() {
+      chainTurns = 1;
+      document.getElementById('chainStepCount').textContent = `1 / 8 turns`;
+      document.getElementById('chainStoryList').innerHTML = `
+        <li class="p-2.5 rounded-xl bg-white border border-[#e3decb] text-[#14261c]">
+          <span class="font-bold text-amber-700 mr-1.5">1.</span> Every morning, the serow wakes up inside a hidden mountain cave.
+        </li>
+      `;
+    }
+
+    /* =====================================================================
+       INITIALIZE ALL MODULES ON LOAD
+       ===================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      updateTimerUI();
+      renderVocabFlipCards();
+      initVocabGame();
+      initGrammarBuilder();
+      renderPairDrills();
+      renderRoleplayScenario();
+      renderQuiz();
+      renderTruthsRound();
+      renderTabooCard();
+    });
+  </script>
+</body>
+</html>

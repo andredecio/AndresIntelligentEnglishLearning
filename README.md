@@ -18,3 +18,4 @@ v1.006u  Try to make syllabification more accurate and comprehensive
 v1.006v  Modularised front end. Split Modulecontent.js into separate files for list handling, editing, and Google Classroom material export.
 v1.006x  Fixed Classroom Token generation process (when revoked or expired).
 v1.007   Formatted ModuleCotent list view, Export to Google Classroom, modularized front end.
+v2.000   AFTER LONG BREAK, RE ISSUED NEW CODE BASE

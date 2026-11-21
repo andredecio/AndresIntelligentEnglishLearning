@@ -59,6 +59,7 @@ export function initiateGoogleClassroomExport( // Export this function for use b
             client_id: GOOGLE_CLIENT_ID, // Using the imported GOOGLE_CLIENT_ID
             scope: GOOGLE_SCOPES,
             ux_mode: 'popup',
+			redirect_uri: 'postmessage', // 👈 Add this line!
             callback: async (response) => {
                 if (response.error) {
                     console.error('OAuth Error:', response.error);

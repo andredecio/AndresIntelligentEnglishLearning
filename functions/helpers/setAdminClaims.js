@@ -1,12 +1,13 @@
 // functions/helpers/setAdminClaims.js
 
-// --- IMPORTANT: Explicitly require v1 functions here ---
-const functions = require('firebase-functions/v1');
-const admin = require('firebase-admin');
+import * as functions from 'firebase-functions/v1';
+import { regionalFunctions } from "../config.js"; // <--- ADD THIS LINE!
+import { getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 
-// Ensure admin SDK is initialized (it should be initialized in index.js, but good practice to ensure)
-if (!admin.apps.length) {
-  admin.initializeApp();
+// Ensure admin SDK is initialized
+if (getApps().length === 0) {
+  initializeApp();
 }
 
 /**
@@ -22,7 +23,7 @@ if (!admin.apps.length) {
  * @returns {Promise<object>} A promise that resolves to an object indicating success or failure.
  */
 // --- IMPORTANT: Explicitly set region to asia-southeast1 ---
-exports.setAdminClaims = functions.region('asia-southeast1').https.onCall(async (data, context) => {
+export const setAdminClaims = regionalFunctions.https.onCall(async (data, context) => { // <--- CHANGE THIS!
     const callingUid = context.auth?.uid;
     // IMPORTANT: Replace this with YOUR actual admin user's UID (e.g., from Firebase Auth console)
     // This is the UID that is allowed to call THIS specific function.
@@ -45,7 +46,7 @@ exports.setAdminClaims = functions.region('asia-southeast1').https.onCall(async 
     };
 
     try {
-        await admin.auth().setCustomUserClaims(targetUid, claimsToSet);
+        await getAuth().setCustomUserClaims(targetUid, claimsToSet);
         console.log(`Successfully set custom claims for UID: ${targetUid} with claims: ${JSON.stringify(claimsToSet)}`);
         return { success: true, message: `Custom claims set for ${targetUid}.` };
     } catch (error) {

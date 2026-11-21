@@ -49,7 +49,7 @@
       {
         "source": "/api/classroom-generator",
         "function": "generateCourseForClassroom",
-        "region": "asia-southeast1"  
+        "region": "asia-east2"  
       }
     ]
   },

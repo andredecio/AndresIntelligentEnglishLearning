@@ -1,111 +1,86 @@
-// functions/index.js Modified today 26/9/25 Version v1.008
+// functions/index.js Modified today (ESM & firebase-admin v14 Migration)
+
 // --- 1. Module Imports, Firebase Admin SDK Initialization, Gemini Model Initialization, and Schema Definition ---
 
-const functions = require("firebase-functions/v1"); // Main Firebase Functions module MUST BE V1.
-const admin = require('firebase-admin'); // Firebase Admin SDK
-//const { GoogleGenerativeAI } = require('@google/generative-ai'); // Core Google Generative AI SDK (Gemini)
-//const { Schema, ResponseModality } = require('@firebase/ai'); // IMPORT ResponseModality HERE
-const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
-const textToSpeechClient = new TextToSpeechClient();
+// Use ES Module imports
+import * as functions from "firebase-functions/v1"; // Still importing v1, but as an ES Module
+import { initializeApp, getApps } from 'firebase-admin/app'; // Modern modular import
 
-functions.logger.info('Firebase Functions code deployed: v1.007');  //Post modularisation, Classroom export
+//import { TextToSpeechClient } from '@google-cloud/text-to-speech'; DON'T NEED?
+//const textToSpeechClient = new TextToSpeechClient(); 
 
-// Direct initialization of Firebase Admin SDK. This is the most robust way. ---
-admin.initializeApp();
+functions.logger.info('Firebase Functions code deployed: v1.008 (ESM Migration)'); 
+
+// Direct initialization of Firebase Admin SDK. Only initialize if not already done by helper imports.
+if (getApps().length === 0) {
+    initializeApp();
+}
 
 //********************************************************************************************
 
-//ONE OFF PHONEME AND SYLLABLE BUILD
+// --- Exporting Functions from their respective files using ES Module syntax ---
+
+// ONE OFF PHONEME AND SYLLABLE BUILD
 // One off load of phonemes to collection
-const { populatePhonemesScheduled } = require('./finite use/populatePhonemesScheduled');
-exports.populatePhonemesScheduled = populatePhonemesScheduled;
+export { populatePhonemesScheduled } from './Scheduled/populatePhonemesScheduled.js';
 
 // One off load of syllables from external file to collection
-const { populateSyllablesScheduled } = require('./finite use/populateSyllablesScheduled');
-exports.populateSyllablesScheduled = populateSyllablesScheduled;
+export { populateSyllablesScheduled } from './Scheduled/populateSyllablesScheduled.js';
+
 //********************************************************************************************
 
-//MAIN LOGIC AND BUILD OF VOCABULARY/VOCABULARY_GROUP
-//Main builder of vocabulary document using Gemini to provide the values (from AdminSystem page)
-const {generateVocabularyContent}= require('./logic/generateVocabularyContent');
-exports.generateVocabularyContent = generateVocabularyContent;
+// MAIN LOGIC AND BUILD OF VOCABULARY/VOCABULARY_GROUP
+// Main builder of vocabulary document using Gemini to provide the values (from AdminSystem page)
+export { generateVocabularyContent } from './logic/generateVocabularyContent.js';
 
-//Main builder of Grammar document using Gemini to provide the values (from AdminSystem page)
-const {generateGrammarContent}= require('./logic/generateGrammarContent');
-exports.generateGrammarContent = generateGrammarContent;
+// Main builder of Grammar document using Gemini to provide the values (from AdminSystem page)
+export { generateGrammarContent } from './logic/generateGrammarContent.js';
 
-//Main builder of Conversation document using Gemini to provide the values (from AdminSystem page)
-const {generateConversationContent}= require('./logic/generateConversationContent');
-exports.generateConversationContent = generateConversationContent;
+// Main builder of Conversation document using Gemini to provide the values (from AdminSystem page)
+export { generateConversationContent } from './logic/generateConversationContent.js';
 
-//Main builder of Reading-Writing document using Gemini to provide the values (from AdminSystem page)
-const {generateReadingWritingContent}= require('./logic/generateReadingWritingContent');
-exports.generateReadingWritingContent = generateReadingWritingContent;
+// Main builder of Reading-Writing document using Gemini to provide the values (from AdminSystem page)
+export { generateReadingWritingContent } from './logic/generateReadingWritingContent.js';
 
-//Main builder of ListeninSpeaking document using Gemini to provide the values (from AdminSystem page)
-const {generateListeningSpeakingContent}= require('./logic/generateListeningSpeakingContent');
-exports.generateListeningSpeakingContent = generateListeningSpeakingContent;
+// Main builder of ListeninSpeaking document using Gemini to provide the values (from AdminSystem page)
+export { generateListeningSpeakingContent } from './logic/generateListeningSpeakingContent.js';
 
+// Trigger: enriching module content with phonetics, audio, and syllable breakdowns (for vocab), and image for vocab and others
+export { onNewModuleContentCreate } from './triggers/onNewModuleContentCreate.js';
 
-//Trigger: enriching module content with phonetics , audio, and syllable breakdowns(for vocab), and image for vocab and others
-const { onNewModuleContentCreate } = require('./triggers/onNewModuleContentCreate');
-exports.onNewModuleContentCreate = onNewModuleContentCreate;
+// Manual: enriching module content with image for relevant moduletypes
+export { batchGenerateModuleImages } from './Scheduled/batchGenerateModuleImages.js';
 
-//Manual: enriching module content with image for relevant moduletypes
-const { batchGenerateModuleImages } = require('./finite use/batchGenerateModuleImages');
-exports.batchGenerateModuleImages = batchGenerateModuleImages;
-
-//For multi-module generation and bundling into a LESSON called from AdminSystem
-const { createLesson } = require('./logic/createLesson');
-exports.createLesson = createLesson;
-
+// For multi-module generation and bundling into a LESSON called from AdminSystem
+export { createLesson } from './logic/createLesson.js';
 
 // For Export of Courses into Google Classroom
-const { generateCourseForClassroom } = require('./Classroom/generateCourseForClassroom');
-exports.generateCourseForClassroom = generateCourseForClassroom;
-
+export { generateCourseForClassroom } from './Classroom/generateCourseForClassroom.js';
 
 // --- NEW: Custom Claims Admin Function ---
-// Now requiring it from your new helpers/setAdminClaims.js file
-const { setAdminClaims } = require('./helpers/setAdminClaims');
-exports.setAdminClaims = setAdminClaims;
+export { setAdminClaims } from './helpers/setAdminClaims.js';
 
 // --- Your generateModulePdf Function ---
-// Assuming generateModulePdf is still in './logic/generateModulePdf'
-const { generateModulePdf } = require('./logic/generateModulePdf'); // <--- VERIFY THIS PATH AND FILENAME!
-exports.generateModulePdf = generateModulePdf;
+export { generateModulePdf } from './logic/generateModulePdf.js';
+
+// --- generateModuleHtml Function ---
+export { generateModuleHtml } from './Export HTML/generateModuleHtml.js';
 
 
-//HELPERS
-//Two helper functions that initialise Genmodel
-const { getImageGenModel, getTextGenModel } = require('./helpers/gemini');
+// TRIGGER FROM USER DELETE ACCOUNT
+// Set to 'deleted' in user record triggered by delete action by User
+export { markUserAsDeletedInFirestore } from './triggers/markUserAsDeletedInFirestore.js';
 
-// Utility functions for IPA and unique ID generation
-const { normalizeTitle, generateUniqueFirestoreId } = require('./helpers/ipaUtils');
+// Recalculate the tokens' cost price for customer
+export { recalculateCustomerPrices  } from './triggers/recalculateCustomerPrices.js';
 
-//Vocabulary type json schema
-const { vocabularySchema} = require('./helpers/vocabularySchema');
+// Trigger: recursively cleans up child modules and storage media when a parent is deleted
+export { cleanupModuleTree } from './triggers/cleanupModuleTree.js';
 
-//Phoneme data and load
-const { allRpPhonemes, knownThreeCharPhonemes, knownTwoCharPhonemes, knownSingleCharPhonemes} = require('./helpers/phonemeData');
+// Scheduled job to clean up syllables collection (maybe run only one time needed)
+export { CleanUpsyllables } from './Scheduled/CleanUpsyllables.js';
 
-//Generate and upload audio for vocabulary document
-const { generateAudioAndUpload } = require('./helpers/generateAudioAndUpload');
-
-// Generate Vocabulary Image
-const { processVocabularyImageGeneration }= require('./helpers/processVocabularyImageGeneration');
-
-
-//TRIGGER FROM USER DELETE ACCOUNT
-//Set to 'deleted' in user record triggered by delete action by User
-const { markUserAsDeletedInFirestore }= require('./triggers/markUserAsDeletedInFirestore');
-exports.markUserAsDeletedInFirestore = markUserAsDeletedInFirestore;
-
-
-// Freeze Exports ---
-// This prevents accidental modifications to the exports object during runtime,
-// ensuring a stable execution environment for all exported functions.
-// This line should be the very last line in your functions/index.js file.
-Object.freeze(exports);
+// 'Scheduled' (but actually a one off) job to clean up mp3 and image orphans from failed CleanUpsyllables
+export { CleanupIMAGEandMP3orphans } from './Scheduled/CleanupIMAGEandMP3orphans.js';
 
 // This is the END

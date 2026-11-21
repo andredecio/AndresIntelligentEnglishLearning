@@ -1,20 +1,19 @@
-// * Helper function to process image generation and upload for a single vocabulary item.
-// * This function is designed to be reusable by both the Firestore onCreate trigger
-// * and the scheduled batch function.
-// * @param {admin.firestore.DocumentSnapshot} doc - The Firestore DocumentSnapshot of the vocabulary item.
-// *
+import { getApps, initializeApp, getApp } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
+import * as functions from 'firebase-functions/v1';
+import { getImageGenModel } from './gemini.js';
 
-const admin = require('firebase-admin');
-const functions = require('firebase-functions/v1');
-const { getImageGenModel } = require('./gemini'); // Adjust path based on your structure
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+// Safe-guard Firebase Admin SDK initialization
+if (getApps().length === 0) {
+    initializeApp();
+}
 
 async function processVocabularyImageGeneration(doc) {
-    // --- CHANGE: Updated to use admin.firestore() and admin.storage() directly. ---
-    const firestore = admin.firestore();
-    const storage = admin.storage();
-    const bucket = storage.bucket(admin.app().options.storageBucket); // admin.app() here is okay as it gets the default app instance.
+    const firestore = getFirestore();
+    const storage = getStorage();
+    const bucket = storage.bucket(getApp().options.storageBucket);
 
     const vocabData = doc.data();
     const vocabRef = doc.ref;
@@ -36,17 +35,12 @@ async function processVocabularyImageGeneration(doc) {
         const imageGenModel = getImageGenModel(); // Get the Gemini image generation model
 
         // Generate content (image) using Gemini
-        const result = await imageGenModel.generateContent({
-            contents: [{ parts: [{ text: imagePrompt }] }],
-            generationConfig: {
-                responseModalities: ["TEXT", "IMAGE"] // Explicitly pass it here too, matching the error message order
-                // responseMimeType: "image/png" // Any other settings you might need
-            }
-        });
+
+		const result = await imageGenModel.generateContent(imagePrompt);
+
 
         // The image data is usually found within the `candidates` array.
         // It's typically base64 encoded and needs to be decoded.
-        // Refer to Gemini API documentation for exact response structure of image generation.
         const response = result.response;
 
         //  Update log sanitization to dynamically find the image part
@@ -97,20 +91,20 @@ async function processVocabularyImageGeneration(doc) {
         await vocabRef.update({
             IMAGEURL: publicUrl,
             imageStatus: 'completed',
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
         });
         functions.logger.info(`Successfully generated and uploaded image for ${vocabId}. URL: ${publicUrl}`);
         return { id: vocabId, status: 'completed', url: publicUrl };
-    } // <-- This is the missing closing brace for the 'try' block!
+    } 
     catch (imgError) {
         // If image generation or upload fails for this item, mark its status as 'failed'
         await vocabRef.update({
             imageStatus: 'failed',
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
         });
         functions.logger.error(`Failed to generate or upload image for ${vocabId}:`, imgError);
         return { id: vocabId, status: 'failed', error: imgError.message };
     }
 }
 
-module.exports = { processVocabularyImageGeneration };
+export { processVocabularyImageGeneration };

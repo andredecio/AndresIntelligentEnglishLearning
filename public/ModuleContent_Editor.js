@@ -15,6 +15,8 @@ import { showAlert } from './ui-utilities.js'; // Assuming showAlert is the only
 // Import functions from ModuleContent_Classroom.js needed for `setupEditor`
 import { updateClassroomButtonState } from './ModuleContent_Classroom.js';
 
+// Import new helper to  update the module id array of the selected parent of the module being removed
+import { unlinkChildFromParent } from './ModuleContent_Unlink.js';
 
 // --- Internal Module-Specific Constants and DOM Element References ---
 // These are internal to the editor module. They will be initialized via a setup function.
@@ -285,7 +287,20 @@ export async function updateCurrentChildrenDisplay() { // Export updateCurrentCh
 
     childrenDetails.forEach(child => {
         const li = document.createElement('li');
-        li.textContent = `${child.title} (${child.type})`;
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = true; // Checked by default
+        checkbox.className = 'child-module-checkbox';
+        checkbox.dataset.id = child.id;
+        checkbox.style.marginRight = '8px';
+
+        const label = document.createElement('span');
+        label.textContent = `${child.title} (${child.type})`;
+
+        li.appendChild(checkbox);
+        li.appendChild(label);
+
         if (currentChildrenDisplay) {
             currentChildrenDisplay.appendChild(li);
         }
@@ -334,12 +349,43 @@ async function saveRecord() {
         return;
     }
 
+    // Scan checkboxes to separate remaining modules from unlinked ones
+    const checkboxes = currentChildrenDisplay.querySelectorAll('.child-module-checkbox');
+    const unlinkedIds = [];
+    const remainingIds = [];
+
+    checkboxes.forEach(cb => {
+        const id = cb.dataset.id;
+        if (!cb.checked) {
+            unlinkedIds.push(id);
+        } else {
+            remainingIds.push(id);
+        }
+    });
+
+    // Fire unlinking requests for unchecked modules
+    if (recordId) {
+        for (const childId of unlinkedIds) {
+            await unlinkChildFromParent(recordCollection, recordId, childId);
+        }
+    }
+
+
     const dataToSave = {
         TITLE: title,
         DESCRIPTION: description,
         MODULETYPE: recordType,
-        MODULEID_ARRAY: currentActiveRecordInternal && currentActiveRecordInternal.MODULEID_ARRAY ? [...currentActiveRecordInternal.MODULEID_ARRAY] : []
+        MODULEID_ARRAY: remainingIds // Use the remaining checked IDs
     };
+	
+    if (recordCollection === 'COURSE') {
+        dataToSave.classroomExported = false; // Reset flag so Classroom syncs cleanly
+    }
+
+ // 🌟 NEW: Automatically recalculate EXPECTED_MODULE_COUNT for LESSON updates
+    if (recordCollection === 'LESSON') {
+        dataToSave.EXPECTED_MODULE_COUNT = remainingIds.length;
+    }
 
     // Ensure the imageStatus default is set if the field is relevant but no value is selected.
     if (typesWithImageStatus.includes(recordType)) {

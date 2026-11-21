@@ -1,10 +1,12 @@
-// js/ModuleContent_ListView.js version v1.008 Removed one too many scan of learningContent
+// js/ModuleContent_ListView.js version v1.009 - Real-time Scrolling Upgraded
 // Handles displaying, filtering, and navigating through module lists.
 
 // --- Import necessary Firebase modules ---
-import { db } from './firebase-services.js'; // Import the initialized 'db' instance
-// Explicitly import Firestore functions needed for modular syntax
-import { collection, doc, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
+import { db } from './firebase-services.js'; 
+// Added query, limit, and onSnapshot to modular imports
+import { 
+  collection, doc, getDoc, getDocs, query, limit, onSnapshot, where, documentId 
+} from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
 
 // --- Import UI utility functions ---
 import { showAlert, showSpinner, hideSpinner, renderThumbnail, renderAudioPlayer } from './ui-utilities.js';
@@ -12,12 +14,16 @@ import { showAlert, showSpinner, hideSpinner, renderThumbnail, renderAudioPlayer
 // --- Import editor functions ---
 import { getCurrentActiveRecord, loadRecordIntoEditor } from './ModuleContent_Editor.js';
 
-
-// --- Crucial Global State Variables (now private to this module scope) ---
+// --- Crucial Global State Variables ---
 let topLevelModuleNavigationList = [];
 let filteredNavigationList = [];
 let currentTopLevelModuleIndex = 0;
-let allAvailableModules = []; // This stores the list for the larger selection area
+let allAvailableModules = []; 
+
+// Real-time scrolling state variables
+let currentLimit = 10;
+let unsubscribes = [];
+let isFetchingNextBatch = false; // Guard to prevent overlapping requests
 
 // --- Global DOM Element References (now private to this module scope) ---
 let prevRecordBtn = null;
@@ -86,8 +92,7 @@ function getSingularModuleTypeFromCollection(collectionName) {
 /**
  * Initializes the list view module by assigning DOM elements and setting up event listeners.
  */
-export function setupListView(elements, callbacks) { // Exported
-    // Assign DOM elements
+export function setupListView(elements, callbacks) { 
     prevRecordBtn = elements.prevRecordBtn;
     newRecordBtn = elements.newRecordBtn;
     nextRecordBtn = elements.nextRecordBtn;
@@ -99,24 +104,15 @@ export function setupListView(elements, callbacks) { // Exported
     statusMessageSpan = elements.statusMessageSpan;
     loadingSpinner = elements.loadingSpinner;
 
-    // Assign callbacks
     onRecordSelectedCallback = callbacks.onRecordSelected;
 
-    // --- Event Listeners for Filters/Search ---
-    if (moduleTypeFilterSelect) {
-        moduleTypeFilterSelect.addEventListener('change', applyModuleTypeFilter);
-    }
-
-    if (filterModuleTypeSelect) {
-        filterModuleTypeSelect.addEventListener('change', displayFilteredModules);
-    }
-    if (searchModulesInput) {
-        searchModulesInput.addEventListener('input', displayFilteredModules);
-    }
+    if (moduleTypeFilterSelect) moduleTypeFilterSelect.addEventListener('change', applyModuleTypeFilter);
+    if (filterModuleTypeSelect) filterModuleTypeSelect.addEventListener('change', displayFilteredModules);
+    if (searchModulesInput) searchModulesInput.addEventListener('input', displayFilteredModules);
 
     if (newRecordBtn) {
         newRecordBtn.addEventListener('click', () => {
-            loadRecordIntoEditor(null, null); // Use imported function
+            loadRecordIntoEditor(null, null);
             currentTopLevelModuleIndex = -1;
             updateNavigationButtons();
         });
@@ -128,24 +124,35 @@ export function setupListView(elements, callbacks) { // Exported
                 currentTopLevelModuleIndex--;
                 await loadSelectedModuleIntoEditor();
                 updateNavigationButtons();
-            } else {
-                console.log("DEBUG LV: Already at the first record.");
+				loadAllAvailableModules(true); // --- NEW: Reset and stream the new parent's children immediately --
             }
         });
     }
 
     if (nextRecordBtn) {
         nextRecordBtn.addEventListener('click', async () => {
-            console.log("DEBUG LV: Next button clicked.");
             if (currentTopLevelModuleIndex < filteredNavigationList.length - 1) {
                 currentTopLevelModuleIndex++;
                 await loadSelectedModuleIntoEditor();
                 updateNavigationButtons();
+				loadAllAvailableModules(true); // --- NEW: Reset and stream the new parent's children immediately --
+
             }
         });
     }
-}
 
+    // --- Attach Guarded Infinite Scroll Window Trigger ---
+    window.addEventListener("scroll", () => {
+        if (isFetchingNextBatch) return; // Ignore if already fetching
+        
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+            isFetchingNextBatch = true; 
+            currentLimit += 10; 
+            loadAllAvailableModules(false, true); // Pass true for isPagination
+        }
+    });
+	
+}
 /**
  * Loads the currently selected module (based on currentTopLevelModuleIndex)
  * into the editor via the orchestrator's callback.
@@ -159,7 +166,7 @@ export async function loadSelectedModuleIntoEditor() { // Exported
             // MODULAR SDK CHANGE: Use doc() and getDoc()
             const docRef = doc(db, selectedModule.collection, selectedModule.id);
             const moduleSnap = await getDoc(docRef);
-            if (moduleSnap.exists) {
+            if (moduleSnap.exists()) {
                 console.log("DEBUG LV: Module data fetched successfully.");
                 onRecordSelectedCallback({ id: moduleSnap.id, ...moduleSnap.data() }, selectedModule.collection);
                 console.log("DEBUG LV: onRecordSelectedCallback called from ListView.");
@@ -229,7 +236,10 @@ export function renderModuleListItem(moduleData, level, currentModuleIds, parent
 
     const titleElement = document.createElement('div');
     titleElement.classList.add('title');
-    titleElement.textContent = moduleData.TITLE || moduleData.name || 'Untitled Module';
+
+    // --- FIX: Strip redundant 'Syllable:' prefix ---
+    const rawTitle = moduleData.TITLE || moduleData.name || 'Untitled Module';
+    titleElement.textContent = rawTitle.replace(/^Syllable:\s*/i, ''); 
     titleWrapper.appendChild(titleElement);
 
     const typeIndicator = document.createElement('span');
@@ -425,7 +435,7 @@ export async function fetchAndRenderChildren(parentId, childIds, level, parentLi
 
                 // The defensive check for !childData is good practice,
                 // but with the improved logic, it should rarely (if ever) be triggered for existing documents.
-                if (docSnap.exists) {
+                if (docSnap.exists()) {
                     const childData = docSnap.data();
 
                     if (!childData) {
@@ -482,69 +492,118 @@ export async function fetchAndRenderChildren(parentId, childIds, level, parentLi
     }
 }
 /**
- * Loads all relevant modules for the larger available modules list.
+ * Loads all relevant modules for the larger available modules list in real-time.
  */
-export async function loadAllAvailableModules() { // Exported
-    showSpinner(availableModulesList, loadingSpinner); // Use imported function
-    if (availableModulesList) { availableModulesList.innerHTML = ''; }
+export async function loadAllAvailableModules(resetLimit = false) { 
+    if (resetLimit) {
+        currentLimit = 10; // Reset pagination limit back to 10 for the new parent
+    }
+    
+    // Clear old active listeners to prevent memory leaks or duplicate rendering
+    unsubscribes.forEach(unsub => unsub());
+    unsubscribes = [];
 
-    try {
-        const allFetchedModules = []; // This is the local array for *this* function.
+    showSpinner(availableModulesList, loadingSpinner);
+    
+    const collectionsToFetch = ['COURSE', 'LESSON', 'syllables', 'phonemes'];
+    const fetchedMap = new Map(); 
 
-        const collectionsToFetch = ['COURSE', 'LESSON', 'syllables', 'phonemes'];
+    const triggerDisplayUpdate = () => {
+        allAvailableModules = Array.from(fetchedMap.values());
+        allAvailableModules.sort((a, b) => (a.TITLE || '').localeCompare(b.TITLE || ''));
+        displayFilteredModules();
+    };
 
-        for (const colName of collectionsToFetch) {
-            // MODULAR SDK CHANGE: Use collection() and getDocs()
-            const colRef = collection(db, colName);
-            const snapshot = await getDocs(colRef);
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection(colName);
-
-                if (NON_SELECTABLE_LEAF_MODULE_TYPES.includes(inferredModuleType)) {
-                   return;
+    // 1. Listen in real-time to smaller metadata collections
+    collectionsToFetch.forEach(colName => {
+        // Only apply a limit to COURSE/LESSON; let syllables and phonemes load fully [1]!
+        const isReferenceCol = ['phonemes', 'syllables'].includes(colName);
+        const q = isReferenceCol 
+            ? query(collection(db, colName)) // No limit—loads all ~100 documents instantly [1]!
+            : query(collection(db, colName), limit(100)); // COURSE/LESSON stay capped [1]
+        const unsub = onSnapshot(q, (snapshot) => {
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const inferredType = data.MODULETYPE || getSingularModuleTypeFromCollection(colName);
+                if (!NON_SELECTABLE_LEAF_MODULE_TYPES.includes(inferredType)) {
+                    fetchedMap.set(docSnap.id, {
+                        id: docSnap.id,
+                        ...data,
+                        MODULETYPE: inferredType,
+                        collection: colName
+                    });
                 }
-
-                allFetchedModules.push({ // Correctly pushing to allFetchedModules
-                    id: doc.id,
-                    ...data,
-                    MODULETYPE: inferredModuleType,
-                    collection: colName
-                });
             });
+            triggerDisplayUpdate();
+        });
+        unsubscribes.push(unsub);
+    });
+
+    // 2. Stream 'learningContent' using the dynamic scrolling limit
+    const learningContentQuery = query(collection(db, 'learningContent'), limit(currentLimit));
+    
+    const unsubLC = onSnapshot(learningContentQuery, (snapshot) => {
+        for (const [id, value] of fetchedMap.entries()) {
+            if (value.collection === 'learningContent') fetchedMap.delete(id);
         }
 
-        // MODULAR SDK CHANGE: Use collection() and getDocs()
-        const learningContentColRef = collection(db, 'learningContent');
-        const learningContentSnapshot = await getDocs(learningContentColRef);
-        learningContentSnapshot.forEach(doc => {
-            const data = doc.data();
-            const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
-            if (topLevelLearningContentTypes.includes(inferredModuleType)) {
-                // *** FIX FOR ReferenceError: allTopLevelModules is not defined ***
-                // Should be pushing to allFetchedModules, not a non-existent allTopLevelModules
-                allFetchedModules.push({
-                    id: doc.id,
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const inferredType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
+            
+            // 🌟 SKIP child/nested vocabulary modules from showing up at the top level!
+            if (data.isNested === true) {
+                return;
+            }
+
+            if (topLevelLearningContentTypes.includes(inferredType)) {
+                fetchedMap.set(docSnap.id, {
+                    id: docSnap.id,
                     ...data,
-                    MODULETYPE: inferredModuleType,
+                    MODULETYPE: inferredType,
                     collection: 'learningContent'
                 });
             }
         });
+        
+        triggerDisplayUpdate();
+        hideSpinner(availableModulesList, loadingSpinner);
+    }, (error) => {
+        console.error("Error streaming learningContent:", error);
+        showAlert(statusMessageSpan, statusAlert, "Streaming error: " + error.message, true);
+        hideSpinner(availableModulesList, loadingSpinner);
+    });
+    unsubscribes.push(unsubLC);
 
-        allFetchedModules.sort((a, b) => (a.TITLE || '').localeCompare(b.TITLE || ''));
+    // 3. NEW: If the active record has selected children, explicitly stream them!
+    const activeRecord = getCurrentActiveRecord();
+    const currentModuleIds = activeRecord?.MODULEID_ARRAY || [];
 
-        allAvailableModules = allFetchedModules; // Assign to module-level variable
-        displayFilteredModules();
+    if (currentModuleIds.length > 0) {
+        // Retrieve and stream selected docs instantly, bypassing the scroll limit!
+        const selectedQuery = query(
+            collection(db, 'learningContent'),
+            where(documentId(), 'in', currentModuleIds.slice(0, 30)) // 'in' handles up to 30 items
+        );
 
-    } catch (error) {
-        console.error("Error loading all available modules:", error);
-        showAlert(statusMessageSpan, statusAlert, "Failed to load available modules. " + error.message, true); // Use imported 'showAlert'
-    } finally {
-        hideSpinner(availableModulesList, loadingSpinner); // Use imported function
+        const unsubSelected = onSnapshot(selectedQuery, (snapshot) => {
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const inferredType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
+                fetchedMap.set(docSnap.id, {
+                    id: docSnap.id,
+                    ...data,
+                    MODULETYPE: inferredType,
+                    collection: 'learningContent'
+                });
+            });
+            triggerDisplayUpdate();
+        }, (error) => {
+            console.error("Error streaming selected elements: ", error);
+        });
+        unsubscribes.push(unsubSelected);
     }
 }
-
 /**
  * Displays modules in the larger list view based on current filters and search.
  */
@@ -805,16 +864,20 @@ export async function fetchAndPopulateTopLevelNavigation() { // Exported
         const learningContentSnapshot = await getDocs(learningContentColRef);
         learningContentSnapshot.forEach(doc => {
             const data = doc.data();
-            const inferredModuleType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
-            // NEW: Ignore VOCABULARY_GROUP documents completely
-            if (inferredModuleType === 'VOCABULARY_GROUP') {
-                return; // Skip this document
+            const inferredType = data.MODULETYPE || getSingularModuleTypeFromCollection('learningContent');
+            
+            // 🌟 1. DO NOT skip VOCABULARY_GROUP anymore! (Removed legacy skip block)
+
+            // 🌟 2. SKIP nested child vocabulary modules so they don't clutter the top level!
+            if (data.isNested === true) {
+                return; 
             }
-			if (topLevelLearningContentTypes.includes(inferredModuleType)) {
-                allTopLevelModules.push({ // Correctly pushing to allTopLevelModules here
+
+			if (topLevelLearningContentTypes.includes(inferredType)) {
+                allTopLevelModules.push({ 
                     id: doc.id,
                     ...data,
-                    MODULETYPE: inferredModuleType,
+                    MODULETYPE: inferredType,
                     collection: 'learningContent'
                 });
             }

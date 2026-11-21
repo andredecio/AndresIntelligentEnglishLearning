@@ -1,115 +1,135 @@
-// * Helper function to process image generation and upload for a single module item.
-// * This function is designed to be reusable by both the Firestore onCreate trigger
-// * and the scheduled batch function.
-// * @param {admin.firestore.DocumentSnapshot} doc - The Firestore DocumentSnapshot of the vocabulary item.
-// *
+import * as functions from 'firebase-functions/v1';
+import { getApps, initializeApp, getApp } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
+import pRetry, { AbortError } from 'p-retry';
+import { getImageGenModel } from '../helpers/gemini.js';
 
-const admin = require('firebase-admin');
-const functions = require('firebase-functions/v1');
-const { getImageGenModel } = require('./gemini'); // Adjust path based on your structure
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
+// Safe-guard Firebase Admin SDK initialization
+if (getApps().length === 0) {
+    initializeApp();
+}
 
 async function processModuleImageGeneration(doc) {
-    const firestore = admin.firestore();
-    const storage = admin.storage();
-    const bucket = storage.bucket(admin.app().options.storageBucket); // admin.app() here is okay as it gets the default app instance.
+    const firestore = getFirestore();
+    const storage = getStorage();
+    const bucket = storage.bucket(getApp().options.storageBucket);
 
     const moduleData = doc.data();
     const moduleRef = doc.ref;
     const imagePrompt = moduleData.imagePrompt;
     const moduleId = moduleData.MODULEID;
 
-    // Skip if there's no image prompt or if it's not a VOCABULARY type (though this should be filtered by query/trigger)
-  //  if (!imagePrompt || vocabData.MODULETYPE !== "VOCABULARY") {
-  //      functions.logger.info(`Skipping image generation for ${vocabId}: No image prompt or wrong MODULETYPE.`);
-  //      return { id: vocabId, status: 'skipped', reason: 'No image prompt or wrong MODULETYPE' };
-  //  }
-
-    try { 
-        // Mark status as 'generating' immediately.
-        // This prevents other concurrent invocations from trying to process the same image.
+    try {
         await moduleRef.update({ imageStatus: 'generating' });
         functions.logger.info(`Processing image for ${moduleId} with prompt: "${imagePrompt}"`);
 
-        const imageGenModel = getImageGenModel(); // Get the Gemini image generation model
+        const imageGenerationModel = getImageGenModel();
 
-        // Generate content (image) using Gemini
-        const result = await imageGenModel.generateContent({
-            contents: [{ parts: [{ text: imagePrompt }] }],
-            generationConfig: {
-                responseModalities: ["TEXT", "IMAGE"] // Explicitly pass it here too, matching the error message order
-                // responseMimeType: "image/png" // Any other settings you might need
+        // --- DIAGNOSTIC LOGGING FOR p-retry ---
+        functions.logger.info(`Diagnostic (pRetry): Type of pRetry variable: ${typeof pRetry}`);
+        if (typeof pRetry === 'object' && pRetry !== null) {
+            functions.logger.info(`Diagnostic (pRetry): pRetry.default exists: ${typeof pRetry.default}`);
+            functions.logger.info(`Diagnostic (pRetry): pRetry.AbortError exists: ${typeof pRetry.AbortError}`);
+        }
+        // --- END DIAGNOSTIC LOGGING FOR p-retry ---
+
+        // CRITICAL CHANGE: Call pRetry as the function
+        const result = await pRetry(async () => {
+            try {
+                // IMPORTANT: Now using generateContent(), as imageGenerationModel is a GenerativeModel
+                const generativeResponse = await imageGenerationModel.generateContent(imagePrompt);
+                return generativeResponse;
+            } catch (error) {
+                const errorCode = error.code || (error.cause && error.cause.code) || null;
+                const errorMessage = error.message || (error.cause && error.cause.message) || 'Unknown error';
+
+                // --- ESSENTIAL NEW LOGGING FOR DEBUGGING HTTP ERRORS ---
+                functions.logger.error(`Vertex AI API Error for ${moduleId}:`, {
+                    message: errorMessage,
+                    errorCode: errorCode,
+                    rawResponseContent: error.response?.text || error.details || (errorMessage.includes('<!DOCTYPE') ? errorMessage : null),
+                    fullErrorObject: JSON.stringify(error, Object.getOwnPropertyNames(error), 2),
+                    stack: error.stack,
+                });
+
+                if (typeof error.response?.text === 'string' && error.response.text.startsWith('<!DOCTYPE html>')) {
+                    functions.logger.error(`Detected HTML response body from Vertex AI, indicating an API error page for ${moduleId}.`);
+                } else if (typeof error.details === 'string' && error.details.startsWith('<!DOCTYPE html>')) {
+                     functions.logger.error(`Detected HTML in error.details from Vertex AI, indicating an API error page for ${moduleId}.`);
+                }
+
+                if (errorCode === 429 || errorCode === 500 || errorCode === 503) {
+                    functions.logger.warn(`Transient error (code: ${errorCode}) during image generation for ${moduleId}. Retrying...`);
+                    throw error;
+                } else if (errorCode === 404 && (errorMessage.includes('not found') || errorMessage.includes('Invalid Endpoint name'))) {
+                    functions.logger.error(`Permanent model not found or invalid endpoint error (code: ${errorCode}) for image generation for ${moduleId}. Aborting retries. Error: ${errorMessage}`);
+                    throw new AbortError(error);
+                } else if (errorCode === 400 && errorMessage.includes('Invalid Endpoint name')) {
+                    functions.logger.error(`Permanent configuration error (code: ${errorCode}) during image generation for ${moduleId}. Aborting retries. Error: ${errorMessage}`);
+                    throw new AbortError(error);
+                } else {
+                    functions.logger.error(`Permanent error (code: ${errorCode}) during image generation for ${moduleId}. Aborting retries. Error: ${errorMessage}`);
+                    throw new AbortError(error);
+                }
+            }
+        }, {
+            retries: 5,
+            minTimeout: 2000,
+            maxTimeout: 20 * 1000,
+            factor: 2,
+            onFailedAttempt: error => {
+                functions.logger.warn(`p-retry: Attempt ${error.attemptNumber} failed for image generation for ${moduleId}. Remaining retries: ${error.retriesLeft}. Delaying for ${error.delay}ms.`);
             }
         });
 
-        // The image data is usually found within the `candidates` array.
-        // It's typically base64 encoded and needs to be decoded.
-        // Refer to Gemini API documentation for exact response structure of image generation.
-        const response = result.response;
+        functions.logger.info('Generative AI Image Gen Raw Response (Full):', JSON.stringify(result, null, 2));
 
-        //  Update log sanitization to dynamically find the image part
-        const loggableResponse = JSON.parse(JSON.stringify(response)); // Deep copy
-        if (loggableResponse.candidates && loggableResponse.candidates[0] &&
-            loggableResponse.candidates[0].content && loggableResponse.candidates[0].content.parts) {
-            // Find the image part and sanitize its data for logging
-            const imagePartForLogging = loggableResponse.candidates[0].content.parts.find(
-                p => p.inlineData && p.inlineData.data
-            );
-            if (imagePartForLogging) {
-                imagePartForLogging.inlineData.data = '[IMAGE_DATA_OMITTED_FOR_LOGGING_SIZE]';
-            }
-        }
-        functions.logger.info('Gemini Image Gen Raw Response (Sanitized):', JSON.stringify(loggableResponse, null, 2));
-        const candidates = response.candidates;
+        const responseCandidates = result.response?.candidates;
 
-        if (!candidates || candidates.length === 0 || !candidates[0].content || !candidates[0].content.parts || candidates[0].content.parts.length === 0) {
-            throw new Error("No candidates or content parts found in Gemini response.");
-        }
+		if (!responseCandidates || responseCandidates.length === 0 || !responseCandidates[0].content || !responseCandidates[0].content.parts || responseCandidates[0].content.parts.length === 0) {
+			throw new Error("No candidates or content parts found in Generative AI response.");
+		}
 
-        const imagePart = candidates[0].content.parts.find(part => part.inlineData && part.inlineData.data);
+        const imagePart = responseCandidates[0].content.parts.find(part => part.inlineData && part.inlineData.data);
 
-        if (!imagePart) { // this check directly after finding the imagePart
-            throw new Error("No image data (inlineData) part found in Gemini response.");
+        if (!imagePart) {
+            throw new Error("No image data (inlineData) part found in Generative AI response.");
         }
 
         const mimeType = imagePart.inlineData.mimeType;
         const imageDataBase64 = imagePart.inlineData.data;
-        const imageDataBuffer = Buffer.from(imageDataBase64, 'base64'); // Decode base64 to buffer
+        const imageDataBuffer = Buffer.from(imageDataBase64, 'base64');
 
-        const fileExtension = mimeType.split('/')[1] || 'png'; // e.g., 'image/png' -> 'png'
-        const filePath = `module_images/${moduleId}.${fileExtension}`; // Path in Cloud Storage bucket
+        const fileExtension = mimeType.split('/')[1] || 'png';
+        const filePath = `module_images/${moduleId}.${fileExtension}`;
         const file = bucket.file(filePath);
 
-        // Upload the generated image data to Cloud Storage
         await file.save(imageDataBuffer, {
             metadata: {
-                contentType: mimeType, // Use the detected MIME type
+                contentType: mimeType,
             },
         });
 
-        // Make the file publicly accessible.
         await file.makePublic();
         const publicUrl = file.publicUrl();
 
-        // Update the Firestore document with the image URL and mark as completed
         await moduleRef.update({
             IMAGEURL: publicUrl,
             imageStatus: 'completed',
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
         });
         functions.logger.info(`Successfully generated and uploaded image for ${moduleId}. URL: ${publicUrl}`);
         return { id: moduleId, status: 'completed', url: publicUrl };
-    } 
+    }
     catch (imgError) {
-        // If image generation or upload fails for this item, mark its status as 'failed'
         await moduleRef.update({
             imageStatus: 'failed',
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
         });
         functions.logger.error(`Failed to generate or upload image for ${moduleId}:`, imgError);
-        return { id: moduleId, status: 'failed', error: imgError.message };
+        throw imgError;
     }
 }
 
-module.exports = { processModuleImageGeneration };
+export { processModuleImageGeneration };

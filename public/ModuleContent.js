@@ -71,37 +71,64 @@ import {
     let singleRecordView = null;
     let generateClassroomBtn = null;
     let generatePdfBtn = null;
+    let generateHtmlBtn = null; // NEW: Added reference for the HTML button
 
     // --- Cloud Functions Callable ---
     // 'functions' is now imported from firebase-services.js and is already configured with the region.
     // Use the modular 'httpsCallable' function, passing the 'functions' instance.
     const generatePdfCallable = httpsCallable(functions, 'generateModulePdf');
+    const generateHtmlCallable = httpsCallable(functions, 'generateModuleHtml'); // NEW: Callable for HTML generation
     // ----------------------------------------------------------------------------------
 
     async function updatePdfButtonState(moduleType, pdfButtonElement) {
         // Access 'currentUser' directly from the imported 'auth' instance.
         const currentUser = auth.currentUser;
-        let canGeneratePdf = false;
+        let canGenerate = false;
 
         if (currentUser) {
             try {
                 const idTokenResult = await currentUser.getIdTokenResult(true);
-                canGeneratePdf = idTokenResult.claims.admin === true;
+                canGenerate = idTokenResult.claims.admin === true;
             } catch (error) {
                 console.error("Error fetching user claims for PDF button:", error);
-                // Use the imported showAlert function
                 showAlert(statusMessageSpan, statusAlert, 'Error checking PDF permissions.', true);
             }
         }
 
         const isApplicableModuleType = (moduleType === 'COURSE' || moduleType === 'LESSON');
 
-        if (canGeneratePdf && isApplicableModuleType) {
+        if (canGenerate && isApplicableModuleType) {
             pdfButtonElement.style.display = 'inline-block';
             pdfButtonElement.disabled = false;
         } else {
             pdfButtonElement.style.display = 'none';
             pdfButtonElement.disabled = true;
+        }
+    }
+
+    // NEW: Function to update the state of the HTML generation button
+    async function updateHtmlButtonState(moduleType, htmlButtonElement) {
+        const currentUser = auth.currentUser;
+        let canGenerate = false;
+
+        if (currentUser) {
+            try {
+                const idTokenResult = await currentUser.getIdTokenResult(true);
+                canGenerate = idTokenResult.claims.admin === true;
+            } catch (error) {
+                console.error("Error fetching user claims for HTML button:", error);
+                showAlert(statusMessageSpan, statusAlert, 'Error checking HTML permissions.', true);
+            }
+        }
+
+        const isApplicableModuleType = (moduleType === 'COURSE' || moduleType === 'LESSON');
+
+        if (canGenerate && isApplicableModuleType) {
+            htmlButtonElement.style.display = 'inline-block';
+            htmlButtonElement.disabled = false;
+        } else {
+            htmlButtonElement.style.display = 'none';
+            htmlButtonElement.disabled = true;
         }
     }
 
@@ -135,6 +162,7 @@ import {
         deleteRecordBtn = document.getElementById('deleteRecordBtn');
         generateClassroomBtn = document.getElementById('generateClassroomBtn');
         generatePdfBtn = document.getElementById('generatePdfBtn');
+        generateHtmlBtn = document.getElementById('generateHtmlBtn'); // NEW: Get reference for HTML button
 
         currentChildrenDisplay = document.getElementById('currentChildrenDisplay');
 
@@ -157,12 +185,14 @@ import {
                 await applyModuleTypeFilter(); // Direct import call
                 displayFilteredModules(); // Direct import call
                 updatePdfButtonState(savedRecord.MODULETYPE, generatePdfBtn);
+                updateHtmlButtonState(savedRecord.MODULETYPE, generateHtmlBtn); // NEW: Update HTML button state
             },
             onRecordDeleted: async () => {
                 await fetchAndPopulateTopLevelNavigation(); // Direct import call
                 await applyModuleTypeFilter(); // Direct import call
                 updateClassroomButtonState(getCurrentActiveRecord()?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect); // Direct import call
                 updatePdfButtonState(getCurrentActiveRecord()?.MODULETYPE, generatePdfBtn); // Direct import call
+                updateHtmlButtonState(getCurrentActiveRecord()?.MODULETYPE, generateHtmlBtn); // NEW: Update HTML button state
                 displayFilteredModules(); // Direct import call
             }
         };
@@ -179,7 +209,10 @@ import {
                 loadRecordIntoEditor(recordData, collectionName); // Direct import call
                 updateClassroomButtonState(recordData?.MODULETYPE, generateClassroomBtn, activeRecordTypeSelect);
                 updatePdfButtonState(recordData?.MODULETYPE, generatePdfBtn);
+                updateHtmlButtonState(recordData?.MODULETYPE, generateHtmlBtn); // NEW: Update HTML button state
                 displayFilteredModules(); // Direct import call
+				// --- NEW: Refresh and stream the selected record's children instantly ---
+                loadAllAvailableModules(true); 
             }
         };
         setupListView({ // Direct import call
@@ -265,7 +298,52 @@ import {
             });
         }
 
-        // --- 5. Initial Page Load Actions ---
+        // NEW: 5. Setup Generate HTML Button Listener
+        if (generateHtmlBtn) {
+            generateHtmlBtn.addEventListener('click', async () => {
+                const moduleId = activeRecordIdInput.value;
+                const moduleType = activeRecordCollectionInput.value;
+
+                if (!moduleId || (!moduleType || (moduleType !== 'LESSON' && moduleType !== 'COURSE'))) {
+                    showAlert(statusMessageSpan, statusAlert, 'Please select a valid Course or Lesson to generate HTML for.', true);
+                    return;
+                }
+
+                generateHtmlBtn.disabled = true;
+                generateHtmlBtn.textContent = 'Generating...';
+                showAlert(statusMessageSpan, statusAlert, 'Starting HTML generation, this may take a moment...', false);
+
+                try {
+                    const result = await generateHtmlCallable({ moduleId: moduleId, moduleType: moduleType });
+                    const { success, downloadUrl } = result.data;
+
+                    if (success && downloadUrl) {
+                        // For HTML, typically you just open in a new tab for viewing
+                        window.open(downloadUrl, '_blank');
+                        showAlert(statusMessageSpan, statusAlert, 'HTML generated and opened in a new tab!', false);
+                        console.log('HTML opened in new tab:', downloadUrl);
+                    } else {
+                        showAlert(statusMessageSpan, statusAlert, 'HTML generation failed. Please try again.', true);
+                    }
+                } catch (error) {
+                    console.error("Error calling generateModuleHtml Cloud Function:", error);
+                    let errorMessage = 'An unexpected error occurred during HTML generation.';
+                    if (error.code && error.message) {
+                        errorMessage = `HTML Generation Failed: ${error.message}`;
+                        if (error.details && error.details.message) {
+                            errorMessage += ` - ${error.details.message}`;
+                        }
+                    }
+                    showAlert(statusMessageSpan, statusAlert, errorMessage, true);
+                } finally {
+                    generateHtmlBtn.disabled = false;
+                    generateHtmlBtn.textContent = 'Generate HTML';
+                }
+            });
+        }
+
+
+        // --- 6. Initial Page Load Actions --- (Renumbered due to new section above)
         await fetchAndPopulateTopLevelNavigation(); // Direct import call
         await applyModuleTypeFilter(); // Direct import call
         await loadAllAvailableModules(); // Direct import call
@@ -276,9 +354,11 @@ import {
                 const currentRecordType = activeRecordCollectionInput.value;
                 updatePdfButtonState(currentRecordType, generatePdfBtn);
                 updateClassroomButtonState(currentRecordType, generateClassroomBtn, activeRecordTypeSelect);
+                updateHtmlButtonState(currentRecordType, generateHtmlBtn); // NEW: Update HTML button state on auth change
             } else {
                 updatePdfButtonState(null, generatePdfBtn);
                 updateClassroomButtonState(null, generateClassroomBtn, activeRecordTypeSelect);
+                updateHtmlButtonState(null, generateHtmlBtn); // NEW: Disable/hide HTML button if not authenticated
             }
         });
     });

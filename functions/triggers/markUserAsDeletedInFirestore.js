@@ -1,16 +1,18 @@
 // --- Existing: Mark User as Deleted Function ---
 // This function is triggered when a user is deleted from Firebase Authentication.
 // It marks their corresponding Firestore document as deleted rather than removing it.
-const admin = require('firebase-admin'); // <-- Needs these imports
-const functions = require('firebase-functions/v1');
+import * as functions from "firebase-functions/v1";
+import { regionalFunctions } from "../config.js"; 
+import { getApps, initializeApp } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
-
-
-
+// Safe-guard Firebase Admin SDK initialization
+if (getApps().length === 0) {
+    initializeApp();
+}
 
 const handleUserDeletion = async (userRecord) => {
-    // --- CHANGE: Updated to use admin.firestore() directly. ---
-    const db = admin.firestore();
+    const db = getFirestore();
     const userId = userRecord.uid;
     const userEmail = userRecord.email;
 
@@ -22,10 +24,9 @@ const handleUserDeletion = async (userRecord) => {
         const docSnapshot = await userDocRef.get();
 
         if (docSnapshot.exists) {
-            // --- CHANGE: Fixed typo (removed 'f' before await). ---
             await userDocRef.update({
                 isDeleted: true,
-                deletedAt: admin.firestore.FieldValue.serverTimestamp(),
+                deletedAt: FieldValue.serverTimestamp(),
             });
             functions.logger.log(`Firestore document for user ${userId} successfully marked as deleted. All data retained.`);
             return { status: "success", message: `Document for ${userId} marked as deleted, data retained.` };
@@ -39,10 +40,4 @@ const handleUserDeletion = async (userRecord) => {
     }
 };
 
-const markUserAsDeletedInFirestore = functions.region('asia-southeast1').auth.user().onDelete(handleUserDeletion);
-
-
-
-module.exports = {
-  markUserAsDeletedInFirestore,
-};
+export const markUserAsDeletedInFirestore = regionalFunctions.auth.user().onDelete(handleUserDeletion);

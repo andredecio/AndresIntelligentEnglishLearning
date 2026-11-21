@@ -149,10 +149,9 @@ const knownThreeCharPhonemes = allRpPhonemes.filter(p => p.ipa.length === 3).map
 const knownTwoCharPhonemes = allRpPhonemes.filter(p => p.ipa.length === 2).map(p => p.ipa).sort((a, b) => b.length - a.length);
 const knownSingleCharPhonemes = allRpPhonemes.filter(p => p.ipa.length === 1).map(p => p.ipa);
 
-module.exports = {
+export {
   allRpPhonemes,
   knownThreeCharPhonemes,
   knownTwoCharPhonemes,
   knownSingleCharPhonemes
-  
 };

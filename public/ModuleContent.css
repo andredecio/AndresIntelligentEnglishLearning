@@ -392,13 +392,38 @@ body {
     transform: rotate(90deg); /* Rotate arrow when expanded */
 }
 
-/* Indentation for nested modules */
-.module-item.level-1 { padding-left: 30px; } /* Base indentation */
-.module-item.level-2 { padding-left: 50px; }
-.module-item.level-3 { padding-left: 70px; }
-.module-item.level-4 { padding-left: 90px; }
-.module-item.level-5 { padding-left: 110px; }
-.module-item.level-6 { padding-left: 130px; }
+/* Indentation and custom background colors for nested modules */
+/* Progressively darkening desaturated dusty slate-teal colors */
+.module-item.level-1 { 
+    padding-left: 30px; 
+    background-color: #c2d6d6 !important; /* Level 1: Soft, muted pale slate-teal */
+    color: #333333 !important;           /* Dark text */
+} 
+.module-item.level-2 { 
+    padding-left: 50px; 
+    background-color: #abc4c4 !important; /* Level 2: Muted dusty slate-teal */
+    color: #333333 !important;           /* Dark text */
+}
+.module-item.level-3 { 
+    padding-left: 70px; 
+    background-color: #8daaa9 !important; /* Level 3: Organic medium-light teal */
+    color: #333333 !important;           /* Dark text */
+}
+.module-item.level-4 { 
+    padding-left: 90px; 
+    background-color: #71908e !important; /* Level 4: Soft medium-dark slate-teal */
+    color: #ffffff !important;           /* Switched to white text for contrast */
+}
+.module-item.level-5 { 
+    padding-left: 110px;
+    background-color: #577774 !important; /* Level 5: Deep muted teal */
+    color: #ffffff !important;           /* White text */
+}
+.module-item.level-6 { 
+    padding-left: 130px;
+    background-color: #3f5e5b !important; /* Level 6: Dark forest-slate teal */
+    color: #ffffff !important;           /* White text */
+}
 
 /* Media specific styling for images and audio */
 .module-media {

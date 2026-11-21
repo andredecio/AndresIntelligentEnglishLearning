@@ -1,21 +1,28 @@
+import { logger } from 'firebase-functions/v1';
+import { getApps, initializeApp } from 'firebase-admin/app';
+import { getStorage } from 'firebase-admin/storage';
+import { TextToSpeechClient } from '@google-cloud/text-to-speech';
 
-const functions = require('firebase-functions/v1');
-const admin = require('firebase-admin');
-const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
+// Safeguard Firebase Admin SDK initialization
+if (getApps().length === 0) {
+    initializeApp();
+}
+
 const textToSpeechClient = new TextToSpeechClient(); 
 
-
-async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storagePathPrefix) {
+/**
+ * Synthesizes speech from text and IPA SSML, then uploads the generated MP3 to Cloud Storage.
+ */
+export async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storagePathPrefix) {
     try {
         const input = {
             ssml: `<speak><phoneme alphabet="ipa" ph="${ipaForSsml}">${text}</phoneme></speak>`,
-            // You can also use just 'text: text' if IPA SSML is not desired for some cases
         };
 
         const voice = {
-            languageCode: 'en-GB', // Consistent language code
-            name: 'en-GB-Neural2-A', // Consistent voice configuration
-            ssmlGender: 'FEMALE', // Or 'NEUTRAL', 'MALE'
+            languageCode: 'en-GB', 
+            name: 'en-GB-Neural2-A', 
+            ssmlGender: 'FEMALE', 
         };
 
         const audioConfig = {
@@ -24,8 +31,8 @@ async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storageP
             speakingRate: 1,
         };
 
-        functions.logger.info(`Synthesizing audio for text: "${text}" with IPA: "${ipaForSsml}"`);
-        // The 'textToSpeechClient' is already initialized globally in your file, so it's directly available here.
+        logger.info(`Synthesizing audio for text: "${text}" with IPA: "${ipaForSsml}"`);
+        
         const [response] = await textToSpeechClient.synthesizeSpeech({
             input: input,
             voice: voice,
@@ -33,29 +40,27 @@ async function generateAudioAndUpload(text, ipaForSsml, fileNamePrefix, storageP
         });
 
         if (!response.audioContent) {
-            functions.logger.warn(`No audio content received for "${text}".`);
+            logger.warn(`No audio content received for "${text}".`);
             return null;
         }
 
-        const bucket = admin.storage().bucket();
+        // Using modular getStorage() instead of legacy admin.storage()
+        const bucket = getStorage().bucket();
         const filename = `${storagePathPrefix}${fileNamePrefix}_${Date.now()}.mp3`;
         const file = bucket.file(filename);
 
-        functions.logger.info(`Uploading audio to Cloud Storage: ${filename}`);
+        logger.info(`Uploading audio to Cloud Storage: ${filename}`);
         await file.save(response.audioContent, {
             contentType: 'audio/mpeg',
-            public: true, // Make the file publicly accessible
+            public: true, 
         });
 
         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
-        functions.logger.info(`Audio uploaded successfully: ${publicUrl}`);
+        logger.info(`Audio uploaded successfully: ${publicUrl}`);
         return publicUrl;
 
     } catch (error) {
-        functions.logger.error(`Failed to generate or upload audio for "${text}":`, error);
+        logger.error(`Failed to generate or upload audio for "${text}":`, error);
         return null;
     }
 }
-
-module.exports = { generateAudioAndUpload };
-
