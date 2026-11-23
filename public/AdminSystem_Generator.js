@@ -146,3 +146,6 @@ if (document.readyState === 'loading') {
 } else {
     initGenerator();
 }
+document.addEventListener('click', (e) => {
+    console.log("CLICK DETECTED ON:", e.target, "Tag:", e.target.tagName, "Parent Form:", e.target.closest('form'));
+});
