@@ -1,7 +1,6 @@
 import { functions, db } from './firebase-services.js';
 import { httpsCallable } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-functions.js';
 import { collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
-import { showAlert } from './ui-utilities.js';
 
 let currentAuthenticatedUserData = null;
 let curStep = 0, dir = 'next';
@@ -94,9 +93,7 @@ function initGenerator() {
     const modal = document.getElementById('aiWizard');
     const nextBtn = document.getElementById('wizNextBtn');
     const backBtn = document.getElementById('wizBackBtn');
-	
-	console.log("WIZARD DEBUG: openBtn:", openBtn, " | modal:", modal);
-	
+
     async function renderStep() {
       if (steps[curStep].skip && steps[curStep].skip()) {
         curStep += (dir === 'next' ? 1 : -1);
@@ -109,7 +106,8 @@ function initGenerator() {
     }
 
     if (openBtn && modal) {
-        openBtn.addEventListener('click', () => {
+        openBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             modal.style.display = 'flex';
             curStep = 0;
             renderStep();
@@ -117,7 +115,8 @@ function initGenerator() {
     }
 
     if (nextBtn) {
-        nextBtn.addEventListener('click', async () => {
+        nextBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
             dir = 'next';
             steps[curStep].save();
             if (curStep < steps.length - 1) {
@@ -134,7 +133,8 @@ function initGenerator() {
     }
 
     if (backBtn) {
-        backBtn.addEventListener('click', async () => {
+        backBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
             dir = 'back';
             if (curStep > 0) { curStep--; await renderStep(); }
         });
