@@ -108,6 +108,8 @@ function initGenerator() {
     if (openBtn && modal) {
         openBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            console.log("Wizard button clicked! Opening modal.");
+            modal.classList.remove('hidden'); // <-- REMOVE the hidden class!
             modal.style.display = 'flex';
             curStep = 0;
             renderStep();
