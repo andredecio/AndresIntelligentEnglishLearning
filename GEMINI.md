@@ -30,3 +30,13 @@
 - **No Unsolicited Refactoring or Cleanup:** Do not optimize, reformat, reorder, or clean up any "unused" variables, functions, styles, configurations, or elements unless explicitly instructed to do so. What seems redundant or unused in a code snippet may be actively required by adjacent systems outside the immediate prompt context.
 - **Always Output Complete Code:** Never use placeholders (e.g., `// ... rest of code ...`), ellipses, or truncation when returning modified files. Always output the full, functional file with all original parts fully preserved.
 - **Obtain Permission Before Destructive Changes:** If any modification requires changing, deprecating, or deleting any existing code, logic, variables, or assets outside of the direct target, you must clearly explain the reason and ask for explicit confirmation before outputting the change.
+
+# Gemini Developer Instructions
+
+## Mandatory Session-End Reminder
+At the end of every developer chat session, always remind the developer to:
+1. Commit and push their updated code to GitHub (which automatically deploys Hosting).
+2. Manually deploy their updated Cloud Functions using the Firebase CLI.
+
+## Version Control & Release Formatting
+* Standardize on 'v' release formatting (e.g., `v 2.000`) for commit comments and the `README.md` file.
