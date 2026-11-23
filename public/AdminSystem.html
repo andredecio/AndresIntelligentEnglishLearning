@@ -33,13 +33,13 @@
             <h1>Generate Modules </h1>
             <button id="logoutButton" type="button">Log Out</button>
 			<button id="manageContentBtn" type="button">Manage Module Content</button>
-
             <!-- NEW: Div for displaying user's payment status and balance -->
             <div id="userPaymentStatus" class="user-status-info">
                 <!-- Content will be populated by AdminSystem_Generator.js -->
             </div>
 
             <form id="contentGeneratorForm">
+
                 <label for="cefrLevel">CEFR Level:</label>
                 <select id="cefrLevel" required>
                     <option value="A1">A1</option>
@@ -90,6 +90,8 @@
 
                 <button type="submit">Generate Content</button>
             </form>
+			<button type="button" id="openWizardBtn" style="background:#28a745; margin-top: 10px;">Interactive Lesson Wizard 🚀</button>
+
 			 <!-- The spinner element -->
 			<div id="loadingSpinner" class="spinner hidden"></div>
 			<p id="skippedWordsDisplay" class="loading"></p> 
@@ -98,6 +100,16 @@
         </div>
     </div>
 
+<div id="aiWizard" class="modal hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);display:none;justify-content:center;align-items:center;z-index:9999;font-family:sans-serif;">
+  <div style="background:#fff;padding:30px;border-radius:12px;width:90%;max-width:500px;box-shadow:0 10px 35px rgba(0,0,0,0.3);position:relative;">
+    <h4 id="wizardLabel" style="margin-top:0;color:#222;font-size:1.2rem;line-height:1.5;min-height:60px;"></h4>
+    <div id="wizardControl" style="margin:20px 0;min-height:100px;"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:25px;border-top:1px solid #eee;padding-top:15px;">
+      <button id="wizBackBtn" style="padding:10px 20px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;display:none;">Back</button>
+      <button id="wizNextBtn" style="padding:10px 20px;background:#007bff;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-left:auto;">Next</button>
+    </div>
+  </div>
+</div>
 
     <!-- Your NEW custom modular JavaScript files -->
     <script type="module" src="firebase-services.js"></script>
@@ -107,5 +119,7 @@
     <!-- Page-specific JavaScript for AdminSystem.html, now split -->
     <script type="module" src="AdminSystem_Generator.js"></script> <!-- Handles content generation forms -->
 	<script type="module" src="AdminSystem_Auth.js"></script>      <!-- Handles login, logout, and admin claims -->
+<!-- Conversational AI Wizard Modal -->
+
 </body> 
 </html>
